@@ -1,0 +1,20 @@
+[package]
+name = "surrealml"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tch = "0.13.0"
+regex = "1.9.3"
+tempfile = "3.7.1"
+
+
+[[bin]]
+name = "surrealml"
+path = "src/main.rs"
+
+[lib]
+name = "surrealml"
+path = "src/lib.rs"
