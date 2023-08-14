@@ -179,6 +179,8 @@ This is where the computation utilises the data in the header. We can do this by
 with the code below:
 
 ```rust
+use crate::execution::compute::ModelComputation;
+
 let computert_unit = ModelComputation {
     surml_file: &mut file
 };
