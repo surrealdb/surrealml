@@ -63,6 +63,10 @@ impl Header {
         self.normalisers.add_normaliser(normaliser, column_name, &self.keys);
     }
 
+    pub fn get_normaliser(&self, column_name: &String) -> Option<&NormaliserType> {
+        self.normalisers.get_normaliser(column_name.to_string(), &self.keys)
+    }
+
     /// Adds an output column to the `self.output` field.
     /// 
     /// # Arguments
