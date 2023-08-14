@@ -19,6 +19,13 @@ pub struct SurMlFile {
 
 impl SurMlFile {
 
+    pub fn fresh(model: CModule) -> Self {
+        Self {
+            header: Header::fresh(),
+            model
+        }
+    }
+
     /// Creates a new `SurMlFile` struct.
     /// 
     /// # Arguments

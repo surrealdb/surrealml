@@ -24,6 +24,25 @@ pub enum NormaliserType {
 
 impl NormaliserType {
 
+    /// Constructs a new normaliser.
+    /// 
+    /// # Arguments
+    /// * `label` - The label of the normaliser.
+    /// * `one` - The first parameter of the normaliser.
+    /// * `two` - The second parameter of the normaliser.
+    /// 
+    /// # Returns
+    /// A new normaliser.
+    pub fn new(label: String, one: f32, two: f32) -> Self {
+        match label.as_str() {
+            "linear_scaling" => NormaliserType::LinearScaling(linear_scaling::LinearScaling{min: one, max: two}),
+            "clipping" => NormaliserType::Clipping(clipping::Clipping{min: Some(one), max: Some(two)}),
+            "log_scaling" => NormaliserType::LogScaling(log_scale::LogScaling{base: one, min: two}),
+            "z_score" => NormaliserType::ZScore(z_score::ZScore{mean: one, std_dev: two}),
+            _ => panic!("Invalid normaliser label: {}", label),
+        }
+    }
+
     /// Unpacks a normaliser from a string.
     /// 
     /// # Arguments

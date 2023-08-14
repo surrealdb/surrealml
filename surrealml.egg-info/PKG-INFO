@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: surrealml
+Version: 0.0.1
+Summary: SurrealMl is a file format for storing machine learning models across python (all versions) and rust.
+Author: Maxwell Flitton
+Author-email: maxwell@gmail.com
+Description-Content-Type: text/markdown
