@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import pathlib
+import os
 
 from setuptools import setup
 from setuptools_rust import Binding, RustExtension
@@ -8,10 +8,8 @@ from setuptools_rust import Binding, RustExtension
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-
-# with open(str(pathlib.Path(__file__).parent.absolute()) + "/surrealml/VERSION.txt", "r") as fh:
-#     version = fh.read().split("=")[1].replace("'", "")
-
+# setting the environment variable will get the Rust build to use the python torch installation to prevent clashes
+os.environ["LIBTORCH_USE_PYTORCH"] = "1"
 
 setup(
     name="surrealml",
@@ -31,5 +29,10 @@ setup(
     },
     # rust extensions are not zip safe, just like C-extensions.
     zip_safe=False,
-    include_package_data=True
+    include_package_data=True,
+    requirements=[
+        "pyyaml>=3.13",
+        "numpy",
+        "torch>=2.0.0"
+    ]
 )

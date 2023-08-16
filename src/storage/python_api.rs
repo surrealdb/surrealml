@@ -28,9 +28,8 @@ pub fn load_model(file_path: String) -> String {
 #[pyfunction]
 pub fn save_model(file_path: String, file_id: String) {
     let mut python_state = PYTHON_STATE.lock().unwrap();
-    let wrapped_file = python_state.get_mut(&file_id).unwrap();
-    wrapped_file.write(&file_path).unwrap();
-    python_state.remove(&file_id);
+    let file = python_state.get_mut(&file_id).unwrap();
+    file.write(&file_path).unwrap();
 }
 
 
@@ -46,6 +45,22 @@ pub fn load_cached_raw_model(file_path: String) -> String {
 
 
 #[pyfunction]
+pub fn add_name(file_id: String, model_name: String) {
+    let mut python_state = PYTHON_STATE.lock().unwrap();
+    let wrapped_file = python_state.get_mut(&file_id).unwrap();
+    wrapped_file.header.add_name(model_name);
+}
+
+
+// #[pyfunction]
+// pub fn add_description(file_id: String, description: String) {
+//     let mut python_state = PYTHON_STATE.lock().unwrap();
+//     let wrapped_file = python_state.get_mut(&file_id).unwrap();
+//     wrapped_file.header.add_(model_name);
+// }
+
+
+#[pyfunction]
 pub fn add_column(file_id: String, column_name: String) {
     let mut python_state = PYTHON_STATE.lock().unwrap();
     let wrapped_file = python_state.get_mut(&file_id).unwrap();
@@ -56,22 +71,14 @@ pub fn add_column(file_id: String, column_name: String) {
 #[pyfunction]
 pub fn add_output(file_id: String, output_name: String, normaliser_label: Option<String>, one: Option<f32>, two: Option<f32>) {
     let mut python_state = PYTHON_STATE.lock().unwrap();
-    let wrapped_file = python_state.get_mut(&file_id).unwrap();
+    let file = python_state.get_mut(&file_id).unwrap();
     if let Some(normaliser_label) = normaliser_label {
         let normaliser = NormaliserType::new(normaliser_label, one.unwrap(), two.unwrap());
-        wrapped_file.header.add_output(output_name, Some(normaliser));
+        file.header.add_output(output_name, Some(normaliser));
     }
     else {
-        wrapped_file.header.add_output(output_name, None);
+        file.header.add_output(output_name, None);
     }
-}
-
-
-#[pyfunction]
-pub fn add_output_normaliser(file_id: String, output_name: String) {
-    let mut python_state = PYTHON_STATE.lock().unwrap();
-    let wrapped_file = python_state.get_mut(&file_id).unwrap();
-    wrapped_file.header.add_output(output_name, None);
 }
 
 
@@ -79,7 +86,14 @@ pub fn add_output_normaliser(file_id: String, output_name: String) {
 pub fn add_normaliser(file_id: String, column_name: String, normaliser_label: String, one: f32, two: f32) {
     let normaliser = NormaliserType::new(normaliser_label, one, two);
     let mut python_state = PYTHON_STATE.lock().unwrap();
-    let wrapped_file = python_state.get_mut(&file_id).unwrap();
-    wrapped_file.header.normalisers.add_normaliser(normaliser, column_name, &wrapped_file.header.keys);
+    let file = python_state.get_mut(&file_id).unwrap();
+    file.header.normalisers.add_normaliser(normaliser, column_name, &file.header.keys);
+}
+
+
+#[pyfunction]
+pub fn delete_cached_model(file_id: String) {
+    let mut python_state = PYTHON_STATE.lock().unwrap();
+    python_state.remove(&file_id);
 }
 

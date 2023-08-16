@@ -2,6 +2,7 @@ README.md
 pyproject.toml
 setup.py
 surrealml/__init__.py
+surrealml/surml_file.py
 surrealml.egg-info/PKG-INFO
 surrealml.egg-info/SOURCES.txt
 surrealml.egg-info/dependency_links.txt

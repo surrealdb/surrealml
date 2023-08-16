@@ -14,7 +14,13 @@ use crate::storage::python_api::{
     load_cached_raw_model,
     add_column,
     add_output,
-    add_normaliser
+    add_normaliser,
+    add_name,
+    delete_cached_model
+};
+use crate::execution::python_api::{
+    raw_compute,
+    buffered_compute
 };
 
 
@@ -26,5 +32,9 @@ fn rust_surrealml(_py: Python, m: &PyModule) -> PyResult<()> {
     let _ = m.add_wrapped(wrap_pyfunction!(add_column));
     let _ = m.add_wrapped(wrap_pyfunction!(add_output));
     let _ = m.add_wrapped(wrap_pyfunction!(add_normaliser));
+    let _ = m.add_wrapped(wrap_pyfunction!(add_name));
+    let _ = m.add_wrapped(wrap_pyfunction!(raw_compute));
+    let _ = m.add_wrapped(wrap_pyfunction!(buffered_compute));
+    let _ = m.add_wrapped(wrap_pyfunction!(delete_cached_model));
     Ok(())
 }

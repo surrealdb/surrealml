@@ -1,7 +1,5 @@
 //! Defines the operations around performing computations on a loaded model.
 use crate::storage::surml_file::SurMlFile;
-use crate::storage::header::normalisers::wrapper::NormaliserType;
-use crate::storage::header::normalisers::traits::Normaliser;
 use tch::Tensor;
 use std::collections::HashMap;
 
@@ -73,13 +71,7 @@ impl <'a>ModelComputation<'a> {
             let value_ref = value.clone();
             match self.surml_file.header.get_normaliser(&key.to_string()) {
                 Some(normaliser) => {
-                    let normalised_value = match normaliser {
-                        NormaliserType::LinearScaling(normaliser) => {normaliser.normalise(value_ref)},
-                        NormaliserType::Clipping(normaliser) => {normaliser.normalise(value_ref)},
-                        NormaliserType::LogScaling(normaliser) => {normaliser.normalise(value_ref)},
-                        NormaliserType::ZScore(normaliser) => {normaliser.normalise(value_ref)},
-                    };
-                    *value = normalised_value;
+                    *value = normaliser.normalise(value_ref);
                 },
                 None => {}
             }
@@ -99,13 +91,7 @@ impl <'a>ModelComputation<'a> {
 
         for i in 0..output.size()[0] {
             let value = output.double_value(&[i]) as f32;
-            let normalised_value = match output_normaliser {
-                NormaliserType::LinearScaling(normaliser) => {normaliser.inverse_normalise(value)},
-                NormaliserType::Clipping(normaliser) => {normaliser.inverse_normalise(value)},
-                NormaliserType::LogScaling(normaliser) => {normaliser.inverse_normalise(value)},
-                NormaliserType::ZScore(normaliser) => {normaliser.inverse_normalise(value)},
-            };
-            buffer.push(normalised_value);
+            buffer.push(output_normaliser.inverse_normalise(value));
         }
         Tensor::f_from_slice::<f32>(buffer.as_slice()).unwrap()
     }
