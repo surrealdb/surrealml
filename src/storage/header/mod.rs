@@ -2,11 +2,13 @@
 pub mod keys;
 pub mod normalisers;
 pub mod output;
+pub mod string_value;
 
 use keys::KeyBindings;
 use normalisers::wrapper::NormaliserType;
 use normalisers::NormaliserMap;
 use output::Output;
+use string_value::StringValue;
 
 
 /// The header of the model file.
@@ -19,6 +21,7 @@ pub struct Header {
     pub keys: KeyBindings,
     pub normalisers: NormaliserMap,
     pub output: Output,
+    pub name: StringValue,
 }
 
 
@@ -33,7 +36,16 @@ impl Header {
             keys: KeyBindings::fresh(),
             normalisers: NormaliserMap::fresh(),
             output: Output::fresh(),
+            name: StringValue::fresh(),
         }
+    }
+
+    /// Adds a model name to the `self.name` field.
+    /// 
+    /// # Arguments
+    /// * `model_name` - The name of the model to be added.
+    pub fn add_name(&mut self, model_name: String) {
+        self.name = StringValue::from_string(model_name);
     }
 
     /// Adds a column name to the `self.keys` field. It must be noted that the order in which the columns are added is 
@@ -97,8 +109,9 @@ impl Header {
         let buffer = string_data.split(Self::delimiter()).collect::<Vec<&str>>();
         let keys = KeyBindings::from_string(buffer[1].to_string())?;
         let normalisers = NormaliserMap::from_string(buffer[2].to_string(), &keys);
-        let output = Output::from_string(buffer[3].to_string()); 
-        Ok(Header {keys, normalisers, output})
+        let output = Output::from_string(buffer[3].to_string());
+        let name = StringValue::from_string(buffer[4].to_string());
+        Ok(Header {keys, normalisers, output, name})
     }
 
     /// Converts the `Header` struct into bytes.
@@ -111,6 +124,7 @@ impl Header {
             self.keys.to_string(),
             self.normalisers.to_string(),
             self.output.to_string(),
+            self.name.to_string(),
             "".to_string(),
         ];
         let buffer = buffer.join(Self::delimiter()).into_bytes();
@@ -138,13 +152,15 @@ mod tests {
         let normalisers = generate_normaliser_string();
         let output = "g=>linear_scaling(0.0,1.0)".to_string();
         format!(
-            "{}{}{}{}{}{}{}", 
+            "{}{}{}{}{}{}{}{}{}", 
             Header::delimiter(), 
             keys, 
             Header::delimiter(), 
             normalisers, 
             Header::delimiter(),
             output,
+            Header::delimiter(),
+            "test model name".to_string(),
             Header::delimiter(),
         )
     }
@@ -157,7 +173,6 @@ mod tests {
     fn test_from_bytes() {
         let header = Header::from_bytes(generate_bytes()).unwrap();
 
-        println!("{:?}", header);
         assert_eq!(header.keys.store.len(), 6);
         assert_eq!(header.keys.reference.len(), 6);
         assert_eq!(header.normalisers.store.len(), 4);
@@ -186,14 +201,14 @@ mod tests {
 
         // below the integers are correct but there is a difference with the decimal point representation in the string, we can alter this
         // fairly easy and will investigate it
-        let expected_string = "//=>a=>b=>c=>d=>e=>f//=>a=>linear_scaling(0,1)//b=>clipping(0,1.5)//c=>log_scaling(10,0)//e=>z_score(0,1)//=>g=>linear_scaling(0,1)//=>".to_string();
+        let expected_string = "//=>a=>b=>c=>d=>e=>f//=>a=>linear_scaling(0,1)//b=>clipping(0,1.5)//c=>log_scaling(10,0)//e=>z_score(0,1)//=>g=>linear_scaling(0,1)//=>test model name//=>".to_string();
         assert_eq!(string, expected_string);
         assert_eq!(bytes_num, expected_string.len() as i32);
 
         let empty_header = Header::fresh();
         let (bytes_num, bytes) = empty_header.to_bytes();
         let string = String::from_utf8(bytes).unwrap();
-        let expected_string = "//=>//=>//=>//=>".to_string();
+        let expected_string = "//=>//=>//=>//=>//=>".to_string();
 
         assert_eq!(string, expected_string);
         assert_eq!(bytes_num, expected_string.len() as i32);

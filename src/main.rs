@@ -1,23 +1,20 @@
 mod storage;
 mod execution;
 
-#[cfg(feature = "python")]
-pub mod python_state;
-
 use crate::storage::surml_file::SurMlFile;
 use tch::{CModule, Tensor};
 use crate::execution::compute::ModelComputation;
 use std::collections::HashMap;
+
+#[cfg(feature = "python")]
+pub mod python_state;
 
 
 fn main() {
     println!("Hello, .surml!");
     let mut file = SurMlFile::from_file("./test.surml").unwrap();
     println!("{:?}", file.header);
-    // // let mut vs = tch::nn::VarStore::new(tch::Device::Cpu);
-    // let mut model = CModule::load("./tests/linear.pt").unwrap();
     file.model.set_eval();
-    // println!("{:?}", model);
     let x = Tensor::f_from_slice::<f32>(&[1.0, 2.0, 3.0, 4.0]).unwrap().reshape(&[2, 2]);
     let outcome = file.model.forward_ts(&[x]);
     println!("{:?}", outcome);

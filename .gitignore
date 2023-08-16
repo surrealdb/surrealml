@@ -3,3 +3,8 @@
 /target/
 Cargo.lock
 /stash/
+
+build/
+dist/
+venv/
+.idea/

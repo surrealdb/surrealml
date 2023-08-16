@@ -4,6 +4,7 @@ use super::clipping;
 use super::log_scale;
 use super::z_score;
 use super::utils::{extract_label, extract_two_numbers};
+use super::traits::Normaliser;
 
 
 /// A wrapper for all different types of normalisers.
@@ -122,6 +123,38 @@ impl NormaliserType {
             },
         };
         normaliser_string
+    }
+
+    /// Normalises a value.
+    /// 
+    /// # Arguments
+    /// * `value` - The value to normalise.
+    /// 
+    /// # Returns
+    /// The normalised value.
+    pub fn normalise(&self, value: f32) -> f32 {
+        match self {
+            NormaliserType::LinearScaling(normaliser) => normaliser.normalise(value),
+            NormaliserType::Clipping(normaliser) => normaliser.normalise(value),
+            NormaliserType::LogScaling(normaliser) => normaliser.normalise(value),
+            NormaliserType::ZScore(normaliser) => normaliser.normalise(value),
+        }
+    }
+
+    /// Inverse normalises a value.
+    /// 
+    /// # Arguments
+    /// * `value` - The value to inverse normalise.
+    /// 
+    /// # Returns
+    /// The inverse normalised value.
+    pub fn inverse_normalise(&self, value: f32) -> f32 {
+        match self {
+            NormaliserType::LinearScaling(normaliser) => normaliser.inverse_normalise(value),
+            NormaliserType::Clipping(normaliser) => normaliser.inverse_normalise(value),
+            NormaliserType::LogScaling(normaliser) => normaliser.inverse_normalise(value),
+            NormaliserType::ZScore(normaliser) => normaliser.inverse_normalise(value),
+        }
     }
 
 }

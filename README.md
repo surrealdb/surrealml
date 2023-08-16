@@ -102,53 +102,80 @@ for epoch in range(num_epochs):
         print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
 ```
 
-### Saving our model
+### Saving our `.surml` file
 
-Our model is now trained and we need to trace the trained model and save it in the C format with the code below:
+Our model is now trained and we need some example data to trace the model with the code below:
 
 ```python
 test_squarefoot = torch.tensor([2800, 3200], dtype=torch.float32)
 test_num_floors = torch.tensor([2.5, 3], dtype=torch.float32)
 test_inputs = torch.stack([test_squarefoot, test_num_floors], dim=1)
-
-traced_script_module = torch.jit.trace(model, test_inputs)
-traced_script_module.save("./stash")
 ```
 
-### Saving our `.surml` file
-
-We now have the raw C model and this can be used to construct our `.surml` file. It is advised to use a different script to avoid
-clashes with the python pytorch as our rust module is also using pytorch. First we load the C model with the following code:
+We can now wrap our model in the `SurMlFile` object with the following code:
 
 ```python
-from surrealml.rust_surrealml import load_cached_raw_model, add_column, add_output, add_normaliser, save_model
+from surrealml import SurMlFile
 
-file_id = load_cached_raw_model("./stash")
+file = SurMlFile(model=model, name="House Price Prediction", inputs=test_inputs)
 ```
-
-We now have a `file_id` which can be passed through our `surrealml` functions to access the right loaded model. We need to add some
-meta data to the file such as our inputs and outputs with the following code:
+The name is optional but the inputs and model are essential. We can now add some meta data to the file such as our inputs and outputs with the following code, however meta data is not essential, it just helps with some types of computation:
 
 ```python
-add_column(file_id, "squarefoot")
-add_column(file_id, "num_floors")
-add_output(file_id, "house_price", "z_score", house_price_mean, house_price_std)
+file.add_column("squarefoot")
+file.add_column("num_floors")
+file.add_output("house_price", "z_score", house_price_mean, house_price_std)
 ```
 
 It must be stressed that the `add_column` order needs to be consistent with the input tensors that the model was trained on as these
 now act as key bindings to convert dictionary inputs into the model. We need to also add the normalisers for our column but these will
-be automatically mapped therefore we do not need to worry about the order they are inputed:
+be automatically mapped therefore we do not need to worry about the order they are inputed, again, normalisers are optional, you can
+normalise the data yourself:
 
 ```python
-add_normaliser(file_id, "squarefoot", "z_score", squarefoot_mean, squarefoot_std)
-add_normaliser(file_id, "num_floors", "z_score", num_floors_mean, num_floors_std)
+file.add_normaliser("squarefoot", "z_score", squarefoot_mean, squarefoot_std)
+file.add_normaliser("num_floors", "z_score", num_floors_mean, num_floors_std)
 ```
 
 We then save the model with the following code:
 
 ```python
-save_model("./test.surml", file_id)
+file.save("./test.surml")
 ```
+
+### Loading our `.surml` file in Python
+
+If you have followed the previous steps you should have a `.surml` file saved with all our meta data. We load it with the following code:
+
+```python
+from surrealml import SurMlFile
+
+new_file = SurMlFile.load("./test.surml")
+```
+
+Our model is now loaded. We can now perform computations.
+
+### Raw computation in Python
+If you haven't put any meta data into the file then don't worry, we can just perform a raw computation with the following command:
+
+```python
+print(new_file.raw_compute([1.0, 2.0]))
+```
+
+This will just give you the outcome from the model. If you have put in the meta data then we can perform a buffered computation.
+
+
+### Buffered computation in Python
+
+This is where the computation utilises the data in the header. We can do this by merely passing in a dictionary as seen below:
+
+```python
+print(new_file.buffered_compute({
+    "squarefoot": 1.0,
+    "num_floors": 2.0
+}))
+```
+
 
 ### Loading our `.surml` file in Rust
 
@@ -160,7 +187,7 @@ use crate::storage::surml_file::SurMlFile;
 let mut file = SurMlFile::from_file("./test.surml").unwrap();
 ```
 
-### Raw computation
+### Raw computation in Rust
 You can have an empty header if you want. This makes sense if you're doing something novel, or complex such as convolutional neural networks
 for image processing. To perform a raw computation you can merely just do the following:
 
@@ -173,7 +200,7 @@ println!("{:?}", outcome);
 
 However if you want to use the header you need to perform a buffered computer
 
-### Buffered computation
+### Buffered computation in Rust
 
 This is where the computation utilises the data in the header. We can do this by wrapping our `File` struct in a `ModelComputation` struct
 with the code below:

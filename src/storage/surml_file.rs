@@ -19,6 +19,13 @@ pub struct SurMlFile {
 
 impl SurMlFile {
 
+    /// Creates a new `SurMlFile` struct with an empty header.
+    /// 
+    /// # Arguments
+    /// * `model` - The PyTorch model in C.
+    /// 
+    /// # Returns
+    /// A new `SurMlFile` struct with no columns or normalisers.
     pub fn fresh(model: CModule) -> Self {
         Self {
             header: Header::fresh(),
@@ -123,7 +130,6 @@ mod tests {
         surml_file.write("./stash/test.surml").unwrap();
 
         let new_file = SurMlFile::from_file("./stash/test.surml").unwrap();
-        println!("new_file: {:?}", new_file.header);
     }
 
 }
