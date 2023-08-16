@@ -15,6 +15,13 @@ use tch::CModule;
 use crate::python_state::{PYTHON_STATE, generate_unique_id};
 
 
+/// Loads a model from a file and returns a unique identifier for the loaded model.
+/// 
+/// # Arguments
+/// * `file_path` - The path to the file to load.
+/// 
+/// # Returns
+/// A unique identifier for the loaded model.
 #[pyfunction]
 pub fn load_model(file_path: String) -> String {
     let file_id = generate_unique_id();
@@ -25,6 +32,11 @@ pub fn load_model(file_path: String) -> String {
 }
 
 
+/// Saves a model to a file.
+/// 
+/// # Arguments
+/// * `file_path` - The path to the file to save to.
+/// * `file_id` - The unique identifier for the loaded model.
 #[pyfunction]
 pub fn save_model(file_path: String, file_id: String) {
     let mut python_state = PYTHON_STATE.lock().unwrap();
@@ -33,6 +45,11 @@ pub fn save_model(file_path: String, file_id: String) {
 }
 
 
+/// Loads a PyTorch C model from a file wrapping it in a SurMlFile struct 
+/// which is stored in memory and referenced by a unique ID.
+/// 
+/// # Arguments
+/// * `file_path` - The path to the file to load.
 #[pyfunction]
 pub fn load_cached_raw_model(file_path: String) -> String {
     let file_id = generate_unique_id();
@@ -44,6 +61,11 @@ pub fn load_cached_raw_model(file_path: String) -> String {
 }
 
 
+/// Adds a name to the SurMlFile struct.
+/// 
+/// # Arguments
+/// * `file_id` - The unique identifier for the SurMlFile struct.
+/// * `model_name` - The name of the model to be added.
 #[pyfunction]
 pub fn add_name(file_id: String, model_name: String) {
     let mut python_state = PYTHON_STATE.lock().unwrap();
@@ -60,6 +82,11 @@ pub fn add_name(file_id: String, model_name: String) {
 // }
 
 
+/// Adds a column to the SurMlFile struct.
+/// 
+/// # Arguments
+/// * `file_id` - The unique identifier for the SurMlFile struct.
+/// * `column_name` - The name of the column to be added.
 #[pyfunction]
 pub fn add_column(file_id: String, column_name: String) {
     let mut python_state = PYTHON_STATE.lock().unwrap();
@@ -68,6 +95,14 @@ pub fn add_column(file_id: String, column_name: String) {
 }
 
 
+/// Adds an output to the SurMlFile struct.
+/// 
+/// # Arguments
+/// * `file_id` - The unique identifier for the SurMlFile struct.
+/// * `output_name` - The name of the output to be added.
+/// * `normaliser_label` - The label of the normaliser to be applied to the output.
+/// * `one` - The first parameter of the normaliser.
+/// * `two` - The second parameter of the normaliser.
 #[pyfunction]
 pub fn add_output(file_id: String, output_name: String, normaliser_label: Option<String>, one: Option<f32>, two: Option<f32>) {
     let mut python_state = PYTHON_STATE.lock().unwrap();
@@ -82,6 +117,14 @@ pub fn add_output(file_id: String, output_name: String, normaliser_label: Option
 }
 
 
+/// Adds a normaliser to the SurMlFile struct.
+/// 
+/// # Arguments
+/// * `file_id` - The unique identifier for the SurMlFile struct.
+/// * `column_name` - The name of the column to which the normaliser will be applied.
+/// * `normaliser_label` - The label of the normaliser to be applied to the column.
+/// * `one` - The first parameter of the normaliser.
+/// * `two` - The second parameter of the normaliser.
 #[pyfunction]
 pub fn add_normaliser(file_id: String, column_name: String, normaliser_label: String, one: f32, two: f32) {
     let normaliser = NormaliserType::new(normaliser_label, one, two);
@@ -91,6 +134,10 @@ pub fn add_normaliser(file_id: String, column_name: String, normaliser_label: St
 }
 
 
+/// Deletes a SurMlFile struct from memory.
+/// 
+/// # Arguments
+/// * `file_id` - The unique identifier for the SurMlFile struct.
 #[pyfunction]
 pub fn delete_cached_model(file_id: String) {
     let mut python_state = PYTHON_STATE.lock().unwrap();
