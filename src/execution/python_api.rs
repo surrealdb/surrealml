@@ -16,10 +16,16 @@ use crate::python_state::PYTHON_STATE;
 /// # Returns
 /// The computed output vector from the loaded model.
 #[pyfunction]
-pub fn raw_compute(file_id: String, input_vector: Vec<f32>) -> Vec<f32> {
+pub fn raw_compute(file_id: String, input_vector: Vec<f32>, dims: Option<[i64; 2]>) -> Vec<f32> {
     let mut python_state = PYTHON_STATE.lock().unwrap();
     let mut file = python_state.get_mut(&file_id).unwrap();
-    let tensor = Tensor::f_from_slice::<f32>(input_vector.as_slice()).unwrap();
+    let mut tensor = Tensor::f_from_slice::<f32>(input_vector.as_slice()).unwrap();
+    match dims {
+        Some(dims) => {
+            tensor = tensor.reshape(&dims);
+        },
+        None => {}
+    }
     file.model.set_eval();
     let compute_unit = ModelComputation {
         surml_file: &mut file
@@ -28,7 +34,6 @@ pub fn raw_compute(file_id: String, input_vector: Vec<f32>) -> Vec<f32> {
     let mut buffer = Vec::with_capacity(output_tensor.size()[0] as usize);
 
     for i in 0..output_tensor.size()[0] {
-        println!("{}", output_tensor.double_value(&[i]));
         buffer.push(output_tensor.double_value(&[i]) as f32);
     }
     buffer

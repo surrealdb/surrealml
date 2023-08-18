@@ -1,6 +1,9 @@
 mod storage;
 mod execution;
 
+#[cfg(test)]
+mod transport;
+
 use crate::storage::surml_file::SurMlFile;
 use tch::{CModule, Tensor};
 use crate::execution::compute::ModelComputation;

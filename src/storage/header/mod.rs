@@ -3,12 +3,14 @@ pub mod keys;
 pub mod normalisers;
 pub mod output;
 pub mod string_value;
+pub mod version;
 
 use keys::KeyBindings;
 use normalisers::wrapper::NormaliserType;
 use normalisers::NormaliserMap;
 use output::Output;
 use string_value::StringValue;
+use version::Version;
 
 
 /// The header of the model file.
@@ -22,6 +24,8 @@ pub struct Header {
     pub normalisers: NormaliserMap,
     pub output: Output,
     pub name: StringValue,
+    pub version: Version,
+    pub description: StringValue,
 }
 
 
@@ -37,6 +41,8 @@ impl Header {
             normalisers: NormaliserMap::fresh(),
             output: Output::fresh(),
             name: StringValue::fresh(),
+            version: Version::fresh(),
+            description: StringValue::fresh(),
         }
     }
 
@@ -46,6 +52,22 @@ impl Header {
     /// * `model_name` - The name of the model to be added.
     pub fn add_name(&mut self, model_name: String) {
         self.name = StringValue::from_string(model_name);
+    }
+
+    /// Adds a version to the `self.version` field.
+    /// 
+    /// # Arguments
+    /// * `version` - The version to be added.
+    pub fn add_version(&mut self, version: String) {
+        self.version = Version::from_string(version);
+    }
+
+    /// Adds a description to the `self.description` field.
+    /// 
+    /// # Arguments
+    /// * `description` - The description to be added.
+    pub fn add_description(&mut self, description: String) {
+        self.description = StringValue::from_string(description);
     }
 
     /// Adds a column name to the `self.keys` field. It must be noted that the order in which the columns are added is 
@@ -75,6 +97,13 @@ impl Header {
         self.normalisers.add_normaliser(normaliser, column_name, &self.keys);
     }
 
+    /// Gets the normaliser for a given column name.
+    /// 
+    /// # Arguments
+    /// * `column_name` - The name of the column to which the normaliser will be applied.
+    /// 
+    /// # Returns
+    /// The normaliser for the given column name.
     pub fn get_normaliser(&self, column_name: &String) -> Option<&NormaliserType> {
         self.normalisers.get_normaliser(column_name.to_string(), &self.keys)
     }
@@ -107,11 +136,13 @@ impl Header {
             Err(_) => return Err("Error converting bytes to string for header".to_string())
         };
         let buffer = string_data.split(Self::delimiter()).collect::<Vec<&str>>();
-        let keys = KeyBindings::from_string(buffer[1].to_string())?;
-        let normalisers = NormaliserMap::from_string(buffer[2].to_string(), &keys);
-        let output = Output::from_string(buffer[3].to_string());
-        let name = StringValue::from_string(buffer[4].to_string());
-        Ok(Header {keys, normalisers, output, name})
+        let keys = KeyBindings::from_string(buffer.get(1).unwrap_or(&"").to_string())?;
+        let normalisers = NormaliserMap::from_string(buffer.get(2).unwrap_or(&"").to_string(), &keys);
+        let output = Output::from_string(buffer.get(3).unwrap_or(&"").to_string());
+        let name = StringValue::from_string(buffer.get(4).unwrap_or(&"").to_string());
+        let version = Version::from_string(buffer.get(5).unwrap_or(&"").to_string());
+        let description = StringValue::from_string(buffer.get(6).unwrap_or(&"").to_string());
+        Ok(Header {keys, normalisers, output, name, version, description})
     }
 
     /// Converts the `Header` struct into bytes.
@@ -125,6 +156,8 @@ impl Header {
             self.normalisers.to_string(),
             self.output.to_string(),
             self.name.to_string(),
+            self.version.to_string(),
+            self.description.to_string(),
             "".to_string(),
         ];
         let buffer = buffer.join(Self::delimiter()).into_bytes();
@@ -152,7 +185,7 @@ mod tests {
         let normalisers = generate_normaliser_string();
         let output = "g=>linear_scaling(0.0,1.0)".to_string();
         format!(
-            "{}{}{}{}{}{}{}{}{}", 
+            "{}{}{}{}{}{}{}{}{}{}{}{}{}", 
             Header::delimiter(), 
             keys, 
             Header::delimiter(), 
@@ -161,6 +194,10 @@ mod tests {
             output,
             Header::delimiter(),
             "test model name".to_string(),
+            Header::delimiter(),
+            "0.0.1".to_string(),
+            Header::delimiter(),
+            "test description".to_string(),
             Header::delimiter(),
         )
     }
@@ -187,9 +224,16 @@ mod tests {
 
     #[test]
     fn test_empty_header() {
-        let string = "//=>//=>//=>//=>".to_string();
+        let string = "//=>//=>//=>//=>//=>//=>".to_string();
         let data = string.as_bytes();
         let header = Header::from_bytes(data.to_vec()).unwrap();
+
+        assert_eq!(header, Header::fresh());
+
+        let string = "".to_string();
+        let data = string.as_bytes();
+        let header = Header::from_bytes(data.to_vec()).unwrap();
+
         assert_eq!(header, Header::fresh());
     }
 
@@ -201,14 +245,14 @@ mod tests {
 
         // below the integers are correct but there is a difference with the decimal point representation in the string, we can alter this
         // fairly easy and will investigate it
-        let expected_string = "//=>a=>b=>c=>d=>e=>f//=>a=>linear_scaling(0,1)//b=>clipping(0,1.5)//c=>log_scaling(10,0)//e=>z_score(0,1)//=>g=>linear_scaling(0,1)//=>test model name//=>".to_string();
+        let expected_string = "//=>a=>b=>c=>d=>e=>f//=>a=>linear_scaling(0,1)//b=>clipping(0,1.5)//c=>log_scaling(10,0)//e=>z_score(0,1)//=>g=>linear_scaling(0,1)//=>test model name//=>0.0.1//=>test description//=>".to_string();
         assert_eq!(string, expected_string);
         assert_eq!(bytes_num, expected_string.len() as i32);
 
         let empty_header = Header::fresh();
         let (bytes_num, bytes) = empty_header.to_bytes();
         let string = String::from_utf8(bytes).unwrap();
-        let expected_string = "//=>//=>//=>//=>//=>".to_string();
+        let expected_string = "//=>//=>//=>//=>//=>//=>//=>".to_string();
 
         assert_eq!(string, expected_string);
         assert_eq!(bytes_num, expected_string.len() as i32);

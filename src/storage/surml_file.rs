@@ -48,6 +48,37 @@ impl SurMlFile {
         }
     }
 
+    /// Creates a new `SurMlFile` struct from a vector of bytes.
+    /// 
+    /// # Arguments
+    /// * `bytes` - A vector of bytes representing the header and the model.
+    /// 
+    /// # Returns
+    /// A new `SurMlFile` struct.
+    pub fn from_bytes(bytes: Vec<u8>) -> io::Result<Self> {
+        let mut header_bytes = Vec::new();
+        let mut model_bytes = Vec::new();
+
+        // extract the first 4 bytes as an integer to get the length of the header
+        let mut buffer = [0u8; 4];
+        buffer.copy_from_slice(&bytes[0..4]);
+        let integer_value = u32::from_be_bytes(buffer);
+
+        // Read the next integer_value bytes for the header
+        header_bytes.extend_from_slice(&bytes[4..(4 + integer_value as usize)]);
+
+        // Read the remaining bytes for the model
+        model_bytes.extend_from_slice(&bytes[(4 + integer_value as usize)..]);
+
+        // construct the header and C model from the bytes
+        let header = Header::from_bytes(header_bytes).unwrap();
+        let model = CModule::load_data(&mut model_bytes.as_slice()).unwrap();
+        Ok(Self {
+            header,
+            model,
+        })
+    }
+
     /// Creates a new `SurMlFile` struct from a file.
     /// 
     /// # Arguments
@@ -76,14 +107,11 @@ impl SurMlFile {
         })
     }
 
-    /// Writes the header and the model to a `surml` file.
-    /// 
-    /// # Arguments
-    /// * `file_path` - The path to the `surml` file.
+    /// Converts the header and the model to a vector of bytes.
     /// 
     /// # Returns
-    /// An `io::Result` indicating whether the write was successful.
-    pub fn write(&self, file_path: &str) -> io::Result<()> {
+    /// A vector of bytes representing the header and the model.
+    pub fn to_bytes(&self) -> Vec<u8> {
         // stash the C model in a temp file as there is no to_bytes() method for the C model
         let temp_dir = tempfile::tempdir().unwrap();
         let temp_path = temp_dir.path().join("c_model_cache");
@@ -102,6 +130,18 @@ impl SurMlFile {
         combined_vec.extend(num_bytes);
         combined_vec.extend(header_bytes);
         combined_vec.extend(model_bytes);
+        return combined_vec
+    }
+
+    /// Writes the header and the model to a `surml` file.
+    /// 
+    /// # Arguments
+    /// * `file_path` - The path to the `surml` file.
+    /// 
+    /// # Returns
+    /// An `io::Result` indicating whether the write was successful.
+    pub fn write(&self, file_path: &str) -> io::Result<()> {
+        let combined_vec = self.to_bytes();
 
         // write the bytes to a file
         let mut file = File::create(file_path)?;
@@ -129,7 +169,7 @@ mod tests {
         let surml_file = SurMlFile::new(header, model);
         surml_file.write("./stash/test.surml").unwrap();
 
-        let new_file = SurMlFile::from_file("./stash/test.surml").unwrap();
+        let _ = SurMlFile::from_file("./stash/test.surml").unwrap();
     }
 
 }
