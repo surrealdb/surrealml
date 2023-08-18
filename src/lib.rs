@@ -5,6 +5,9 @@ use pyo3::wrap_pyfunction;
 pub mod storage;
 pub mod execution;
 
+#[cfg(test)]
+pub mod transport;
+
 #[cfg(feature = "python")]
 pub mod python_state;
 
@@ -16,7 +19,9 @@ use crate::storage::python_api::{
     add_output,
     add_normaliser,
     add_name,
-    delete_cached_model
+    delete_cached_model,
+    add_description,
+    add_version
 };
 use crate::execution::python_api::{
     raw_compute,
@@ -33,6 +38,8 @@ fn rust_surrealml(_py: Python, m: &PyModule) -> PyResult<()> {
     let _ = m.add_wrapped(wrap_pyfunction!(add_output));
     let _ = m.add_wrapped(wrap_pyfunction!(add_normaliser));
     let _ = m.add_wrapped(wrap_pyfunction!(add_name));
+    let _ = m.add_wrapped(wrap_pyfunction!(add_description));
+    let _ = m.add_wrapped(wrap_pyfunction!(add_version));
     let _ = m.add_wrapped(wrap_pyfunction!(raw_compute));
     let _ = m.add_wrapped(wrap_pyfunction!(buffered_compute));
     let _ = m.add_wrapped(wrap_pyfunction!(delete_cached_model));

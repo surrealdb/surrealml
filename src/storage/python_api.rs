@@ -74,12 +74,30 @@ pub fn add_name(file_id: String, model_name: String) {
 }
 
 
-// #[pyfunction]
-// pub fn add_description(file_id: String, description: String) {
-//     let mut python_state = PYTHON_STATE.lock().unwrap();
-//     let wrapped_file = python_state.get_mut(&file_id).unwrap();
-//     wrapped_file.header.add_(model_name);
-// }
+/// Adds a description to the SurMlFile struct.
+/// 
+/// # Arguments
+/// * `file_id` - The unique identifier for the SurMlFile struct.
+/// * `description` - The description of the model to be added.
+#[pyfunction]
+pub fn add_description(file_id: String, description: String) {
+    let mut python_state = PYTHON_STATE.lock().unwrap();
+    let wrapped_file = python_state.get_mut(&file_id).unwrap();
+    wrapped_file.header.add_description(description);
+}
+
+
+/// Adds a version to the SurMlFile struct.
+/// 
+/// # Arguments
+/// * `file_id` - The unique identifier for the SurMlFile struct.
+/// * `version` - The version of the model to be added.
+#[pyfunction]
+pub fn add_version(file_id: String, version: String) {
+    let mut python_state = PYTHON_STATE.lock().unwrap();
+    let wrapped_file = python_state.get_mut(&file_id).unwrap();
+    wrapped_file.header.add_version(version);
+}
 
 
 /// Adds a column to the SurMlFile struct.

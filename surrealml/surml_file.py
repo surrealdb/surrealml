@@ -2,7 +2,7 @@ import torch
 import os
 import uuid
 
-from surrealml.rust_surrealml import load_cached_raw_model, add_column, add_output, add_normaliser, save_model, add_name, load_model
+from surrealml.rust_surrealml import load_cached_raw_model, add_column, add_output, add_normaliser, save_model, add_name, load_model, add_description, add_version
 from surrealml.rust_surrealml import raw_compute, buffered_compute
 
 class SurMlFile:
@@ -40,6 +40,12 @@ class SurMlFile:
     def add_output(self, output_name, normaliser_type, one, two):
         add_output(self.file_id, output_name, normaliser_type, one, two)
 
+    def add_description(self, description):
+        add_description(self.file_id, description)
+
+    def add_version(self, version):
+        add_version(self.file_id, version)
+
     def add_normaliser(self, column_name, normaliser_type, one, two):
         add_normaliser(self.file_id, column_name, normaliser_type, one, two)
 
@@ -52,8 +58,8 @@ class SurMlFile:
         self.file_id = load_model(path)
         return self
 
-    def raw_compute(self, input_vector, ):
-        return raw_compute(self.file_id, input_vector)
+    def raw_compute(self, input_vector, dims=None):
+        return raw_compute(self.file_id, input_vector, dims)
 
     def buffered_compute(self, value_map):
         return buffered_compute(self.file_id, value_map)
