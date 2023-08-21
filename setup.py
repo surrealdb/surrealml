@@ -33,6 +33,7 @@ setup(
     requirements=[
         "pyyaml>=3.13",
         "numpy",
-        "torch>=2.0.0"
+        "torch>=2.0.0",
+        "hummingbird-ml==0.4.9"
     ]
 )

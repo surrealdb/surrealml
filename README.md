@@ -1,7 +1,30 @@
 # SurrealMl
 This package is for storing machine learning models with meta data in Rust so they can be used on the SurrealDB server.
 
-## Python tutorial
+## Quick start with Sk-learn
+
+Sk-learn models can also be converted and stored in the `.surml` format enabling developers to load them in any
+python version as we are not relying on pickle. Metadata in the file also enables other users of the model to use them
+out of the box without having to worry about the normalisation of the data or getting the right inputs in order. You
+will also be able to load your sk-learn models in Rust and run them meaning you can use them in your SurrealDB server.
+Saving a model is as simple as the following:
+
+```python
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from surrealml import SurMlFile
+
+num_classes = 2
+X = np.random.rand(100, 28)
+y = np.random.randint(num_classes, size=100)
+
+skl_model = RandomForestClassifier(n_estimators=10, max_depth=10)
+skl_model.fit(X, y)
+test_file = SurMlFile(model=skl_model, name="random forrest classifier", inputs=X, sklearn=True)
+test_file.save("./test_forrest.surml")
+```
+
+## Python tutorial using Pytorch
 To carry out this example we need the following:
 
 - pytorch (pip installed for python)
@@ -162,8 +185,13 @@ If you haven't put any meta data into the file then don't worry, we can just per
 print(new_file.raw_compute([1.0, 2.0]))
 ```
 
-This will just give you the outcome from the model. If you have put in the meta data then we can perform a buffered computation.
+This will just give you the outcome from the model. If you have put in the metadata then we can perform a buffered computation.
+We can also input dimensions for the raw compute which will perform a batch computation. This can be done with the
+following code:
 
+```python
+print(new_file.raw_compute([1.0, 2.0, 3.0, 4.0]), dims=[2, 2])
+```
 
 ### Buffered computation in Python
 
