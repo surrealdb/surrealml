@@ -22,6 +22,11 @@ skl_model = RandomForestClassifier(n_estimators=10, max_depth=10)
 skl_model.fit(X, y)
 test_file = SurMlFile(model=skl_model, name="random forrest classifier", inputs=X, sklearn=True)
 test_file.save("./test_forrest.surml")
+
+# load model and execute a calculation
+random_floats = list(np.random.rand(28))
+test_load = SurMlFile.load("./test_forrest.surml")
+print(test_load.raw_compute(random_floats, [1, -1]))
 ```
 
 ## Python tutorial using Pytorch
