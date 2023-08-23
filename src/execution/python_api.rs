@@ -31,6 +31,7 @@ pub fn raw_compute(file_id: String, input_vector: Vec<f32>, dims: Option<[i64; 2
         surml_file: &mut file
     };
     let output_tensor = compute_unit.raw_compute(tensor);
+    // output_tensor
     let mut buffer = Vec::with_capacity(output_tensor.size()[0] as usize);
 
     for i in 0..output_tensor.size()[0] {
