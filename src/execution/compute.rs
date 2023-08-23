@@ -2,6 +2,7 @@
 use crate::storage::surml_file::SurMlFile;
 use tch::Tensor;
 use std::collections::HashMap;
+use tch::IValue;
 
 
 /// A wrapper for the loaded machine learning model so we can perform computations on the loaded model.
@@ -51,7 +52,21 @@ impl <'a>ModelComputation<'a> {
     /// # Returns
     /// The computed output tensor from the loaded model.
     pub fn raw_compute(&self, tensor: Tensor) -> Tensor {
-        self.surml_file.model.forward_ts(&[tensor]).unwrap()
+        let input = IValue::Tensor(tensor);
+        let outcome: IValue = self.surml_file.model.forward_is(&[input]).unwrap();
+        match outcome {
+            IValue::Tensor(tensor) => tensor,
+            // Tuple seems to be used for hummingbird models outputs
+            IValue::Tuple(mut tuple) => {
+                let mut placeholder = IValue::Bool(false);
+                std::mem::swap(&mut tuple[0], &mut placeholder);
+                match placeholder {
+                    IValue::Tensor(tensor) => return tensor,
+                    _ => panic!("The output of the model was not a tensor.")
+                }
+            },
+            _ => panic!("The output of the model was not a tensor.")
+        }
     }
 
     /// Checks the header applying normalisers if present and then performs a raw computation on the loaded model. Will
