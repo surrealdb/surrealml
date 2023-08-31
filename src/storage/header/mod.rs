@@ -4,6 +4,7 @@ pub mod normalisers;
 pub mod output;
 pub mod string_value;
 pub mod version;
+pub mod engine;
 
 use keys::KeyBindings;
 use normalisers::wrapper::NormaliserType;
@@ -11,6 +12,7 @@ use normalisers::NormaliserMap;
 use output::Output;
 use string_value::StringValue;
 use version::Version;
+use engine::Engine;
 
 
 /// The header of the model file.
@@ -18,6 +20,10 @@ use version::Version;
 /// # Fields
 /// * `keys` - The key bindings where the order of the input columns is stored.
 /// * `normalisers` - The normalisers where the normalisation functions are stored per column if there are any.
+/// * `output` - The output where the output column name and normaliser are stored if there are any.
+/// * `name` - The name of the model.
+/// * `version` - The version of the model.
+/// * `description` - The description of the model.
 #[derive(Debug, PartialEq)]
 pub struct Header {
     pub keys: KeyBindings,
@@ -26,6 +32,7 @@ pub struct Header {
     pub name: StringValue,
     pub version: Version,
     pub description: StringValue,
+    pub engine: Engine
 }
 
 
@@ -43,6 +50,7 @@ impl Header {
             name: StringValue::fresh(),
             version: Version::fresh(),
             description: StringValue::fresh(),
+            engine: Engine::fresh()
         }
     }
 
@@ -118,6 +126,14 @@ impl Header {
         self.output.normaliser = normaliser;
     }
 
+    /// Adds an engine to the `self.engine` field.
+    /// 
+    /// # Arguments
+    /// * `engine` - The engine to be added.
+    pub fn add_engine(&mut self, engine: String) {
+        self.engine = Engine::from_string(engine);
+    }
+
     /// The standard delimiter used to seperate each field in the header.
     fn delimiter() -> &'static str {
         "//=>"
@@ -142,7 +158,8 @@ impl Header {
         let name = StringValue::from_string(buffer.get(4).unwrap_or(&"").to_string());
         let version = Version::from_string(buffer.get(5).unwrap_or(&"").to_string());
         let description = StringValue::from_string(buffer.get(6).unwrap_or(&"").to_string());
-        Ok(Header {keys, normalisers, output, name, version, description})
+        let engine = Engine::from_string(buffer.get(7).unwrap_or(&"").to_string());
+        Ok(Header {keys, normalisers, output, name, version, description, engine})
     }
 
     /// Converts the `Header` struct into bytes.
@@ -158,6 +175,7 @@ impl Header {
             self.name.to_string(),
             self.version.to_string(),
             self.description.to_string(),
+            self.engine.to_string(),
             "".to_string(),
         ];
         let buffer = buffer.join(Self::delimiter()).into_bytes();
@@ -185,7 +203,7 @@ mod tests {
         let normalisers = generate_normaliser_string();
         let output = "g=>linear_scaling(0.0,1.0)".to_string();
         format!(
-            "{}{}{}{}{}{}{}{}{}{}{}{}{}", 
+            "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", 
             Header::delimiter(), 
             keys, 
             Header::delimiter(), 
@@ -198,6 +216,8 @@ mod tests {
             "0.0.1".to_string(),
             Header::delimiter(),
             "test description".to_string(),
+            Header::delimiter(),
+            Engine::PyTorch.to_string(),
             Header::delimiter(),
         )
     }
@@ -224,7 +244,7 @@ mod tests {
 
     #[test]
     fn test_empty_header() {
-        let string = "//=>//=>//=>//=>//=>//=>".to_string();
+        let string = "//=>//=>//=>//=>//=>//=>//=>".to_string();
         let data = string.as_bytes();
         let header = Header::from_bytes(data.to_vec()).unwrap();
 
@@ -245,14 +265,15 @@ mod tests {
 
         // below the integers are correct but there is a difference with the decimal point representation in the string, we can alter this
         // fairly easy and will investigate it
-        let expected_string = "//=>a=>b=>c=>d=>e=>f//=>a=>linear_scaling(0,1)//b=>clipping(0,1.5)//c=>log_scaling(10,0)//e=>z_score(0,1)//=>g=>linear_scaling(0,1)//=>test model name//=>0.0.1//=>test description//=>".to_string();
+        let expected_string = "//=>a=>b=>c=>d=>e=>f//=>a=>linear_scaling(0,1)//b=>clipping(0,1.5)//c=>log_scaling(10,0)//e=>z_score(0,1)//=>g=>linear_scaling(0,1)//=>test model name//=>0.0.1//=>test description//=>pytorch//=>".to_string();
+
         assert_eq!(string, expected_string);
         assert_eq!(bytes_num, expected_string.len() as i32);
 
         let empty_header = Header::fresh();
         let (bytes_num, bytes) = empty_header.to_bytes();
         let string = String::from_utf8(bytes).unwrap();
-        let expected_string = "//=>//=>//=>//=>//=>//=>//=>".to_string();
+        let expected_string = "//=>//=>//=>//=>//=>//=>//=>//=>".to_string();
 
         assert_eq!(string, expected_string);
         assert_eq!(bytes_num, expected_string.len() as i32);
