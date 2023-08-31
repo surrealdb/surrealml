@@ -61,6 +61,21 @@ pub fn load_cached_raw_model(file_path: String) -> String {
 }
 
 
+/// Converts the entire file to bytes.
+/// 
+/// # Arguments
+/// * `file_id` - The unique identifier for the SurMlFile struct.
+/// 
+/// # Returns
+/// A vector of bytes representing the entire file.
+#[pyfunction]
+pub fn to_bytes(file_id: String) -> Vec<u8> {
+    let mut python_state = PYTHON_STATE.lock().unwrap();
+    let file = python_state.get_mut(&file_id).unwrap();
+    file.to_bytes()
+}
+
+
 /// Adds a name to the SurMlFile struct.
 /// 
 /// # Arguments
@@ -110,6 +125,19 @@ pub fn add_column(file_id: String, column_name: String) {
     let mut python_state = PYTHON_STATE.lock().unwrap();
     let wrapped_file = python_state.get_mut(&file_id).unwrap();
     wrapped_file.header.add_column(column_name);
+}
+
+
+/// Adds an engine to the SurMlFile struct.
+/// 
+/// # Arguments
+/// * `file_id` - The unique identifier for the SurMlFile struct.
+/// * `engine` - The engine to be added.
+#[pyfunction]
+pub fn add_engine(file_id: String, engine: String) {
+    let mut python_state = PYTHON_STATE.lock().unwrap();
+    let wrapped_file = python_state.get_mut(&file_id).unwrap();
+    wrapped_file.header.add_engine(engine);
 }
 
 

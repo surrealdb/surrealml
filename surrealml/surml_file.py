@@ -6,10 +6,11 @@ import uuid
 
 import torch
 from surrealml.rust_surrealml import load_cached_raw_model, add_column, add_output, add_normaliser, save_model, \
-    add_name, load_model, add_description, add_version
+    add_name, load_model, add_description, add_version, to_bytes, add_engine
 from surrealml.rust_surrealml import raw_compute, buffered_compute
 
 from surrealml.model_cache import SkLearnModelCache
+from surrealml.engine_enum import Engine
 
 
 class SurMlFile:
@@ -117,7 +118,18 @@ class SurMlFile:
         :param path: the path to save the model to.
         :return: None
         """
+        # right now the only engine is pytorch so we can hardcode it but when we add more engines we will need to
+        # add a parameter to the save function to specify the engine
+        add_engine(self.file_id, Engine.PYTORCH.value)
         save_model(path, self.file_id)
+
+    def to_bytes(self):
+        """
+        Converts the model to bytes.
+
+        :return: the model as bytes.
+        """
+        return to_bytes(self.file_id)
 
     @staticmethod
     def load(path):
