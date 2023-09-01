@@ -23,7 +23,9 @@ use crate::storage::python_api::{
     add_description,
     add_version,
     to_bytes,
-    add_engine
+    add_engine,
+    add_author,
+    add_origin
 };
 use crate::execution::python_api::{
     raw_compute,
@@ -47,5 +49,7 @@ fn rust_surrealml(_py: Python, m: &PyModule) -> PyResult<()> {
     let _ = m.add_wrapped(wrap_pyfunction!(delete_cached_model));
     let _ = m.add_wrapped(wrap_pyfunction!(to_bytes));
     let _ = m.add_wrapped(wrap_pyfunction!(add_engine));
+    let _ = m.add_wrapped(wrap_pyfunction!(add_author));
+    let _ = m.add_wrapped(wrap_pyfunction!(add_origin));
     Ok(())
 }

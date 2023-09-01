@@ -5,6 +5,7 @@ pub mod output;
 pub mod string_value;
 pub mod version;
 pub mod engine;
+pub mod origin;
 
 use keys::KeyBindings;
 use normalisers::wrapper::NormaliserType;
@@ -13,6 +14,7 @@ use output::Output;
 use string_value::StringValue;
 use version::Version;
 use engine::Engine;
+use origin::Origin;
 
 
 /// The header of the model file.
@@ -24,6 +26,8 @@ use engine::Engine;
 /// * `name` - The name of the model.
 /// * `version` - The version of the model.
 /// * `description` - The description of the model.
+/// * `engine` - The engine of the model (could be native or pytorch).
+/// * `origin` - The origin of the model which is where the model was created and who the author is.
 #[derive(Debug, PartialEq)]
 pub struct Header {
     pub keys: KeyBindings,
@@ -32,7 +36,8 @@ pub struct Header {
     pub name: StringValue,
     pub version: Version,
     pub description: StringValue,
-    pub engine: Engine
+    pub engine: Engine,
+    pub origin: Origin,
 }
 
 
@@ -50,7 +55,8 @@ impl Header {
             name: StringValue::fresh(),
             version: Version::fresh(),
             description: StringValue::fresh(),
-            engine: Engine::fresh()
+            engine: Engine::fresh(),
+            origin: Origin::fresh(),
         }
     }
 
@@ -134,6 +140,22 @@ impl Header {
         self.engine = Engine::from_string(engine);
     }
 
+    /// Adds an author to the `self.origin` field.
+    /// 
+    /// # Arguments
+    /// * `author` - The author to be added.
+    pub fn add_author(&mut self, author: String) {
+        self.origin.add_author(author);
+    }
+
+    /// Adds an origin to the `self.origin` field.
+    /// 
+    /// # Arguments
+    /// * `origin` - The origin to be added.
+    pub fn add_origin(&mut self, origin: String) {
+        self.origin.add_origin(origin);
+    }
+
     /// The standard delimiter used to seperate each field in the header.
     fn delimiter() -> &'static str {
         "//=>"
@@ -159,7 +181,8 @@ impl Header {
         let version = Version::from_string(buffer.get(5).unwrap_or(&"").to_string());
         let description = StringValue::from_string(buffer.get(6).unwrap_or(&"").to_string());
         let engine = Engine::from_string(buffer.get(7).unwrap_or(&"").to_string());
-        Ok(Header {keys, normalisers, output, name, version, description, engine})
+        let origin = Origin::from_string(buffer.get(8).unwrap_or(&"").to_string());
+        Ok(Header {keys, normalisers, output, name, version, description, engine, origin})
     }
 
     /// Converts the `Header` struct into bytes.
@@ -176,6 +199,7 @@ impl Header {
             self.version.to_string(),
             self.description.to_string(),
             self.engine.to_string(),
+            self.origin.to_string(),
             "".to_string(),
         ];
         let buffer = buffer.join(Self::delimiter()).into_bytes();
@@ -203,7 +227,7 @@ mod tests {
         let normalisers = generate_normaliser_string();
         let output = "g=>linear_scaling(0.0,1.0)".to_string();
         format!(
-            "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", 
+            "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", 
             Header::delimiter(), 
             keys, 
             Header::delimiter(), 
@@ -218,6 +242,8 @@ mod tests {
             "test description".to_string(),
             Header::delimiter(),
             Engine::PyTorch.to_string(),
+            Header::delimiter(),
+            Origin::from_string("author=>local".to_string()).to_string(),
             Header::delimiter(),
         )
     }
@@ -244,7 +270,7 @@ mod tests {
 
     #[test]
     fn test_empty_header() {
-        let string = "//=>//=>//=>//=>//=>//=>//=>".to_string();
+        let string = "//=>//=>//=>//=>//=>//=>//=>//=>".to_string();
         let data = string.as_bytes();
         let header = Header::from_bytes(data.to_vec()).unwrap();
 
@@ -265,7 +291,7 @@ mod tests {
 
         // below the integers are correct but there is a difference with the decimal point representation in the string, we can alter this
         // fairly easy and will investigate it
-        let expected_string = "//=>a=>b=>c=>d=>e=>f//=>a=>linear_scaling(0,1)//b=>clipping(0,1.5)//c=>log_scaling(10,0)//e=>z_score(0,1)//=>g=>linear_scaling(0,1)//=>test model name//=>0.0.1//=>test description//=>pytorch//=>".to_string();
+        let expected_string = "//=>a=>b=>c=>d=>e=>f//=>a=>linear_scaling(0,1)//b=>clipping(0,1.5)//c=>log_scaling(10,0)//e=>z_score(0,1)//=>g=>linear_scaling(0,1)//=>test model name//=>0.0.1//=>test description//=>pytorch//=>author=>local//=>".to_string();
 
         assert_eq!(string, expected_string);
         assert_eq!(bytes_num, expected_string.len() as i32);
@@ -273,7 +299,7 @@ mod tests {
         let empty_header = Header::fresh();
         let (bytes_num, bytes) = empty_header.to_bytes();
         let string = String::from_utf8(bytes).unwrap();
-        let expected_string = "//=>//=>//=>//=>//=>//=>//=>//=>".to_string();
+        let expected_string = "//=>//=>//=>//=>//=>//=>//=>//=>//=>".to_string();
 
         assert_eq!(string, expected_string);
         assert_eq!(bytes_num, expected_string.len() as i32);

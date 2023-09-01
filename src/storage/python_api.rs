@@ -128,6 +128,32 @@ pub fn add_column(file_id: String, column_name: String) {
 }
 
 
+/// adds an author to the SurMlFile struct.
+/// 
+/// # Arguments
+/// * `file_id` - The unique identifier for the SurMlFile struct.
+/// * `author` - The author to be added.
+#[pyfunction]
+pub fn add_author(file_id: String, author: String) {
+    let mut python_state = PYTHON_STATE.lock().unwrap();
+    let wrapped_file = python_state.get_mut(&file_id).unwrap();
+    wrapped_file.header.add_author(author);
+}
+
+
+/// Adds an origin of where the model was trained to the SurMlFile struct.
+/// 
+/// # Arguments
+/// * `file_id` - The unique identifier for the SurMlFile struct.
+/// * `origin` - The origin to be added.
+#[pyfunction]
+pub fn add_origin(file_id: String, origin: String) {
+    let mut python_state = PYTHON_STATE.lock().unwrap();
+    let wrapped_file = python_state.get_mut(&file_id).unwrap();
+    wrapped_file.header.add_origin(origin);
+}
+
+
 /// Adds an engine to the SurMlFile struct.
 /// 
 /// # Arguments
