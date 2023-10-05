@@ -10,3 +10,4 @@ venv/
 .idea/
 surrealml.egg-info/
 .vscode/
+./modules/utils/target/
