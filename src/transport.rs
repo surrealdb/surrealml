@@ -7,8 +7,8 @@ use hyper::{Body, Request, Response, Server};
 use hyper::service::{make_service_fn, service_fn};
 use hyper::Client;
 
-use crate::storage::surml_file::SurMlFile;
-use crate::execution::compute::ModelComputation;
+use surrealml_utils::storage::surml_file::SurMlFile;
+use surrealml_utils::execution::compute::ModelComputation;
 
 
 async fn hello_world(req: Request<Body>) -> Result<Response<Body>, Infallible> {
@@ -30,8 +30,8 @@ async fn hello_world(req: Request<Body>) -> Result<Response<Body>, Infallible> {
     let computert_unit = ModelComputation {
         surml_file: &mut file
     };
-    let result = computert_unit.buffered_compute(&mut input_values);
-    assert_eq!(result.double_value(&[0]), 81482.28125);
+    let result = computert_unit.buffered_compute(&mut input_values).unwrap();
+    assert_eq!(result[0], 1.2747419);
     
     Ok(Response::new("Hello, World".into()))
 }

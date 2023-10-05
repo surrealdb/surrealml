@@ -10,14 +10,14 @@ python = ["pyo3"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tch = {version = "0.13.0", features = ["download-libtorch"]}
-regex = "1.9.3"
-tempfile = "3.7.1"
-pyo3 = { version = "0.18.3", optional = true }
+# regex = "1.9.3"
+# tempfile = "3.7.1"
+pyo3 = { version = "0.19.2", optional = true }
 uuid = { version = "1.4.1", features = ["v4"] }
 once_cell = "1.18.0"
-pyo3-tch = { version = "0.13.0", optional = true }
-torch-sys = "0.13.0"
+ndarray = "0.15.6"
+
+surrealml_utils = { path = "./modules/utils" }
 
 [dev-dependencies]
 tokio = { version = "1.32.0", features = ["full"] }
@@ -26,7 +26,6 @@ serde = "1.0.183"
 serde_json = "1.0.105"
 futures-util = "0.3.28"
 actix-web = "4.3.1"
-# pyo3-tch = "0.13.0"
 
 [[bin]]
 name = "surrealml"

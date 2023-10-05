@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use uuid::Uuid;
 use once_cell::sync::Lazy;
 
-use crate::storage::surml_file::SurMlFile;
+use surrealml_utils::storage::surml_file::SurMlFile;
 
 
 /// A hashmap of unique identifiers to loaded machine learning models. As long as the python program keeps the unique

@@ -258,3 +258,10 @@ input_values.insert(String::from("num_floors"), 2.0);
 let outcome = computert_unit.buffered_compute(&mut input_values);
 println!("{:?}", outcome);
 ```
+
+
+```
+[env]
+ORT_STRATEGY = { value = "system" }
+ORT_LIB_LOCATION = { value = "vendor/lib" , relative = true }
+```

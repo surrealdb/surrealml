@@ -1,25 +1,25 @@
 #!/usr/bin/env python
 import os
-import sys
+# import sys
 
 
 from setuptools import setup
 from setuptools_rust import Binding, RustExtension
-import torch
+# import torch
 
-torch_path = str(os.path.dirname(torch.__file__))
+# torch_path = str(os.path.dirname(torch.__file__))
 
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 # setting the environment variable will get the Rust build to use the python torch installation to prevent clashes
-os.environ["LIBTORCH_USE_PYTORCH"] = "1"
-os.environ["LIBTORCH_CXX11_ABI"] = "0"
-site_packages_lib_path = os.path.join(torch_path, "lib")
+# os.environ["LIBTORCH_USE_PYTORCH"] = "1"
+# os.environ["LIBTORCH_CXX11_ABI"] = "0"
+# site_packages_lib_path = os.path.join(torch_path, "lib")
 
-os.environ["LIBTORCH"] = torch_path
-os.environ["DYLD_LIBRARY_PATH"] = str(site_packages_lib_path)
+# os.environ["LIBTORCH"] = torch_path
+# os.environ["DYLD_LIBRARY_PATH"] = str(site_packages_lib_path)
 
 setup(
     name="surrealml",

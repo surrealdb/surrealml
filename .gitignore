@@ -9,3 +9,4 @@ dist/
 venv/
 .idea/
 surrealml.egg-info/
+.vscode/
