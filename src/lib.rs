@@ -9,13 +9,13 @@ pub mod python_apis;
 #[cfg(test)]
 pub mod transport;
 
-#[cfg(feature = "python")]
+// #[cfg(feature = "python")]
 pub mod python_state;
 
 use crate::python_apis::storage::{
     load_model,
     save_model,
-    // load_cached_raw_model,
+    load_cached_raw_model,
     add_column,
     add_output,
     add_normaliser,
@@ -38,7 +38,7 @@ use crate::python_apis::execution::{
 fn rust_surrealml(_py: Python, m: &PyModule) -> PyResult<()> {
     let _ = m.add_wrapped(wrap_pyfunction!(load_model));
     let _ = m.add_wrapped(wrap_pyfunction!(save_model));
-    // let _ = m.add_wrapped(wrap_pyfunction!(load_cached_raw_model));
+    let _ = m.add_wrapped(wrap_pyfunction!(load_cached_raw_model));
     let _ = m.add_wrapped(wrap_pyfunction!(add_column));
     let _ = m.add_wrapped(wrap_pyfunction!(add_output));
     let _ = m.add_wrapped(wrap_pyfunction!(add_normaliser));

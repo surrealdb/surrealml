@@ -10,7 +10,7 @@ regex = "1.9.5"
 # ort = { version = "1.15.4", features = ["download-binaries"] }
 # wonnx = "0.5.1"
 ndarray = "0.15.6"
-ort = "1.15.4"
+ort = "1.16.1"
 
 [dev-dependencies]
 tokio = { version = "1.12.0", features = ["full"] }

@@ -12,3 +12,4 @@ surrealml.egg-info/
 .vscode/
 ./modules/utils/target/
 modules/utils/target/
+surrealdb_build/
