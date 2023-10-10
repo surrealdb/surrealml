@@ -1,0 +1,7 @@
+version: '3'
+services:
+  surrealdb_demo:
+    build: .
+    container_name: surrealml_demo
+    ports: 
+      - "8000:8000"

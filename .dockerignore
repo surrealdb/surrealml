@@ -1,1 +1,5 @@
 /surrealdb_build/surrealdb/target/
+venv/
+tests/
+surrealdb_build/
+target/
