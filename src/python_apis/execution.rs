@@ -18,18 +18,11 @@ use crate::python_state::PYTHON_STATE;
 pub fn raw_compute(file_id: String, input_vector: Vec<f32>, dims: Option<(i32, i32)>) -> Vec<f32> {
     let mut python_state = PYTHON_STATE.lock().unwrap();
     let mut file = python_state.get_mut(&file_id).unwrap();
-    let mut tensor = ndarray::arr1(&input_vector).into_dyn();
-    match dims {
-        Some(unwrapped_dims) => {
-            let test = (1, 28);
-            tensor = tensor.into_shape(test).unwrap().into_dyn();
-        },
-        None => {}
-    }
+    let tensor = ndarray::arr1(&input_vector).into_dyn();
     let compute_unit = ModelComputation {
         surml_file: &mut file
     };
-    compute_unit.raw_compute(tensor).unwrap()
+    compute_unit.raw_compute(tensor, dims).unwrap()
 }
 
 
@@ -50,11 +43,4 @@ pub fn buffered_compute(file_id: String, mut input_values_map: HashMap<String, f
         surml_file: &mut file
     };
     compute_unit.buffered_compute(&mut input_values_map).unwrap()
-
-    // let output_tensor = compute_unit.buffered_compute(&mut input_values_map);
-    // let mut buffer: Vec<f32> = Vec::with_capacity(output_tensor.size()[0] as usize);
-    // for i in 0..output_tensor.size()[0] {
-    //     buffer.push(output_tensor.double_value(&[i]) as f32);
-    // }
-    // buffer
 }

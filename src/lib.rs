@@ -1,15 +1,20 @@
+//! # Rust SurrealML Client
+//! This crate is the client for the SurrealML project enabling the client to interact with surml files and run computations on them.
+//! Currently this client has the following bindings:
+//! - python
+//! 
+//! ## Storage APIs
+//! The direct storage APIs are exposed to the client to enable the client to interact with the surml files directly. This is in a different
+//! crate in the `modules/utils` directory 
 #![recursion_limit = "256"]
 use pyo3::prelude::*;
 use pyo3::wrap_pyfunction;
 
-// pub mod storage;
-// pub mod execution;
 pub mod python_apis;
 
 #[cfg(test)]
 pub mod transport;
 
-// #[cfg(feature = "python")]
 pub mod python_state;
 
 use crate::python_apis::storage::{

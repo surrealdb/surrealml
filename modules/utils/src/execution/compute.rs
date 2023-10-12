@@ -52,7 +52,17 @@ impl <'a>ModelComputation<'a> {
     /// 
     /// # Returns
     /// The computed output tensor from the loaded model.
-    pub fn raw_compute(&self, tensor: ArrayD<f32>) -> Result<Vec<f32>, String> {
+    pub fn raw_compute(&self, tensor: ArrayD<f32>, dims: Option<(i32, i32)>) -> Result<Vec<f32>, String> {
+
+        let tensor_placeholder: ArrayD<f32>;
+        if dims.is_some() {
+            let dims = dims.unwrap();
+            let tensor = tensor.into_shape((dims.0 as usize, dims.1 as usize)).unwrap();
+            tensor_placeholder = tensor.into_dyn();
+        }
+        else {
+            tensor_placeholder = tensor;
+        }
 
         let environment = Arc::new(
             Environment::builder()
@@ -63,7 +73,7 @@ impl <'a>ModelComputation<'a> {
         let session = SessionBuilder::new(&environment).map_err(|e| e.to_string())?
                                                        .with_model_from_memory(&self.surml_file.model)
                                                        .map_err(|e| e.to_string())?;
-        let x = CowArray::from(tensor);
+        let x = CowArray::from(tensor_placeholder);
         let outputs = session.run(vec![Value::from_array(session.allocator(), &x).unwrap()]).map_err(|e| e.to_string())?;
 
         let mut buffer: Vec<f32> = Vec::new();
@@ -112,7 +122,7 @@ impl <'a>ModelComputation<'a> {
             }
         }
         let tensor = self.input_tensor_from_key_bindings(input_values.clone());
-        let output = self.raw_compute(tensor)?;
+        let output = self.raw_compute(tensor, None)?;
         
         // if no normaliser is present, return the output
         if self.surml_file.header.output.normaliser == None {
@@ -149,7 +159,7 @@ mod tests {
         input_values.insert(String::from("squarefoot"), 1000.0);
         input_values.insert(String::from("num_floors"), 2.0);
 
-        let output = model_computation.raw_compute(model_computation.input_tensor_from_key_bindings(input_values)).unwrap();
+        let output = model_computation.raw_compute(model_computation.input_tensor_from_key_bindings(input_values), None).unwrap();
         assert_eq!(output.len(), 1);
         assert_eq!(output[0], 725.42053);
     }
@@ -182,7 +192,7 @@ mod tests {
             let data: ArrayD<f32> = ndarray::arr1(&x).into_dyn();
             let data: ArrayD<f32> = data.into_shape((1, 28)).unwrap().into_dyn();
     
-            let output = model_computation.raw_compute(data).unwrap();
+            let output = model_computation.raw_compute(data, None).unwrap();
             assert_eq!(output.len(), 1);
             assert_eq!(output[0], 0.0);
     }
