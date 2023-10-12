@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 regex = "1.9.3"
-ort = { version = "1.16.1", features = ["download-binaries"] }
+ort = { version = "1.16.0", features = ["download-binaries"] }
 # wonnx = "0.5.1"
 ndarray = "0.15.6"
 # ort = "1.16.1"
