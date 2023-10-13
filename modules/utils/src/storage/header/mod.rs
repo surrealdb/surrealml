@@ -16,6 +16,7 @@ use string_value::StringValue;
 use version::Version;
 use engine::Engine;
 use origin::Origin;
+use input_dims::InputDims;
 
 
 /// The header of the model file.
@@ -39,6 +40,7 @@ pub struct Header {
     pub description: StringValue,
     pub engine: Engine,
     pub origin: Origin,
+    pub input_dims: InputDims,
 }
 
 
@@ -58,6 +60,7 @@ impl Header {
             description: StringValue::fresh(),
             engine: Engine::fresh(),
             origin: Origin::fresh(),
+            input_dims: InputDims::fresh(),
         }
     }
 
@@ -174,7 +177,8 @@ impl Header {
         let description = StringValue::from_string(buffer.get(6).unwrap_or(&"").to_string());
         let engine = Engine::from_string(buffer.get(7).unwrap_or(&"").to_string());
         let origin = Origin::from_string(buffer.get(8).unwrap_or(&"").to_string());
-        Ok(Header {keys, normalisers, output, name, version, description, engine, origin})
+        let input_dims = InputDims::from_string(buffer.get(9).unwrap_or(&"").to_string());
+        Ok(Header {keys, normalisers, output, name, version, description, engine, origin, input_dims})
     }
 
     /// Converts the `Header` struct into bytes.
@@ -192,6 +196,7 @@ impl Header {
             self.description.to_string(),
             self.engine.to_string(),
             self.origin.to_string(),
+            self.input_dims.to_string(),
             "".to_string(),
         ];
         let buffer = buffer.join(Self::delimiter()).into_bytes();
@@ -219,7 +224,7 @@ mod tests {
         let normalisers = generate_normaliser_string();
         let output = "g=>linear_scaling(0.0,1.0)".to_string();
         format!(
-            "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", 
+            "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", 
             Header::delimiter(), 
             keys, 
             Header::delimiter(), 
@@ -236,6 +241,8 @@ mod tests {
             Engine::PyTorch.to_string(),
             Header::delimiter(),
             Origin::from_string("author=>local".to_string()).to_string(),
+            Header::delimiter(),
+            InputDims::from_string("1,2".to_string()).to_string(),
             Header::delimiter(),
         )
     }
@@ -262,7 +269,7 @@ mod tests {
 
     #[test]
     fn test_empty_header() {
-        let string = "//=>//=>//=>//=>//=>//=>//=>//=>".to_string();
+        let string = "//=>//=>//=>//=>//=>//=>//=>//=>//=>".to_string();
         let data = string.as_bytes();
         let header = Header::from_bytes(data.to_vec()).unwrap();
 
@@ -283,7 +290,7 @@ mod tests {
 
         // below the integers are correct but there is a difference with the decimal point representation in the string, we can alter this
         // fairly easy and will investigate it
-        let expected_string = "//=>a=>b=>c=>d=>e=>f//=>a=>linear_scaling(0,1)//b=>clipping(0,1.5)//c=>log_scaling(10,0)//e=>z_score(0,1)//=>g=>linear_scaling(0,1)//=>test model name//=>0.0.1//=>test description//=>pytorch//=>author=>local//=>".to_string();
+        let expected_string = "//=>a=>b=>c=>d=>e=>f//=>a=>linear_scaling(0,1)//b=>clipping(0,1.5)//c=>log_scaling(10,0)//e=>z_score(0,1)//=>g=>linear_scaling(0,1)//=>test model name//=>0.0.1//=>test description//=>pytorch//=>author=>local//=>1,2//=>".to_string();
 
         assert_eq!(string, expected_string);
         assert_eq!(bytes_num, expected_string.len() as i32);
@@ -291,7 +298,7 @@ mod tests {
         let empty_header = Header::fresh();
         let (bytes_num, bytes) = empty_header.to_bytes();
         let string = String::from_utf8(bytes).unwrap();
-        let expected_string = "//=>//=>//=>//=>//=>//=>//=>//=>//=>".to_string();
+        let expected_string = "//=>//=>//=>//=>//=>//=>//=>//=>//=>//=>".to_string();
 
         assert_eq!(string, expected_string);
         assert_eq!(bytes_num, expected_string.len() as i32);
