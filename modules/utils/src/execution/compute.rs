@@ -2,8 +2,8 @@
 use crate::storage::surml_file::SurMlFile;
 use std::collections::HashMap;
 use ndarray::{ArrayD, CowArray};
-use ort::{Environment, ExecutionProvider, SessionBuilder, Value};
-use std::sync::Arc;
+use ort::{SessionBuilder, Value};
+use super::onnx_environment::ENVIRONMENT;
 
 
 /// A wrapper for the loaded machine learning model so we can perform computations on the loaded model.
@@ -64,13 +64,13 @@ impl <'a>ModelComputation<'a> {
             tensor_placeholder = tensor;
         }
 
-        let environment = Arc::new(
-            Environment::builder()
-                .with_execution_providers([ExecutionProvider::CPU(Default::default())])
-                .build()
-                .map_err(|e| e.to_string())?
-        );
-        let session = SessionBuilder::new(&environment).map_err(|e| e.to_string())?
+        // let environment = Arc::new(
+        //     Environment::builder()
+        //         .with_execution_providers([ExecutionProvider::CPU(Default::default())])
+        //         .build()
+        //         .map_err(|e| e.to_string())?
+        // );
+        let session = SessionBuilder::new(&ENVIRONMENT).map_err(|e| e.to_string())?
                                                        .with_model_from_memory(&self.surml_file.model)
                                                        .map_err(|e| e.to_string())?;
         let x = CowArray::from(tensor_placeholder);

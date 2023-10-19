@@ -1,0 +1,9 @@
+[package]
+name = "onnx_driver"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ort = { version = "1.16.0", features = ["download-binaries"] }
