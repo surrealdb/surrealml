@@ -11,9 +11,9 @@ use futures_util::StreamExt;
 use hyper::{Body, Request};
 use hyper::{Client, Uri};
 
-use surrealml_utils::storage::surml_file::SurMlFile;
-use surrealml_utils::execution::compute::ModelComputation;
-use surrealml_utils::storage::stream_adapter::StreamAdapter;
+use surrealml_core::storage::surml_file::SurMlFile;
+use surrealml_core::execution::compute::ModelComputation;
+use surrealml_core::storage::stream_adapter::StreamAdapter;
 
 
 async fn root(mut stream: BodyStream) -> &'static str {

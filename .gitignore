@@ -15,3 +15,4 @@ modules/utils/target/
 ./modules/onnx_driver/target/
 modules/onnx_driver/target/
 surrealdb_build/
+modules/utils/onnx_driver/

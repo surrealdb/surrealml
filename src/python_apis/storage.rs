@@ -8,16 +8,15 @@
 //! * save the C model using torch.jit.save
 //! * load the model using the load_cached_raw_model function
 use pyo3::prelude::*;
-use surrealml_utils::storage::surml_file::SurMlFile;
-use surrealml_utils::storage::header::normalisers::wrapper::NormaliserType;
+use surrealml_core::storage::surml_file::SurMlFile;
+use surrealml_core::storage::header::normalisers::wrapper::NormaliserType;
 use std::fs::File;
 use std::io::Read;
-use futures_util::StreamExt;
 use hyper::{Body, Request};
 use hyper::{Client, Uri};
 
 use crate::python_state::{PYTHON_STATE, generate_unique_id};
-use surrealml_utils::storage::stream_adapter::StreamAdapter;
+use surrealml_core::storage::stream_adapter::StreamAdapter;
 
 
 /// Loads a model from a file and returns a unique identifier for the loaded model.
@@ -225,11 +224,16 @@ pub fn delete_cached_model(file_id: String) {
 }
 
 
+/// Uploads a file to a url.
+/// 
+/// # Arguments
+/// * `file_path` - The path to the file to upload.
+/// * `url` - The url to upload the file to.
+/// * `chunk_size` - The size of the chunks to upload the file in.
 #[pyfunction]
-pub fn upload(file_path: String, url: String, chunk_size: usize) {
-    let file_pointer = StreamAdapter::new(chunk_size, file_path.clone());
+pub fn upload_model(file_path: String, url: String, chunk_size: usize) {
     let client = Client::new();
-    let uri: Uri = file_path.parse().unwrap();
+    let uri: Uri = url.parse().unwrap();
     let generator = StreamAdapter::new(chunk_size, file_path);
     let body = Body::wrap_stream(generator);
     let req = Request::post(uri).body(body).unwrap();

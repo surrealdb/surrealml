@@ -1,6 +1,6 @@
 //! Defines the python API for execution of models.
 use pyo3::prelude::*;
-use surrealml_utils::execution::compute::ModelComputation;
+use surrealml_core::execution::compute::ModelComputation;
 use std::collections::HashMap;
 
 use crate::python_state::PYTHON_STATE;

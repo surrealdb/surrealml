@@ -14,7 +14,7 @@ hyper = { version = "0.14.27", features = ["full"] }
 tokio = { version = "1.32.0", features = ["full"] }
 futures-util = "0.3.28"
 
-surrealml_utils = { path = "./modules/utils" }
+surrealml-core = { path = "./modules/utils" }
 
 [dev-dependencies]
 axum = "0.6.20"
