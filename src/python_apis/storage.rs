@@ -8,11 +8,15 @@
 //! * save the C model using torch.jit.save
 //! * load the model using the load_cached_raw_model function
 use pyo3::prelude::*;
-use super::surml_file::SurMlFile;
-use super::header::normalisers::wrapper::NormaliserType;
-use tch::CModule;
+use surrealml_core::storage::surml_file::SurMlFile;
+use surrealml_core::storage::header::normalisers::wrapper::NormaliserType;
+use std::fs::File;
+use std::io::Read;
+use hyper::{Body, Request};
+use hyper::{Client, Uri};
 
 use crate::python_state::{PYTHON_STATE, generate_unique_id};
+use surrealml_core::storage::stream_adapter::StreamAdapter;
 
 
 /// Loads a model from a file and returns a unique identifier for the loaded model.
@@ -42,6 +46,7 @@ pub fn save_model(file_path: String, file_id: String) {
     let mut python_state = PYTHON_STATE.lock().unwrap();
     let file = python_state.get_mut(&file_id).unwrap();
     file.write(&file_path).unwrap();
+    python_state.remove(&file_id);
 }
 
 
@@ -53,8 +58,10 @@ pub fn save_model(file_path: String, file_id: String) {
 #[pyfunction]
 pub fn load_cached_raw_model(file_path: String) -> String {
     let file_id = generate_unique_id();
-    let model = CModule::load(file_path).unwrap();
-    let file = SurMlFile::fresh(model);
+    let mut model = File::open(file_path).unwrap();
+    let mut data = vec![];
+    model.read_to_end(&mut data).unwrap();
+    let file = SurMlFile::fresh(data);
     let mut python_state = PYTHON_STATE.lock().unwrap();
     python_state.insert(file_id.clone(), file);
     file_id
@@ -216,3 +223,22 @@ pub fn delete_cached_model(file_id: String) {
     python_state.remove(&file_id);
 }
 
+
+/// Uploads a file to a url.
+/// 
+/// # Arguments
+/// * `file_path` - The path to the file to upload.
+/// * `url` - The url to upload the file to.
+/// * `chunk_size` - The size of the chunks to upload the file in.
+#[pyfunction]
+pub fn upload_model(file_path: String, url: String, chunk_size: usize) {
+    let client = Client::new();
+    let uri: Uri = url.parse().unwrap();
+    let generator = StreamAdapter::new(chunk_size, file_path);
+    let body = Body::wrap_stream(generator);
+    let req = Request::post(uri).body(body).unwrap();
+    let tokio_runtime = tokio::runtime::Builder::new_current_thread().build().unwrap();
+    tokio_runtime.block_on( async move {
+        let _response = client.request(req).await.unwrap();
+    });
+}
