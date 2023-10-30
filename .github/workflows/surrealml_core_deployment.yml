@@ -20,5 +20,3 @@ jobs:
       with:
           path: './modules/utils'
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-
-# force a build
