@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   post_merge_job:
@@ -17,3 +20,5 @@ jobs:
       with:
           path: './modules/utils'
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+# force a build
