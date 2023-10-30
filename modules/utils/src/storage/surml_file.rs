@@ -1,5 +1,5 @@
 //! Defines the saving and loading of the entire `surml` file.
-use tch::jit::CModule;
+// use tch::jit::CModule;
 use std::fs::File;
 use std::io::{self, Read, Write};
 
@@ -13,7 +13,7 @@ use crate::storage::header::Header;
 /// * `model` - The PyTorch model in C.
 pub struct SurMlFile {
     pub header: Header,
-    pub model: CModule,
+    pub model: Vec<u8>,
 }
 
 
@@ -26,7 +26,7 @@ impl SurMlFile {
     /// 
     /// # Returns
     /// A new `SurMlFile` struct with no columns or normalisers.
-    pub fn fresh(model: CModule) -> Self {
+    pub fn fresh(model: Vec<u8>) -> Self {
         Self {
             header: Header::fresh(),
             model
@@ -41,7 +41,7 @@ impl SurMlFile {
     /// 
     /// # Returns
     /// A new `SurMlFile` struct.
-    pub fn new(header: Header, model: CModule) -> Self {
+    pub fn new(header: Header, model: Vec<u8>) -> Self {
         Self {
             header,
             model,
@@ -72,7 +72,7 @@ impl SurMlFile {
 
         // construct the header and C model from the bytes
         let header = Header::from_bytes(header_bytes).unwrap();
-        let model = CModule::load_data(&mut model_bytes.as_slice()).unwrap();
+        let model = model_bytes;
         Ok(Self {
             header,
             model,
@@ -98,12 +98,17 @@ impl SurMlFile {
         let mut header_buffer = vec![0u8; integer_value as usize];
         file.read_exact(&mut header_buffer)?;
 
+        // Create a Vec<u8> to store the data
+        let mut model_buffer = Vec::new();
+
+        // Read the rest of the file into the buffer
+        file.take(usize::MAX as u64).read_to_end(&mut model_buffer)?;
+
         // construct the header and C model from the bytes
         let header = Header::from_bytes(header_buffer).unwrap();
-        let model = CModule::load_data(&mut file).unwrap();
         Ok(Self {
             header,
-            model,
+            model: model_buffer,
         })
     }
 
@@ -112,15 +117,6 @@ impl SurMlFile {
     /// # Returns
     /// A vector of bytes representing the header and the model.
     pub fn to_bytes(&self) -> Vec<u8> {
-        // stash the C model in a temp file as there is no to_bytes() method for the C model
-        let temp_dir = tempfile::tempdir().unwrap();
-        let temp_path = temp_dir.path().join("c_model_cache");
-        self.model.save(temp_path.clone()).unwrap();
-
-        // read the temp file into a buffer as bytes
-        let mut model_bytes = Vec::new();
-        let _ = File::open(temp_path).unwrap().read_to_end(&mut model_bytes).unwrap();
-
         // compile the header into bytes.
         let (num, header_bytes) = self.header.to_bytes();
         let num_bytes = i32::to_be_bytes(num).to_vec();
@@ -129,7 +125,7 @@ impl SurMlFile {
         let mut combined_vec: Vec<u8> = Vec::new();
         combined_vec.extend(num_bytes);
         combined_vec.extend(header_bytes);
-        combined_vec.extend(model_bytes);
+        combined_vec.extend(self.model.clone());
         return combined_vec
     }
 
@@ -164,12 +160,32 @@ mod tests {
         header.add_column(String::from("num_floors"));
         header.add_output(String::from("house_price"), None);
 
-        let model = CModule::load("./tests/linear.pt").unwrap();
+        let mut file = File::open("./stash/linear_test.onnx").unwrap();
 
-        let surml_file = SurMlFile::new(header, model);
+        let mut model_bytes = Vec::new();
+        file.read_to_end(&mut model_bytes).unwrap();
+
+        let surml_file = SurMlFile::new(header, model_bytes);
         surml_file.write("./stash/test.surml").unwrap();
 
         let _ = SurMlFile::from_file("./stash/test.surml").unwrap();
+    }
+
+    #[test]
+    fn test_write_forrest() {
+
+        let header = Header::fresh();
+
+        let mut file = File::open("./stash/forrest_test.onnx").unwrap();
+
+        let mut model_bytes = Vec::new();
+        file.read_to_end(&mut model_bytes).unwrap();
+
+        let surml_file = SurMlFile::new(header, model_bytes);
+        surml_file.write("./stash/forrest.surml").unwrap();
+
+        let _ = SurMlFile::from_file("./stash/forrest.surml").unwrap();
+
     }
 
 }

@@ -54,7 +54,8 @@ class SurMlFile:
             traced_script_module = self.model
         else:
             traced_script_module = torch.jit.trace(self.model, self.inputs)
-        traced_script_module.save(file_path)
+        
+        torch.onnx.export(traced_script_module, self.inputs, file_path)
         file_id = load_cached_raw_model(str(file_path))
         os.remove(file_path)
         if self.name is not None:
