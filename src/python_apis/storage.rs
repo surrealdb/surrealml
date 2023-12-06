@@ -12,7 +12,8 @@ use surrealml_core::storage::surml_file::SurMlFile;
 use surrealml_core::storage::header::normalisers::wrapper::NormaliserType;
 use std::fs::File;
 use std::io::Read;
-use hyper::{Body, Request};
+use hyper::{Body, Request, Method};
+use hyper::header::CONTENT_TYPE;
 use hyper::{Client, Uri};
 
 use crate::python_state::{PYTHON_STATE, generate_unique_id};
@@ -236,8 +237,14 @@ pub fn upload_model(file_path: String, url: String, chunk_size: usize) {
     let uri: Uri = url.parse().unwrap();
     let generator = StreamAdapter::new(chunk_size, file_path);
     let body = Body::wrap_stream(generator);
-    let req = Request::post(uri).body(body).unwrap();
-    let tokio_runtime = tokio::runtime::Builder::new_current_thread().build().unwrap();
+
+    let req = Request::builder()
+        .method(Method::POST)
+        .uri(uri)
+        .header(CONTENT_TYPE, "application/octet-stream")
+        .body(body).unwrap();
+
+    let tokio_runtime = tokio::runtime::Builder::new_current_thread().enable_io().enable_time().build().unwrap();
     tokio_runtime.block_on( async move {
         let _response = client.request(req).await.unwrap();
     });

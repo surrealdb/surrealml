@@ -7,7 +7,7 @@ import uuid
 import torch
 from surrealml.rust_surrealml import load_cached_raw_model, add_column, add_output, add_normaliser, save_model, \
     add_name, load_model, add_description, add_version, to_bytes, add_engine, add_author, add_origin
-from surrealml.rust_surrealml import raw_compute, buffered_compute
+from surrealml.rust_surrealml import raw_compute, buffered_compute, upload_model
 
 from surrealml.model_cache import SkLearnModelCache
 from surrealml.engine_enum import Engine
@@ -153,6 +153,10 @@ class SurMlFile:
         self = SurMlFile()
         self.file_id = load_model(path)
         return self
+    
+    @staticmethod
+    def upload(path: str, url: str, chunk_size: int) -> None:
+        upload_model(path, url, chunk_size)
 
     def raw_compute(self, input_vector, dims=None):
         """
