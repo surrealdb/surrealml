@@ -3,6 +3,7 @@ Defines the SurMlFile class which is used to save/load models and perform comput
 """
 import os
 import uuid
+from typing import Optional
 
 import torch
 from surrealml.rust_surrealml import load_cached_raw_model, add_column, add_output, add_normaliser, save_model, \
@@ -155,8 +156,37 @@ class SurMlFile:
         return self
     
     @staticmethod
-    def upload(path: str, url: str, chunk_size: int) -> None:
-        upload_model(path, url, chunk_size)
+    def upload(
+            path: str,
+            url: str,
+            chunk_size: int,
+            namespace: str,
+            database: str,
+            username: Optional[str] = None,
+            password: Optional[str] = None
+        ) -> None:
+        """
+        Uploads a model to a remote server.
+
+        :param path: the path to load the model from.
+        :param url: the url of the remote server.
+        :param chunk_size: the size of each chunk to upload.
+        :param namespace: the namespace of the remote server.
+        :param database: the database of the remote server.
+        :param username: the username of the remote server.
+        :param password: the password of the remote server.
+
+        :return: None
+        """
+        upload_model(
+            path,
+            url,
+            chunk_size,
+            namespace,
+            database,
+            username,
+            password
+        )
 
     def raw_compute(self, input_vector, dims=None):
         """

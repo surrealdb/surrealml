@@ -163,13 +163,18 @@ impl Header {
     /// 
     /// # Returns
     /// The `Header` struct.
-    pub fn from_bytes(data: Vec<u8>) -> Result<Self, String> {
+    pub fn from_bytes(data: Vec<u8>) -> Result<Self, std::io::Error> {
         let string_data = match String::from_utf8(data) {
             Ok(data) => data,
-            Err(_) => return Err("Error converting bytes to string for header".to_string())
+            Err(e) => {
+                let message = format!("Error converting bytes to string for header: {}", e);
+                return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, message))
+            }
         };
         let buffer = string_data.split(Self::delimiter()).collect::<Vec<&str>>();
-        let keys = KeyBindings::from_string(buffer.get(1).unwrap_or(&"").to_string())?;
+        let keys = KeyBindings::from_string(buffer.get(1).unwrap_or(&"").to_string()).map_err(|e|
+            std::io::Error::new(std::io::ErrorKind::InvalidData, e)
+        )?;
         let normalisers = NormaliserMap::from_string(buffer.get(2).unwrap_or(&"").to_string(), &keys);
         let output = Output::from_string(buffer.get(3).unwrap_or(&"").to_string());
         let name = StringValue::from_string(buffer.get(4).unwrap_or(&"").to_string());
