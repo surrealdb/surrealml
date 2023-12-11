@@ -12,8 +12,12 @@ use surrealml_core::storage::surml_file::SurMlFile;
 use surrealml_core::storage::header::normalisers::wrapper::NormaliserType;
 use std::fs::File;
 use std::io::Read;
-use hyper::{Body, Request};
+use hyper::{Body, Request, Method};
+use hyper::header::CONTENT_TYPE;
 use hyper::{Client, Uri};
+use hyper::header::AUTHORIZATION;
+use hyper::header::HeaderValue;
+use base64::{encode};
 
 use crate::python_state::{PYTHON_STATE, generate_unique_id};
 use surrealml_core::storage::stream_adapter::StreamAdapter;
@@ -230,15 +234,46 @@ pub fn delete_cached_model(file_id: String) {
 /// * `file_path` - The path to the file to upload.
 /// * `url` - The url to upload the file to.
 /// * `chunk_size` - The size of the chunks to upload the file in.
+/// * `ns` - The database namespace to upload the file to.
+/// * `db` - The database to upload the file to.
+/// * `username` - The username to use for authentication.
+/// * `password` - The password to use for authentication.
 #[pyfunction]
-pub fn upload_model(file_path: String, url: String, chunk_size: usize) {
+pub fn upload_model(
+    file_path: String,
+    url: String,
+    chunk_size: usize,
+    ns: String,
+    db: String,
+    username: Option<String>,
+    password: Option<String>
+) -> Result<(), std::io::Error> {
     let client = Client::new();
-    let uri: Uri = url.parse().unwrap();
+    let uri: Uri = url.parse().map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
     let generator = StreamAdapter::new(chunk_size, file_path);
     let body = Body::wrap_stream(generator);
-    let req = Request::post(uri).body(body).unwrap();
-    let tokio_runtime = tokio::runtime::Builder::new_current_thread().build().unwrap();
+
+    let part_req = Request::builder()
+        .method(Method::POST)
+        .uri(uri)
+        .header(CONTENT_TYPE, "application/octet-stream")
+        .header("ns", HeaderValue::from_str(&ns).unwrap())
+        .header("db", HeaderValue::from_str(&db).unwrap());
+
+    let req;
+    if username.is_none() == false && password.is_none() == false {
+        let encoded_credentials = encode(format!("{}:{}", username.unwrap(), password.unwrap()));
+        req = part_req.header(AUTHORIZATION, format!("Basic {}", encoded_credentials))
+                      .body(body)
+                      .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+    }
+    else {
+        req = part_req.body(body).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
+    }
+
+    let tokio_runtime = tokio::runtime::Builder::new_current_thread().enable_io().enable_time().build().unwrap();
     tokio_runtime.block_on( async move {
         let _response = client.request(req).await.unwrap();
     });
+    Ok(())
 }

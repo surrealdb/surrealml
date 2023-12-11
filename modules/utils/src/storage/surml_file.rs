@@ -1,5 +1,4 @@
 //! Defines the saving and loading of the entire `surml` file.
-// use tch::jit::CModule;
 use std::fs::File;
 use std::io::{self, Read, Write};
 
@@ -56,6 +55,10 @@ impl SurMlFile {
     /// # Returns
     /// A new `SurMlFile` struct.
     pub fn from_bytes(bytes: Vec<u8>) -> io::Result<Self> {
+        // check to see if there is enough bytes to read
+        if bytes.len() < 4 {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "Not enough bytes to read"));
+        }
         let mut header_bytes = Vec::new();
         let mut model_bytes = Vec::new();
 
@@ -154,7 +157,6 @@ mod tests {
 
     #[test]
     fn test_write() {
-
         let mut header = Header::fresh();
         header.add_column(String::from("squarefoot"));
         header.add_column(String::from("num_floors"));
@@ -188,4 +190,15 @@ mod tests {
 
     }
 
+    #[test]
+    fn test_empty_buffer() {
+        let bytes = vec![0u8; 0];
+        match SurMlFile::from_bytes(bytes) {
+            Ok(_) => assert!(false),
+            Err(error) => {
+                assert_eq!(error.kind(), io::ErrorKind::InvalidData);
+                assert_eq!(error.to_string(), "Not enough bytes to read");
+            }
+        }
+    }
 }

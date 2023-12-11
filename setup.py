@@ -15,7 +15,6 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     version="0.0.1",
-    # rust_extensions=[RustExtension("surrealml.rust_surrealml", binding=Binding.PyO3, features=["python"])],
     rust_extensions=[RustExtension("surrealml.rust_surrealml", binding=Binding.PyO3)],
     packages=[
         "surrealml",
