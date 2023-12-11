@@ -209,6 +209,64 @@ print(new_file.buffered_compute({
 }))
 ```
 
+### Uploading our model to SurrealDB
+
+We can upload our trained model with the following code:
+
+```python
+url = "http://0.0.0.0:8000/ml/import"
+SurMlFile.upload(
+    path="./linear_test.surml", 
+    url=url, 
+    chunk_size=36864, 
+    namespace="test", 
+    database="test", 
+    username="root", 
+    password="root"
+)
+```
+
+### Running SurrealQL operations against our trained model
+
+With this, we can perform SQL statements in our database. To test this, we can create the following rows:
+
+```sql
+CREATE house_listing SET squarefoot_col = 500.0, num_floors_col = 1.0;
+CREATE house_listing SET squarefoot_col = 1000.0, num_floors_col = 2.0;
+CREATE house_listing SET squarefoot_col = 1500.0, num_floors_col = 3.0;
+
+SELECT * FROM (
+		SELECT 
+			*, 
+			ml::house-price-prediction<0.0.1>({ 
+				squarefoot: squarefoot_col, 
+				num_floors: num_floors_col 
+			}) AS price_prediction 
+		FROM house_listing
+	) 
+	WHERE price_prediction > 177206.21875;
+```
+
+What is happening here is that we are feeding the columns from the table `house_listing` into a model we uploaded 
+called `house-price-prediction` with a version of `0.0.1`. We then get the results of that trained ML model as the column 
+`price_prediction`. We then use the calculated predictions to filter the rows giving us the following result:
+
+```json
+[
+	{
+		"id": "house_listing:7bo0f35tl4hpx5bymq5d",
+		"num_floors_col": 3,
+		"price_prediction": 406534.75,
+		"squarefoot_col": 1500
+	},
+	{
+		"id": "house_listing:8k2ttvhp2vh8v7skwyie",
+		"num_floors_col": 2,
+		"price_prediction": 291870.5,
+		"squarefoot_col": 1000
+	}
+]
+```
 
 ### Loading our `.surml` file in Rust
 
