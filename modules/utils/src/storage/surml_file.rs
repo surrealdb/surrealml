@@ -55,12 +55,10 @@ impl SurMlFile {
     /// # Returns
     /// A new `SurMlFile` struct.
     pub fn from_bytes(bytes: Vec<u8>) -> io::Result<Self> {
-
         // check to see if there is enough bytes to read
         if bytes.len() < 4 {
             return Err(io::Error::new(io::ErrorKind::InvalidData, "Not enough bytes to read"));
         }
-
         let mut header_bytes = Vec::new();
         let mut model_bytes = Vec::new();
 
@@ -203,5 +201,4 @@ mod tests {
             }
         }
     }
-
 }

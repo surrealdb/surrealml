@@ -3,6 +3,8 @@ name = "surrealml-core"
 version = "0.0.1"
 edition = "2021"
 build = "./build.rs"
+description = "The core machine learning library for SurrealML that enables SurrealDB to store and load ML models"
+license-file = "LICENSE"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

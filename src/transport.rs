@@ -22,7 +22,6 @@ async fn root(mut stream: BodyStream) -> &'static str {
         let chunk = chunk.unwrap();
         buffer.extend_from_slice(&chunk);
     }
-    println!("Buffer length: {:?}", buffer.len());
     let mut file = SurMlFile::from_bytes(buffer).unwrap();
 
     // check some of the values in the header
