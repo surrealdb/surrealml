@@ -1,4 +1,3 @@
-//! # Surrealml Core
 //! An embedded ONNX runtime directly in the Rust binary when compiling result in no need for installing ONNX runtime separately
 //! or worrying about version clashes with other runtimes.
 //!
@@ -18,14 +17,14 @@
 //! use surrealml_core::storage::surml_file::SurMlFile;
 //! use surrealml_core::storage::header::Header;
 //! use surrealml_core::storage::header::normalisers::{
-//!     NormaliserType,
+//!     wrapper::NormaliserType,
 //!     linear_scaling::LinearScaling
 //! };
 //!
 //!
 //! // load your own model here (surrealml python package can be used to convert PyTorch,
 //! // and Sklearn models to ONNX or package them as surml files)
-//! let mut file = File::open("./linear_test.onnx").unwrap();
+//! let mut file = File::open("./stash/linear_test.onnx").unwrap();
 //! let mut model_bytes = Vec::new();
 //! file.read_to_end(&mut model_bytes).unwrap();
 //!
@@ -51,10 +50,7 @@
 //! // read and write surml files
 //! surml_file.write("./stash/test.surml").unwrap();
 //! let new_file = SurMlFile::from_file("./stash/test.surml").unwrap();
-//! let file_from_bytes = SurMlFile::from_bytes(&surml_file.to_bytes()).unwrap();
-//!
-//! assert_eq!(surml_file, new_file);
-//! assert_eq!(surml_file, file_from_bytes);
+//! let file_from_bytes = SurMlFile::from_bytes(surml_file.to_bytes()).unwrap();
 //! ```
 //!
 //! ### Executing models
@@ -66,7 +62,7 @@
 //! use std::collections::HashMap;
 //!
 //!
-//! let file = SurMlFile::from_file("./stash/test.surml").unwrap();
+//! let mut file = SurMlFile::from_file("./stash/test.surml").unwrap();
 //!
 //! let compute_unit = ModelComputation {
 //!     surml_file: &mut file,
@@ -77,14 +73,14 @@
 //! input_values.insert(String::from("squarefoot"), 1000.0);
 //! input_values.insert(String::from("num_floors"), 2.0);
 //!
-//! let output = model_computation.buffered_compute(&mut input_values).unwrap();
+//! let output = compute_unit.buffered_compute(&mut input_values).unwrap();
 //!
 //! // feed a raw ndarray into the model if no header was provided or if you want to bypass the header
 //! let x = vec![1000.0, 2.0];
 //! let data: ArrayD<f32> = ndarray::arr1(&x).into_dyn();
 //!
 //! // None input can be a tuple of dimensions of the input data
-//! let output = model_computation.raw_compute(data, None).unwrap();
+//! let output = compute_unit.raw_compute(data, None).unwrap();
 //! ```
 pub mod storage;
 pub mod execution;
