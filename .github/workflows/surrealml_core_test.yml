@@ -1,10 +1,11 @@
 name: Rust Test for surrealml-core on Pull Request
 
 on:
-  pull_request: {}
+  pull_request:
+    types: [opened, reopened, synchronize]
 
 jobs:
-  build_and_test:
+  test_core:
     runs-on: ubuntu-latest
 
     steps:
