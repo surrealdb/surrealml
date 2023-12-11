@@ -5,7 +5,7 @@ on:
     types: [opened, reopened, synchronize]
 
 jobs:
-  build_and_test:
+  test_transport:
     runs-on: ubuntu-latest
 
     steps:
