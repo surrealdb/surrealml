@@ -69,6 +69,8 @@ pub static ENVIRONMENT: Lazy<Arc<Environment>> = Lazy::new(|| {
                     .build().unwrap()
             );
 
+            std::env::remove_var("ORT_DYLIB_PATH");
+
             // remove the temporary file
             #[cfg(all(target_os = "macos", not(doc), not(onnx_runtime_env_var_set)))]
             let _ = std::fs::remove_file("./libonnxruntime.dylib");
