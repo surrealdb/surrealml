@@ -18,8 +18,10 @@ jobs:
         cargo build
         ls
         cd modules
+        echo "modules"
         ls
         cd utils
+        echo "utils"
         ls
 
     - name: Set up Rust
