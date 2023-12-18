@@ -43,7 +43,7 @@ pub static ENVIRONMENT: Lazy<Arc<Environment>> = Lazy::new(|| {
                     .with_execution_providers([ExecutionProvider::CPU(Default::default())])
                     .build().unwrap()
             );
-            let _ = std::fs::remove_file("./libonnxruntime.dylib");
+            // let _ = std::fs::remove_file("./libonnxruntime.dylib");
             return environment
         }
     }
