@@ -1,6 +1,9 @@
 # SurrealMl
 This package is for storing machine learning models with meta data in Rust so they can be used on the SurrealDB server.
 
+## Compilation config
+If nothing is configured the crate will compile the ONNX runtime into the binary. This is the default behaviour. However, if you want to use an ONNX runtime that is installed on your system, you can set the environment variable `ONNXRUNTIME_LIB_PATH` before you compile the crate. This will make the crate use the ONNX runtime that is installed on your system.
+
 ## Quick start with Sk-learn
 
 Sk-learn models can also be converted and stored in the `.surml` format enabling developers to load them in any
