@@ -89,3 +89,11 @@ let data: ArrayD<f32> = ndarray::arr1(&x).into_dyn();
 // None input can be a tuple of dimensions of the input data
 let output = compute_unit.raw_compute(data, None).unwrap();
 ```
+
+## ONNX runtime assets
+
+We can find the ONNX assets with the following link:
+
+```
+https://github.com/microsoft/onnxruntime/releases/tag/v1.16.2
+```

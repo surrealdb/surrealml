@@ -12,4 +12,6 @@ COPY . .
 
 # RUN cargo build --release
 
-CMD ["cargo", "run"]
+# CMD ["cargo", "test"]
+# run in infinite loop
+CMD ["tail", "-f", "/dev/null"]

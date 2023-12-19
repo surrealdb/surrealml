@@ -8,12 +8,14 @@ fn main() {
         },
         Err(_) => {
             #[cfg(not(windows))]
-            let _ = Command::new("sh")
+            {
+                let _ = Command::new("sh")
                 .arg("-c")
                 .arg("cargo new onnx_driver && cd onnx_driver && echo 'ort = \"1.16.2\"' >> Cargo.toml
                 ")
                 .status()
                 .expect("failed to execute process");
+            }
 
             #[cfg(windows)]
             {
@@ -47,3 +49,8 @@ fn main() {
         }
     }
 }
+
+// fn main() {
+//     // println!("cargo:rustc-cfg=onnx_runtime_env_var_set");
+//     println!("test");
+// }

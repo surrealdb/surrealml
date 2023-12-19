@@ -37,10 +37,10 @@ pub static ENVIRONMENT: Lazy<Arc<Environment>> = Lazy::new(|| {
         // we write the `LIB_BYTES` to a temporary file and then load that file.
         Err(_) => {
 
-            #[cfg(all(target_os = "macos", not(doc), not(onnx_runtime_env_var_set)))]
+            // #[cfg(all(target_os = "macos", not(doc), not(onnx_runtime_env_var_set)))]
             let _ = std::fs::write("./libonnxruntime.dylib", LIB_BYTES);
             
-            std::env::set_var("ORT_DYLIB_PATH", "libonnxruntime.dylib");
+            std::env::set_var("ORT_DYLIB_PATH", "./libonnxruntime.dylib");
             let environment = Arc::new(
                 Environment::builder()
                     .with_execution_providers([ExecutionProvider::CPU(Default::default())])
