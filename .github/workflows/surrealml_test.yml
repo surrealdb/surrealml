@@ -21,4 +21,4 @@ jobs:
         override: true
 
     - name: Run Unit Tests
-      run: cargo test --verbose
+      run: cargo test
