@@ -21,4 +21,4 @@ jobs:
         override: true
 
     - name: Run Unit Tests
-      run: cd modules/utils && cargo test --verbose
+      run: cd modules/utils && cargo test
