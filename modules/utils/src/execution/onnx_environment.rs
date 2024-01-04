@@ -6,13 +6,13 @@ use std::sync::Arc;
 
 // Compiles the ONNX module into the rust binary.
 #[cfg(all(target_os = "macos", not(doc), not(onnx_runtime_env_var_set)))]
-pub static LIB_BYTES: &'static [u8] = include_bytes!("../../onnx_driver/target/debug/libonnxruntime.dylib");
+pub static LIB_BYTES: &'static [u8] = include_bytes!("../../downloaded_onnx_package/onnxruntime/lib/libonnxruntime.a");
 
 #[cfg(all(any(target_os = "linux", target_os = "android"), not(doc), not(onnx_runtime_env_var_set)))]
-pub static LIB_BYTES: &'static [u8] = include_bytes!("../../onnx_driver/target/debug/libonnxruntime.so");
+pub static LIB_BYTES: &'static [u8] = include_bytes!("../../downloaded_onnx_package/onnxruntime/lib/libonnxruntime.a");
 
 #[cfg(all(target_os = "windows", not(doc), not(onnx_runtime_env_var_set)))]
-pub static LIB_BYTES: &'static [u8] = include_bytes!("../../onnx_driver/target/debug/onnxruntime.dll");
+pub static LIB_BYTES: &'static [u8] = include_bytes!("../../downloaded_onnx_package/onnxruntime/lib/libonnxruntime.a");
 
 // Fallback for documentation and other targets
 #[cfg(any(doc, onnx_runtime_env_var_set, not(any(target_os = "macos", target_os = "linux", target_os = "android", target_os = "windows"))))]
