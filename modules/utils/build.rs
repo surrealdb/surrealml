@@ -36,6 +36,13 @@ fn unpack_onnx() -> std::io::Result<()> {
         .nth(3)       // 'nth(3)' gets the fourth ancestor (counting from 0), which should be the debug directory
         .expect("Failed to find debug directory");
 
+    let out_dir = env::var("OUT_DIR").expect("OUT_DIR not set");
+    let out_path = Path::new(&out_dir);
+    let build_dir = out_path
+        .ancestors()  // This gives an iterator over all ancestors of the path
+        .nth(3)       // 'nth(3)' gets the fourth ancestor (counting from 0), which should be the debug directory
+        .expect("Failed to find debug directory");
+
     match std::env::var("ONNXRUNTIME_LIB_PATH") {
         Ok(_) => {
             println!("cargo:rustc-cfg=onnx_runtime_env_var_set");
