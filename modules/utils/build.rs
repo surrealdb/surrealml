@@ -12,7 +12,6 @@ fn main() -> std::io::Result<()> {
         .nth(3)       // 'nth(3)' gets the fourth ancestor (counting from 0), which should be the debug directory
         .expect("Failed to find debug directory");
 
-
     match std::env::var("ONNXRUNTIME_LIB_PATH") {
         Ok(_) => {
             println!("cargo:rustc-cfg=onnx_runtime_env_var_set");
@@ -25,13 +24,10 @@ fn main() -> std::io::Result<()> {
                 // ref s if s.contains("android") => "android", => not building for android
                 _ => panic!("Unsupported target os")
             };
-            // let profile = match env::var("PROFILE").unwrap() {
-            //     ref s if s.contains("release") => "release",
-            //     ref s if s.contains("debug") => "debug",
-            //     _ => panic!("Unsupported profile")
-            // };
+
             let lib_path = build_dir.join(target_lib);
             let lib_path = lib_path.to_str().unwrap();
+
             // put it next to the file of the embedding
             let destination = Path::new(target_lib);
             fs::copy(lib_path, destination)?;
