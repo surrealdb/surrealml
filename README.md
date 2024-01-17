@@ -1,6 +1,27 @@
 # SurrealMl
 This package is for storing machine learning models with meta data in Rust so they can be used on the SurrealDB server.
 
+## What is SurrealML?
+SurrealML is a feature that allows you to store trained machine learning models in a special format called 'surml'. This enables you to run these models in either Python or Rust, and even upload them to a SurrealDB node to run the models on the server
+
+## Prerequisites
+1. A basic understanding of Machine Learning: You should be familiar with ML concepts, algorithms, and model training processes.
+2. Knowledge of Python: Proficiency in Python is necessary as SurrealML involves working with Python-based ML models.
+3. Familiarity with SurrealDB: Basic knowledge of how SurrealDB operates is required since SurrealML integrates directly with it.
+4. Python Environment Setup: A Python environment with necessary libraries installed, including SurrealML, PyTorch or SKLearn (depending on your model preference).
+5. SurrealDB Installation: Ensure you have SurrealDB installed and running on your machine or server
+
+## Installation
+To install SurrealML, make sure you have Python installed. Then, install the SurrealML library and either PyTorch or SKLearn, based on your model choice. You can install these using pip: 
+
+```
+pip install surrealml
+pip install torch  # If using PyTorch
+pip install scikit-learn  # If using SKLearn 
+```
+After that, you can train your model and save it in the SurrealML format.
+
+
 ## Compilation config
 If nothing is configured the crate will compile the ONNX runtime into the binary. This is the default behaviour. However, if you want to use an ONNX runtime that is installed on your system, you can set the environment variable `ONNXRUNTIME_LIB_PATH` before you compile the crate. This will make the crate use the ONNX runtime that is installed on your system.
 
