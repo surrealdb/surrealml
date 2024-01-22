@@ -18,6 +18,7 @@ setup(
     rust_extensions=[RustExtension("surrealml.rust_surrealml", binding=Binding.PyO3)],
     packages=[
         "surrealml",
+        "surrealml.engine",
         # "surrealdb.execution_mixins"
     ],
     package_data={

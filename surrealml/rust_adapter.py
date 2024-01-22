@@ -1,65 +1,57 @@
-"""
-Defines the SurMlFile class which is used to save/load models and perform computations based on those models.
-"""
-import os
-import uuid
+try:
+    from surrealml.rust_surrealml import load_cached_raw_model, add_column, add_output, add_normaliser, save_model, \
+        add_name, load_model, add_description, add_version, to_bytes, add_engine, add_author, add_origin
+    from surrealml.rust_surrealml import raw_compute, buffered_compute, upload_model
+except ImportError:
+    load_cached_raw_model = None
+    add_column = None
+    add_output = None
+    add_normaliser = None
+    save_model = None
+    add_name = None
+    load_model = None
+    add_description = None
+    add_version = None
+    to_bytes = None
+    add_engine = None
+    add_author = None
+    add_origin = None
+    raw_compute = None
+    buffered_compute = None
+    upload_model = None
+
 from typing import Optional
 
-
-from surrealml.engine import Engine, SklearnOnnxAdapter, TorchOnnxAdapter
-from surrealml.rust_adapter import RustAdapter
+from surrealml.engine import Engine
 
 
-class SurMlFile:
+class RustAdapter:
 
-    def __init__(self, model=None, name=None, inputs=None, engine=None):
+    def __init__(self, file_id: str, engine: Engine) -> None:
+        self.file_id: str = file_id
+        self.engine: Engine = engine
+
+    @staticmethod
+    def pass_raw_model_into_rust(file_path: str) -> str:
         """
-        The constructor for the SurMlFile class.
+        Points to a raw ONNX file and passes it into the rust library so it can be loaded
+        and tagged with a unique id so the Rust library can reference this model again
+        from within the rust library.
 
-        :param model: the model to be saved.
-        :param name: the name of the model.
-        :param inputs: the inputs to the model needed to trace the model so the model can be saved.
-        :param sklearn: whether the model is an sklearn model or not.
+        :param file_path: the path to the raw ONNX file.
+
+        :return: the unique id of the model.
         """
-        self.model = model
-        self.name = name
-        self.inputs = inputs
-        self.engine = engine
-        self.file_id = self._cache_model()
-        self.rust_adapter = RustAdapter(self.file_id, self.engine)
+        return load_cached_raw_model(file_path)
 
-    def _cache_model(self) -> Optional[str]:
-        """
-        Caches a model, so it can be loaded as raw bytes to be fused with the header.
-
-        :return: the file id of the model so it can be retrieved from the cache.
-        """
-        # This is triggered when the model is loaded from a file as we are not passing in a model
-        if self.model is None and self.name is None and self.inputs is None and self.engine is None:
-            return None
-
-        if self.engine == Engine.SKLEARN:
-            raw_file_path: str = SklearnOnnxAdapter.save_model_to_onnx(
-                model=self.model,
-                inputs=self.inputs
-            )
-        elif self.engine == Engine.PYTORCH:
-            raw_file_path: str = TorchOnnxAdapter.save_model_to_onnx(
-                model=self.model,
-                inputs=self.inputs
-            )
-        else:
-            raise ValueError(f"Engine {self.engine} not supported")
-        return RustAdapter.pass_raw_model_into_rust(raw_file_path)
-
-    def add_column(self, name):
+    def add_column(self, name: str) -> None:
         """
         Adds a column to the model to the metadata (this needs to be called in order of the columns).
 
         :param name: the name of the column.
         :return: None
         """
-        self.rust_adapter.add_column(name=name)
+        add_column(self.file_id, name)
 
     def add_output(self, output_name, normaliser_type, one, two):
         """
@@ -70,7 +62,7 @@ class SurMlFile:
         :param two: the second parameter of the normaliser.
         :return: None
         """
-        self.rust_adapter.add_output(output_name, normaliser_type, one, two)
+        add_output(self.file_id, output_name, normaliser_type, one, two)
 
     def add_description(self, description):
         """
@@ -79,7 +71,7 @@ class SurMlFile:
         :param description: the description of the model.
         :return: None
         """
-        self.rust_adapter.add_description(description)
+        add_description(self.file_id, description)
 
     def add_version(self, version):
         """
@@ -88,7 +80,7 @@ class SurMlFile:
         :param version: the version of the model.
         :return: None
         """
-        self.rust_adapter.add_version(self.file_id)
+        add_version(self.file_id, version)
 
     def add_normaliser(self, column_name, normaliser_type, one, two):
         """
@@ -100,7 +92,7 @@ class SurMlFile:
         :param two: the second parameter of the normaliser.
         :return: None
         """
-        self.rust_adapter.add_normaliser(column_name, normaliser_type, one, two)
+        add_normaliser(self.file_id, column_name, normaliser_type, one, two)
 
     def add_author(self, author):
         """
@@ -109,7 +101,7 @@ class SurMlFile:
         :param author: the author of the model.
         :return: None
         """
-        self.rust_adapter.add_author(author)
+        add_author(self.file_id, author)
 
     def save(self, path):
         """
@@ -120,7 +112,9 @@ class SurMlFile:
         """
         # right now the only engine is pytorch so we can hardcode it but when we add more engines we will need to
         # add a parameter to the save function to specify the engine
-        self.rust_adapter.save(path=path)
+        add_engine(self.file_id, self.engine.value)
+        add_origin(self.file_id, "local")
+        save_model(path, self.file_id)
 
     def to_bytes(self):
         """
@@ -128,24 +122,18 @@ class SurMlFile:
 
         :return: the model as bytes.
         """
-        return self.rust_adapter.to_bytes()
+        return to_bytes(self.file_id)
 
     @staticmethod
-    def load(path, engine: Engine):
+    def load(path):
         """
-        Loads a model from a file so compute operations can be done.
+        Loads a model from a file.
 
         :param path: the path to load the model from.
-        :param engine: the engine to use to load the model.
-
-        :return: The SurMlFile with loaded model and engine definition
+        :return:
         """
-        self = SurMlFile()
-        self.file_id = self.rust_adapter.load(path)
-        self.engine = engine
-        self.rust_adapter = RustAdapter(self.file_id, self.engine)
-        return self
-    
+        return load_model(path)
+
     @staticmethod
     def upload(
             path: str,
@@ -155,7 +143,7 @@ class SurMlFile:
             database: str,
             username: Optional[str] = None,
             password: Optional[str] = None
-        ) -> None:
+    ) -> None:
         """
         Uploads a model to a remote server.
 
@@ -169,7 +157,7 @@ class SurMlFile:
 
         :return: None
         """
-        RustAdapter.upload(
+        upload_model(
             path,
             url,
             chunk_size,
@@ -187,7 +175,7 @@ class SurMlFile:
         :param dims: the dimensions of the input vector to be sliced into
         :return: the output of the model.
         """
-        return self.rust_adapter.raw_compute(input_vector, dims)
+        return raw_compute(self.file_id, input_vector, dims)
 
     def buffered_compute(self, value_map):
         """
@@ -196,4 +184,4 @@ class SurMlFile:
         :param value_map: a dictionary of inputs to the model with the column names as keys and floats as values.
         :return: the output of the model.
         """
-        return self.rust_adapter.buffered_compute(value_map)
+        return buffered_compute(self.file_id, value_map)

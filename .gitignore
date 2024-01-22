@@ -16,3 +16,5 @@ modules/utils/target/
 modules/onnx_driver/target/
 surrealdb_build/
 modules/utils/onnx_driver/
+*.so
+surrealml/rust_surrealml.cpython-310-darwin.so
