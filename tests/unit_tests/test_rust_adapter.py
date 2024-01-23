@@ -3,6 +3,7 @@ from tests.utils.torch_linear import train_model
 from surrealml.rust_adapter import RustAdapter
 from surrealml.surml_file import SurMlFile
 from surrealml.engine import Engine
+import shutil
 
 
 class TestRustAdapter(TestCase):
@@ -12,11 +13,11 @@ class TestRustAdapter(TestCase):
         self.file = SurMlFile(model=self.model, name="linear", inputs=self.x, engine=Engine.PYTORCH)
 
     def tearDown(self):
-        pass
+        shutil.rmtree(".surmlcache")
 
     def test_basic_store(self):
-        pass
-        # self.file.add_column(name="x")
+        # pass
+        self.file.add_column(name="x")
         # self.file.save(path="./unit_test.surml")
 
 

@@ -19,6 +19,6 @@ jobs:
 
     - uses: katyo/publish-crates@v2
       with:
-          path: './modules/utils'
+          path: './modules/core'
           args: --no-verify
           registry-token: ${{ secrets.CARGO_REGISTRY_TOKEN }}

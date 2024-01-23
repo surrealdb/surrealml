@@ -1,24 +1,7 @@
-try:
-    from surrealml.rust_surrealml import load_cached_raw_model, add_column, add_output, add_normaliser, save_model, \
-        add_name, load_model, add_description, add_version, to_bytes, add_engine, add_author, add_origin
-    from surrealml.rust_surrealml import raw_compute, buffered_compute, upload_model
-except ImportError:
-    load_cached_raw_model = None
-    add_column = None
-    add_output = None
-    add_normaliser = None
-    save_model = None
-    add_name = None
-    load_model = None
-    add_description = None
-    add_version = None
-    to_bytes = None
-    add_engine = None
-    add_author = None
-    add_origin = None
-    raw_compute = None
-    buffered_compute = None
-    upload_model = None
+# try:
+from surrealml.rust_surrealml import load_cached_raw_model, add_column, add_output, add_normaliser, save_model, \
+    add_name, load_model, add_description, add_version, to_bytes, add_engine, add_author, add_origin
+from surrealml.rust_surrealml import raw_compute, buffered_compute, upload_model
 
 from typing import Optional
 
@@ -125,12 +108,12 @@ class RustAdapter:
         return to_bytes(self.file_id)
 
     @staticmethod
-    def load(path):
+    def load(path) -> str:
         """
         Loads a model from a file.
 
         :param path: the path to load the model from.
-        :return:
+        :return: the id of the model being loaded.
         """
         return load_model(path)
 
