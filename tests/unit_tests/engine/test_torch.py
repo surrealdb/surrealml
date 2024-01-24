@@ -9,7 +9,7 @@ import numpy as np
 import onnxruntime as ort
 
 from surrealml.engine.torch import TorchOnnxAdapter
-from tests.utils.torch_linear import train_model
+from surrealml.model_templates.torch.torch_linear import train_model
 
 
 class TestTorch(TestCase):

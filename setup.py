@@ -19,7 +19,7 @@ setup(
     packages=[
         "surrealml",
         "surrealml.engine",
-        # "surrealdb.execution_mixins"
+        "surrealml.model_templates"
     ],
     package_data={
         "surrealml": ["binaries/*"],

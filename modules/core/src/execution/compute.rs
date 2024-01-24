@@ -64,12 +64,6 @@ impl <'a>ModelComputation<'a> {
             tensor_placeholder = tensor;
         }
 
-        // let environment = Arc::new(
-        //     Environment::builder()
-        //         .with_execution_providers([ExecutionProvider::CPU(Default::default())])
-        //         .build()
-        //         .map_err(|e| e.to_string())?
-        // );
         let session = SessionBuilder::new(&ENVIRONMENT).map_err(|e| e.to_string())?
                                                        .with_model_from_memory(&self.surml_file.model)
                                                        .map_err(|e| e.to_string())?;
@@ -148,9 +142,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_raw_compute() {
-
-        let mut file = SurMlFile::from_file("./stash/test.surml").unwrap();
+    fn test_raw_compute_linear_sklearn() {
+        let mut file = SurMlFile::from_file("./model_stash/sklearn/surml/linear.surml").unwrap();
         let model_computation = ModelComputation {
             surml_file: &mut file,
         };
@@ -159,15 +152,17 @@ mod tests {
         input_values.insert(String::from("squarefoot"), 1000.0);
         input_values.insert(String::from("num_floors"), 2.0);
 
-        let output = model_computation.raw_compute(model_computation.input_tensor_from_key_bindings(input_values), None).unwrap();
+        let raw_input = model_computation.input_tensor_from_key_bindings(input_values);
+
+        let output = model_computation.raw_compute(raw_input, Some((1, 2))).unwrap();
         assert_eq!(output.len(), 1);
-        assert_eq!(output[0], 725.42053);
+        assert_eq!(output[0], 985.57745);
     }
 
 
     #[test]
-    fn test_buffered_compute() {
-        let mut file = SurMlFile::from_file("./stash/test.surml").unwrap();
+    fn test_buffered_compute_linear_sklearn() {
+        let mut file = SurMlFile::from_file("./model_stash/sklearn/surml/linear.surml").unwrap();
         let model_computation = ModelComputation {
             surml_file: &mut file,
         };

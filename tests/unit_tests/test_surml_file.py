@@ -3,7 +3,7 @@ import shutil
 from unittest import TestCase
 
 from surrealml import Engine, SurMlFile
-from tests.utils.torch_linear import train_model
+from surrealml.model_templates.torch.torch_linear import train_model
 import numpy as np
 
 
@@ -53,7 +53,7 @@ class TestSurMlFile(TestCase):
 
         # print(new_file.raw_compute([1.0, 2.0]))
 
-        print(new_file.buffered_compute({
-            "squarefoot": 3200.0,
-            "num_floors": 2.0
-        }))
+        # print(new_file.buffered_compute({
+        #     "squarefoot": 3200.0,
+        #     "num_floors": 2.0
+        # }))

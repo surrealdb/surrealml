@@ -7,21 +7,16 @@ from unittest import main, TestCase
 
 import numpy as np
 import onnxruntime as ort
-from sklearn.linear_model import LinearRegression
 
 from surrealml.engine.sklearn import SklearnOnnxAdapter
+from surrealml.model_templates.sklearn.sklearn_linear import train_model
+from surrealml.model_templates.datasets.house_linear import HOUSE_LINEAR
 
 
 class TestSklearn(TestCase):
 
     def setUp(self):
-        np.random.seed(0)  # For reproducibility
-        self.x = np.random.rand(100, 1) * 10  # 100 random numbers between 0 and 10
-        noise = np.random.randn(100, 1)  # 100 random noise values
-        self.y = 3 * self.x + 4 + noise  # Linear relationship with noise
-        # Create and train the model
-        self.model = LinearRegression()
-        self.model.fit(self.x, self.y)
+        self.model = train_model()
 
     def tearDown(self):
         try:
@@ -30,7 +25,7 @@ class TestSklearn(TestCase):
             print(f"Error: surmlcache : {e.strerror}")
 
     def test_store_and_run(self):
-        file_path = SklearnOnnxAdapter.save_model_to_onnx(self.model, self.x[:1])
+        file_path = SklearnOnnxAdapter.save_model_to_onnx(self.model, HOUSE_LINEAR["inputs"][:1])
 
         # Load the ONNX model
         session = ort.InferenceSession(file_path)
@@ -38,7 +33,7 @@ class TestSklearn(TestCase):
         # Prepare input data (adjust the shape according to your model's requirements)
         # For a linear regression model, it usually expects a single feature vector.
         # Example: Predicting for a single value
-        input_data = np.array([[5]], dtype=np.float64)  # Replace with your input data
+        input_data = np.array([[5, 6]], dtype=np.float32)  # Replace with your input data
 
         # Get the name of the input node
         input_name = session.get_inputs()[0].name
@@ -50,7 +45,7 @@ class TestSklearn(TestCase):
         # For a simple linear regression model, it typically has a single output.
         predicted_value = result[0][0][0]
 
-        self.assertEqual(19.190618588148247, predicted_value)
+        self.assertEqual(5.013289451599121, float(predicted_value))
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 from unittest import TestCase, main
-from tests.utils.torch_linear import train_model
+from surrealml.model_templates.torch.torch_linear import train_model
 from surrealml.rust_adapter import RustAdapter
 from surrealml.surml_file import SurMlFile
 from surrealml.engine import Engine

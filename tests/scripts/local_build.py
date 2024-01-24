@@ -2,9 +2,9 @@
 This script compiles the Rust library and injects the .so rust python lib into the surrealml
 directory so we can run python unit tests against the Rust library.
 """
+import fnmatch
 import os
 import shutil
-import fnmatch
 
 
 def delete_directory(dir_path: os.path) -> None:

@@ -19,3 +19,4 @@ modules/core/onnx_driver/
 *.so
 surrealml/rust_surrealml.cpython-310-darwin.so
 .surmlcache
+modules/core/model_stash/
