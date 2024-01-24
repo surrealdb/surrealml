@@ -1,5 +1,9 @@
-import sys
+"""
+Trains and exports models to be used for testing.
+"""
 import os
+import sys
+
 import onnx
 
 script_path = os.path.abspath(__file__)
@@ -18,6 +22,8 @@ from surrealml.model_templates.sklearn.sklearn_linear import export_model_onnx a
 from surrealml.model_templates.sklearn.sklearn_linear import export_model_surml as linear_sklearn_export_model_surml
 
 from surrealml.model_templates.torch.torch_linear import train_model as linear_torch_train_model
+from surrealml.model_templates.torch.torch_linear import export_model_onnx as linear_torch_export_model_onnx
+from surrealml.model_templates.torch.torch_linear import export_model_surml as linear_torch_export_model_surml
 
 
 def delete_directory(dir_path: os.path) -> None:
@@ -97,8 +103,23 @@ def main():
         sklearn_linear_onnx_file,
         os.path.join(sklearn_onnx_stash_directory, "linear.onnx")
     )
+
+    # train and stash torch models
+    torch_linear_model, x = linear_torch_train_model()
+    torch_linear_surml_file = linear_torch_export_model_surml(torch_linear_model)
+    torch_linear_onnx_file = linear_torch_export_model_onnx(torch_linear_model)
+
+    torch_linear_surml_file.save(
+        path=str(os.path.join(torch_surml_stash_directory, "linear.surml"))
+    )
+    onnx.save(
+        torch_linear_onnx_file,
+        os.path.join(torch_onnx_stash_directory, "linear.onnx")
+    )
+
     os.system(f"cd {model_stash_directory} && tree")
-    # write_file(sklearn_onnx_stash_directory, sklearn_linear_onnx_file, "linear.onnx")
+
+    shutil.rmtree(".surmlcache")
 
 
 if __name__ == '__main__':

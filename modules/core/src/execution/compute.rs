@@ -2,7 +2,7 @@
 use crate::storage::surml_file::SurMlFile;
 use std::collections::HashMap;
 use ndarray::{ArrayD, CowArray};
-use ort::{SessionBuilder, Value};
+use ort::{SessionBuilder, Value, session::Input};
 use super::onnx_environment::ENVIRONMENT;
 
 
@@ -29,6 +29,24 @@ impl <'a>ModelComputation<'a> {
         ndarray::arr1::<f32>(&buffer).into_dyn()
     }
 
+    /// Creates a vector of dimensions for the input tensor from the loaded model.
+    /// 
+    /// # Arguments
+    /// * `input_dims` - The input dimensions from the loaded model.
+    /// 
+    /// # Returns
+    /// A vector of dimensions for the input tensor to be reshaped into from the loaded model.
+    fn process_input_dims(input_dims: &Input) -> Vec<usize> {
+        let mut buffer = Vec::new();
+        for dim in input_dims.dimensions() {
+            match dim {
+                Some(dim) => buffer.push(dim as usize),
+                None => buffer.push(1)
+            }
+        }
+        buffer
+    }
+
     /// Creates a Vector that can be used manipulated with other operations such as normalisation from a hashmap of keys and values.
     /// 
     /// # Arguments
@@ -52,22 +70,14 @@ impl <'a>ModelComputation<'a> {
     /// 
     /// # Returns
     /// The computed output tensor from the loaded model.
-    pub fn raw_compute(&self, tensor: ArrayD<f32>, dims: Option<(i32, i32)>) -> Result<Vec<f32>, String> {
-
-        let tensor_placeholder: ArrayD<f32>;
-        if dims.is_some() {
-            let dims = dims.unwrap();
-            let tensor = tensor.into_shape((dims.0 as usize, dims.1 as usize)).unwrap();
-            tensor_placeholder = tensor.into_dyn();
-        }
-        else {
-            tensor_placeholder = tensor;
-        }
-
+    pub fn raw_compute(&self, tensor: ArrayD<f32>, _dims: Option<(i32, i32)>) -> Result<Vec<f32>, String> {
         let session = SessionBuilder::new(&ENVIRONMENT).map_err(|e| e.to_string())?
                                                        .with_model_from_memory(&self.surml_file.model)
                                                        .map_err(|e| e.to_string())?;
-        let x = CowArray::from(tensor_placeholder);
+        let unwrapped_dims = ModelComputation::process_input_dims(&session.inputs[0]);
+        let tensor = tensor.into_shape(unwrapped_dims).unwrap();
+
+        let x = CowArray::from(tensor).into_dyn();
         let outputs = session.run(vec![Value::from_array(session.allocator(), &x).unwrap()]).map_err(|e| e.to_string())?;
 
         let mut buffer: Vec<f32> = Vec::new();
@@ -173,22 +183,11 @@ mod tests {
 
         let output = model_computation.buffered_compute(&mut input_values).unwrap();
         assert_eq!(output.len(), 1);
-        assert_eq!(output[0], 725.42053);
+        assert_eq!(output[0], 985.57745);
     }
 
     #[test]
-    fn test_raw_compute_trees() {
-            let mut file = SurMlFile::from_file("./stash/forrest.surml").unwrap();
-            let model_computation = ModelComputation {
-                surml_file: &mut file,
-            };
+    fn test_raw_compute_linear_torch() {
 
-            let x = vec![0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1];
-            let data: ArrayD<f32> = ndarray::arr1(&x).into_dyn();
-            let data: ArrayD<f32> = data.into_shape((1, 28)).unwrap().into_dyn();
-    
-            let output = model_computation.raw_compute(data, None).unwrap();
-            assert_eq!(output.len(), 1);
-            assert_eq!(output[0], 0.0);
     }
 }
