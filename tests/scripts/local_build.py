@@ -67,22 +67,30 @@ source_venv = os.path.join(test_venv_dir, "bin", "activate")
 
 def main():
     # delete the old dirs and embedded rust lib if present
+    print("local build: cleaning up old files")
     delete_directory(dir_path=test_venv_dir)
     delete_directory(dir_path=build_dir)
     delete_directory(dir_path=egg_info_dir)
     delete_directory(dir_path=target_directory)
     delete_file(file_path=embedded_rust_lib_dir)
+    print("local build: old files cleaned up")
 
     # setup venv and build the rust lib
+    print("local build: setting up venv and building rust lib")
     os.system(f"python3 -m venv {test_venv_dir}")
+    print("local build: venv setup")
+    print("local build: building rust lib")
     os.system(f"source {source_venv} && pip install --no-cache-dir {main_directory}")
+    print("local build: rust lib built")
 
     # move the rust lib into the surrealml directory
+    print("local build: moving rust lib into surrealml directory")
     find_and_move_rust_surrealml_file(
         start_path=build_dir,
         destination_path=surrealml_dir,
         new_name="rust_surrealml.so"
     )
+    print("local build: rust lib moved into surrealml directory")
 
     # cleanup
     # delete_directory(dir_path=test_venv_dir)
