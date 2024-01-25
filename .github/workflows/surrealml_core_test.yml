@@ -23,7 +23,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.x' # Replace '3.x' with the specific version if needed
+        python-version: '3.11'
 
     - name: Pre-test Setup
       run: |
