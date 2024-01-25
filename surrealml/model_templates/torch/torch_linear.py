@@ -81,7 +81,7 @@ def export_model_surml(model):
     ]
     inputs = torch.stack(tensor, dim=1)
 
-    file = SurMlFile(model=model, name="linear", inputs=inputs, engine=Engine.PYTORCH)
+    file = SurMlFile(model=model, name="linear", inputs=inputs[:1], engine=Engine.PYTORCH)
     file.add_column("squarefoot")
     file.add_column("num_floors")
     file.add_normaliser("squarefoot", "z_score", HOUSE_LINEAR["squarefoot"].mean(), HOUSE_LINEAR["squarefoot"].std())

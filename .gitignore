@@ -6,6 +6,7 @@ Cargo.lock
 
 build/
 dist/
+__pycache__/
 venv/
 .idea/
 surrealml.egg-info/

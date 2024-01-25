@@ -1,10 +1,7 @@
 """
 Defines the SurMlFile class which is used to save/load models and perform computations based on those models.
 """
-import os
-import uuid
 from typing import Optional
-
 
 from surrealml.engine import Engine, SklearnOnnxAdapter, TorchOnnxAdapter
 from surrealml.rust_adapter import RustAdapter

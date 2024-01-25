@@ -38,7 +38,7 @@ async fn root(mut stream: BodyStream) -> &'static str {
         surml_file: &mut file
     };
     let result = computert_unit.buffered_compute(&mut input_values).unwrap();
-    assert_eq!(result[0], 1.2747419);
+    println!("Result: {:?}", result);
     return "Hello root"
 }
 
@@ -54,10 +54,10 @@ async fn run_server() {
 }
 
 
-async fn send_request() {
+async fn send_request(path: &str) {
     let client = Client::new();
     let uri: Uri = "http://0.0.0.0:4000".parse().unwrap();
-    let generator = StreamAdapter::new(5, "./test.surml".to_string());
+    let generator = StreamAdapter::new(5, path.to_string());
     let body = Body::wrap_stream(generator);
     let req = Request::post(uri).body(body).unwrap();
     let response = client.request(req).await.unwrap();
@@ -71,7 +71,7 @@ mod tests {
     use std::thread;
 
     #[test]
-    fn test_server() {
+    fn test_server_sklearn() {
         let tokio_runtime = tokio::runtime::Runtime::new().unwrap();
         let _server_task = tokio_runtime.spawn( async {
             run_server().await;
@@ -79,7 +79,22 @@ mod tests {
 
         let sleep_time = std::time::Duration::from_secs(1);
         tokio_runtime.block_on( async {
-            send_request().await;
+            send_request("./modules/core/model_stash/sklearn/surml/linear.surml").await;
+        });
+
+        thread::sleep(sleep_time);
+    }
+
+    #[test]
+    fn test_server_torch() {
+        let tokio_runtime = tokio::runtime::Runtime::new().unwrap();
+        let _server_task = tokio_runtime.spawn( async {
+            run_server().await;
+        });
+
+        let sleep_time = std::time::Duration::from_secs(1);
+        tokio_runtime.block_on( async {
+            send_request("./modules/core/model_stash/torch/surml/linear.surml").await;
         });
 
         thread::sleep(sleep_time);

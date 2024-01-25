@@ -22,16 +22,16 @@ fn main() {
 
 	// remove ./modules/utils/target folder if there
 	let _ =
-		std::fs::remove_dir_all(Path::new("modules").join("utils").join("target")).unwrap_or(());
+		std::fs::remove_dir_all(Path::new("modules").join("core").join("target")).unwrap_or(());
 
 	// create the target module folder for the utils module
-	let _ = std::fs::create_dir(Path::new("modules").join("utils").join("target"));
-	let _ = std::fs::create_dir(Path::new("modules").join("utils").join("target").join(profile));
+	let _ = std::fs::create_dir(Path::new("modules").join("core").join("target"));
+	let _ = std::fs::create_dir(Path::new("modules").join("core").join("target").join(profile));
 
 	// copy target folder to modules/utils/target profile for the utils modules
 	std::fs::copy(
 		Path::new("target").join(profile).join(target_lib),
-		Path::new("modules").join("utils").join("target").join(profile).join(target_lib),
+		Path::new("modules").join("core").join("target").join(profile).join(target_lib),
 	)
 	.unwrap();
 }

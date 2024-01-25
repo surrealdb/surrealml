@@ -75,7 +75,7 @@ impl <'a>ModelComputation<'a> {
                                                        .with_model_from_memory(&self.surml_file.model)
                                                        .map_err(|e| e.to_string())?;
         let unwrapped_dims = ModelComputation::process_input_dims(&session.inputs[0]);
-        let tensor = tensor.into_shape(unwrapped_dims).unwrap();
+        let tensor = tensor.into_shape(unwrapped_dims).map_err(|e| e.to_string())?;
 
         let x = CowArray::from(tensor).into_dyn();
         let outputs = session.run(vec![Value::from_array(session.allocator(), &x).unwrap()]).map_err(|e| e.to_string())?;
@@ -188,6 +188,19 @@ mod tests {
 
     #[test]
     fn test_raw_compute_linear_torch() {
+        let mut file = SurMlFile::from_file("./model_stash/torch/surml/linear.surml").unwrap();
+        let model_computation = ModelComputation {
+            surml_file: &mut file,
+        };
 
+        let mut input_values = HashMap::new();
+        input_values.insert(String::from("squarefoot"), 1000.0);
+        input_values.insert(String::from("num_floors"), 2.0);
+
+        let raw_input = model_computation.input_tensor_from_key_bindings(input_values);
+
+        let output = model_computation.raw_compute(raw_input, None).unwrap();
+        assert_eq!(output.len(), 1);
+        assert_eq!(output[0], 378.237);
     }
 }

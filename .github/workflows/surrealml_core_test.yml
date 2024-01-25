@@ -1,4 +1,4 @@
-name: Rust Test for surrealml-core on Pull Request
+name: Run tests on Pull Request
 
 on:
   pull_request:
@@ -20,5 +20,31 @@ jobs:
         toolchain: stable
         override: true
 
-    - name: Run Unit Tests
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x' # Replace '3.x' with the specific version if needed
+
+    - name: Pre-test Setup
+      run: |
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install -r requirements.txt
+        
+        # build the local version of the core module to be loaded into python
+        python tests/scripts/local_build.py
+        
+        # train the models for the tests
+        python tests/scripts/build_assets.py
+
+    - name: Run Python Unit Tests
+      run: |
+        source venv/bin/activate
+        python -m unittest discover
+        deactivate
+
+    - name: Run Core Unit Tests
       run: cd modules/core && cargo test
+
+    - name: Run HTTP Transfer Tests
+      run: cargo test

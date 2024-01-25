@@ -16,7 +16,7 @@ ndarray = "0.15.6"
 hyper = { version = "0.14.27", features = ["full"] }
 tokio = { version = "1.34.0", features = ["full"] }
 base64 = "0.13"
-surrealml-core = { path = "./modules/utils" }
+surrealml-core = { path = "./modules/core" }
 
 [dev-dependencies]
 axum = "0.6.20"
