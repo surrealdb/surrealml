@@ -3,3 +3,4 @@ skl2onnx==1.16.0
 scikit-learn==1.4.0
 torch==2.1.2
 onnx==1.15.0
+onnxruntime==1.16.3
