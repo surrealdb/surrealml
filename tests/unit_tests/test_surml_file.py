@@ -2,9 +2,10 @@ import os
 import shutil
 from unittest import TestCase
 
+import numpy as np
+
 from surrealml import Engine, SurMlFile
 from surrealml.model_templates.torch.torch_linear import train_model
-import numpy as np
 
 
 class TestSurMlFile(TestCase):
@@ -15,7 +16,7 @@ class TestSurMlFile(TestCase):
         self.house_price = np.array([200000, 230000, 280000, 320000, 350000, 380000, 420000, 470000, 500000, 520000],
                                             dtype=np.float32)
         self.model, self.x = train_model()
-        self.file = SurMlFile(model=self.model, name="House Price Prediction", inputs=self.x, engine=Engine.PYTORCH)
+        self.file = SurMlFile(model=self.model, name="House Price Prediction", inputs=self.x[:1], engine=Engine.PYTORCH)
 
     def tearDown(self):
         try:
@@ -27,7 +28,6 @@ class TestSurMlFile(TestCase):
     def test_full_torch_run(self):
         self.file.add_column("squarefoot")
         self.file.add_column("num_floors")
-        self.file.add_column("num_bedrooms")
 
         self.file.add_output(
             "house_price",
@@ -47,13 +47,10 @@ class TestSurMlFile(TestCase):
             self.num_floors.mean(),
             self.num_floors.std()
         )
+
         self.file.save("./test.surml")
 
         new_file = SurMlFile.load("./test.surml", Engine.PYTORCH)
 
-        # print(new_file.raw_compute([1.0, 2.0]))
-
-        # print(new_file.buffered_compute({
-        #     "squarefoot": 3200.0,
-        #     "num_floors": 2.0
-        # }))
+        self.assertEqual(float, type(new_file.raw_compute([1.0, 2.0])[0]))
+        self.assertEqual(float, type(new_file.buffered_compute({"squarefoot": 1.0, "num_floors": 2.0})[0]))

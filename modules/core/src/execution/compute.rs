@@ -57,7 +57,10 @@ impl <'a>ModelComputation<'a> {
     pub fn input_vector_from_key_bindings(&self, mut input_values: HashMap<String, f32>) -> Vec<f32> {
         let mut buffer = Vec::with_capacity(self.surml_file.header.keys.store.len());
         for key in &self.surml_file.header.keys.store {
-            let value = input_values.get_mut(key).unwrap();
+            let value = match input_values.get_mut(key) {
+                Some(value) => value,
+                None => panic!("Key {} not found in input values", key)
+            };
             buffer.push(std::mem::take(value));
         }
         buffer
@@ -134,7 +137,10 @@ impl <'a>ModelComputation<'a> {
         }
 
         // apply the normaliser to the output
-        let output_normaliser = self.surml_file.header.output.normaliser.as_ref().unwrap();
+        let output_normaliser = match self.surml_file.header.output.normaliser.as_ref() {
+            Some(normaliser) => normaliser,
+            None => return Err(String::from("No normaliser present for output which shouldn't happen as passed initial check for"))
+        };
         let mut buffer = Vec::with_capacity(output.len());
 
         for value in output {
@@ -199,6 +205,21 @@ mod tests {
         let raw_input = model_computation.input_tensor_from_key_bindings(input_values);
 
         let output = model_computation.raw_compute(raw_input, None).unwrap();
+        assert_eq!(output.len(), 1);
+    }
+
+    #[test]
+    fn test_buffered_compute_linear_torch() {
+        let mut file = SurMlFile::from_file("./model_stash/torch/surml/linear.surml").unwrap();
+        let model_computation = ModelComputation {
+            surml_file: &mut file,
+        };
+
+        let mut input_values = HashMap::new();
+        input_values.insert(String::from("squarefoot"), 1000.0);
+        input_values.insert(String::from("num_floors"), 2.0);
+
+        let output = model_computation.buffered_compute(&mut input_values).unwrap();
         assert_eq!(output.len(), 1);
     }
 }
