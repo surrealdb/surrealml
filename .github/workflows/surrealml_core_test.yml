@@ -41,8 +41,8 @@ jobs:
         echo "Local build complete"
         
         # train the models for the tests
-        deactivate
         python ./tests/scripts/build_assets.py
+        deactivate
 
     - name: Run Python Unit Tests
       run: |
