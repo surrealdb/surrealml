@@ -112,10 +112,10 @@ def main():
     torch_linear_surml_file.save(
         path=str(os.path.join(torch_surml_stash_directory, "linear.surml"))
     )
-    onnx.save(
-        torch_linear_onnx_file,
-        os.path.join(torch_onnx_stash_directory, "linear.onnx")
-    )
+    # onnx.save(
+    #     torch_linear_onnx_file,
+    #     os.path.join(torch_onnx_stash_directory, "linear.onnx")
+    # )
 
     os.system(f"cd {model_stash_directory} && tree")
 
