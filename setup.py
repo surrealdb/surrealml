@@ -19,7 +19,10 @@ setup(
     packages=[
         "surrealml",
         "surrealml.engine",
-        "surrealml.model_templates"
+        "surrealml.model_templates",
+        "surrealml.model_templates.datasets",
+        "surrealml.model_templates.sklearn",
+        "surrealml.model_templates.torch",
     ],
     package_data={
         "surrealml": ["binaries/*"],
