@@ -6,13 +6,18 @@ Cargo.lock
 
 build/
 dist/
+__pycache__/
 venv/
 .idea/
 surrealml.egg-info/
 .vscode/
 ./modules/utils/target/
-modules/utils/target/
+modules/core/target/
 ./modules/onnx_driver/target/
 modules/onnx_driver/target/
 surrealdb_build/
-modules/utils/onnx_driver/
+modules/core/onnx_driver/
+*.so
+surrealml/rust_surrealml.cpython-310-darwin.so
+.surmlcache
+modules/core/model_stash/
