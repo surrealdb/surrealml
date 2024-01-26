@@ -17,7 +17,7 @@ use hyper::header::CONTENT_TYPE;
 use hyper::{Client, Uri};
 use hyper::header::AUTHORIZATION;
 use hyper::header::HeaderValue;
-use base64::{encode};
+use base64::encode;
 
 use crate::python_state::{PYTHON_STATE, generate_unique_id};
 use surrealml_core::storage::stream_adapter::StreamAdapter;
@@ -40,7 +40,7 @@ pub fn load_model(file_path: String) -> String {
 }
 
 
-/// Saves a model to a file.
+/// Saves a model to a file, deleting the file from the `PYTHON_STATE` in the process.
 /// 
 /// # Arguments
 /// * `file_path` - The path to the file to save to.

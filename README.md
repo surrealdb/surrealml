@@ -16,12 +16,24 @@ SurrealML is a feature that allows you to store trained machine learning models 
 
 ## Installation
 
-To install SurrealML, make sure you have Python installed. Then, install the SurrealML library and either PyTorch or SKLearn, based on your model choice. You can install these using pip:
+To install SurrealML, make sure you have Python installed. Then, install the `SurrealML` library and either `PyTorch` or 
+`SKLearn`, based on your model choice. You can install the package with both `PyTorch` and `SKLearn` with the command
+below:
 
 ```
-pip install surrealml
-pip install torch  # If using PyTorch
-pip install scikit-learn  # If using SKLearn
+pip install "git+https://github.com/surrealdb/surrealml#egg=surrealml[sklearn,torch]"
+```
+
+If you want to use `SurrealML` with `sklearn` you will need the following installation:
+
+```bash
+pip install "git+https://github.com/surrealdb/surrealml#egg=surrealml[sklearn]"
+```
+
+For `PyTorch`:
+
+```bash
+pip install "git+https://github.com/surrealdb/surrealml#egg=surrealml[torch]"
 ```
 
 After that, you can train your model and save it in the SurrealML format.
@@ -47,32 +59,38 @@ will also be able to load your sk-learn models in Rust and run them meaning you 
 Saving a model is as simple as the following:
 
 ```python
-import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from surrealml import SurMlFile
+from sklearn.linear_model import LinearRegression
+from surrealml import SurMlFile, Engine
+from surrealml.model_templates.datasets.house_linear import HOUSE_LINEAR # click on this HOUSE_LINEAR to see the data
 
-num_classes = 2
-X = np.random.rand(100, 28)
-y = np.random.randint(num_classes, size=100)
+# train the model
+model = LinearRegression()
+model.fit(HOUSE_LINEAR["inputs"], HOUSE_LINEAR["outputs"])
 
-skl_model = RandomForestClassifier(n_estimators=10, max_depth=10)
-skl_model.fit(X, y)
-test_file = SurMlFile(model=skl_model, name="random forrest classifier", inputs=X, sklearn=True)
-test_file.save("./test_forrest.surml")
+# package and save the model
+file = SurMlFile(model=model, name="linear", inputs=HOUSE_LINEAR["inputs"], engine=Engine.SKLEARN)
 
-# load model and execute a calculation
-random_floats = list(np.random.rand(28))
-test_load = SurMlFile.load("./test_forrest.surml")
-print(test_load.raw_compute(random_floats, [1, -1]))
+# add columns in the order of the inputs to map dictionaries passed in to the model
+file.add_column("squarefoot")
+file.add_column("num_floors")
+
+# add normalisers for the columns
+file.add_normaliser("squarefoot", "z_score", HOUSE_LINEAR["squarefoot"].mean(), HOUSE_LINEAR["squarefoot"].std())
+file.add_normaliser("num_floors", "z_score", HOUSE_LINEAR["num_floors"].mean(), HOUSE_LINEAR["num_floors"].std())
+file.add_output("house_price", "z_score", HOUSE_LINEAR["outputs"].mean(), HOUSE_LINEAR["outputs"].std())
+
+# save the file
+file.save(path="./linear.surml")
+
+# load the file
+new_file = SurMlFile.load(path="./linear.surml", engine=Engine.SKLEARN)
+
+# Make a prediction (both should be the same due to the perfectly correlated example data)
+print(new_file.buffered_compute(value_map={"squarefoot": 5, "num_floors": 6}))
+print(new_file.raw_compute(input_vector=[5, 6]))
 ```
 
 ## Python tutorial using Pytorch
-
-To carry out this example we need the following:
-
-- pytorch (pip installed for python)
-- numpy
-- surrealml
 
 First we need to have one script where we create and store the model. In this example we will merely do a linear regression model
 to predict the house price using the number of floors and the square feet.
@@ -181,9 +199,9 @@ test_inputs = torch.stack([test_squarefoot, test_num_floors], dim=1)
 We can now wrap our model in the `SurMlFile` object with the following code:
 
 ```python
-from surrealml import SurMlFile
+from surrealml import SurMlFile, Engine
 
-file = SurMlFile(model=model, name="House Price Prediction", inputs=test_inputs)
+file = SurMlFile(model=model, name="linear", inputs=inputs[:1], engine=Engine.PYTORCH)
 ```
 
 The name is optional but the inputs and model are essential. We can now add some meta data to the file such as our inputs and outputs with the following code, however meta data is not essential, it just helps with some types of computation:
@@ -215,28 +233,12 @@ file.save("./test.surml")
 If you have followed the previous steps you should have a `.surml` file saved with all our meta data. We load it with the following code:
 
 ```python
-from surrealml import SurMlFile
+from surrealml import SurMlFile, Engine
 
-new_file = SurMlFile.load("./test.surml")
+new_file = SurMlFile.load("./test.surml", engine=Engine.PYTORCH)
 ```
 
 Our model is now loaded. We can now perform computations.
-
-### Raw computation in Python
-
-If you haven't put any meta data into the file then don't worry, we can just perform a raw computation with the following command:
-
-```python
-print(new_file.raw_compute([1.0, 2.0]))
-```
-
-This will just give you the outcome from the model. If you have put in the metadata then we can perform a buffered computation.
-We can also input dimensions for the raw compute which will perform a batch computation. This can be done with the
-following code:
-
-```python
-print(new_file.raw_compute([1.0, 2.0, 3.0, 4.0]), dims=[2, 2])
-```
 
 ### Buffered computation in Python
 
