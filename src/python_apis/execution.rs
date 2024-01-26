@@ -16,8 +16,14 @@ use crate::python_state::PYTHON_STATE;
 /// The computed output vector from the loaded model.
 #[pyfunction]
 pub fn raw_compute(file_id: String, input_vector: Vec<f32>, dims: Option<(i32, i32)>) -> Vec<f32> {
-    let mut python_state = PYTHON_STATE.lock().unwrap();
-    let mut file = python_state.get_mut(&file_id).unwrap();
+    let mut python_state = match PYTHON_STATE.lock() {
+        Ok(state) => state,
+        Err(error) => panic!("{}", format!("Error getting python state: {}", error))
+    };
+    let mut file = match python_state.get_mut(&file_id) {
+        Some(file) => file,
+        None => panic!("File not found for id: {}, here is the state: {:?}", file_id, python_state.keys())
+    };
     let tensor = ndarray::arr1(&input_vector).into_dyn();
     let compute_unit = ModelComputation {
         surml_file: &mut file
@@ -36,8 +42,14 @@ pub fn raw_compute(file_id: String, input_vector: Vec<f32>, dims: Option<(i32, i
 /// The computed output vector from the loaded model.
 #[pyfunction]
 pub fn buffered_compute(file_id: String, mut input_values_map: HashMap<String, f32>) -> Vec<f32> {
-    let mut python_state = PYTHON_STATE.lock().unwrap();
-    let mut file = python_state.get_mut(&file_id).unwrap();
+    let mut python_state = match PYTHON_STATE.lock() {
+        Ok(state) => state,
+        Err(error) => panic!("{}", format!("Error getting python state: {}", error))
+    };
+    let mut file = match python_state.get_mut(&file_id) {
+        Some(file) => file,
+        None => panic!("File not found for id: {}, here is the state: {:?}", file_id, python_state.keys())
+    };
 
     let compute_unit = ModelComputation {
         surml_file: &mut file

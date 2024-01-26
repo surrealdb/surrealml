@@ -18,7 +18,11 @@ setup(
     rust_extensions=[RustExtension("surrealml.rust_surrealml", binding=Binding.PyO3)],
     packages=[
         "surrealml",
-        # "surrealdb.execution_mixins"
+        "surrealml.engine",
+        "surrealml.model_templates",
+        "surrealml.model_templates.datasets",
+        "surrealml.model_templates.sklearn",
+        "surrealml.model_templates.torch",
     ],
     package_data={
         "surrealml": ["binaries/*"],
@@ -27,9 +31,15 @@ setup(
     zip_safe=False,
     include_package_data=True,
     requirements=[
-        "pyyaml>=3.13",
-        "numpy",
-        "torch==2.0.0",
-        "hummingbird-ml==0.4.9"
-    ]
+        "numpy==1.26.3",
+    ],
+    extras_require={
+        "sklearn": [
+            "skl2onnx==1.16.0",
+            "scikit-learn==1.4.0"
+        ],
+        "torch": [
+            "torch==2.1.2"
+        ]
+    }
 )
