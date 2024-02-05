@@ -85,7 +85,16 @@ class SurMlFile:
         :param version: the version of the model.
         :return: None
         """
-        self.rust_adapter.add_version(self.file_id)
+        self.rust_adapter.add_version(version)
+
+    def add_name(self, name):
+        """
+        Adds a name to th model to the metadata.
+
+        :param name: the name of the model.
+        :return: None
+        """
+        self.rust_adapter.add_name(name)
 
     def add_normaliser(self, column_name, normaliser_type, one, two):
         """
