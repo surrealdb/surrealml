@@ -65,6 +65,15 @@ class RustAdapter:
         """
         add_version(self.file_id, version)
 
+    def add_name(self, name):
+        """
+        Adds a name to the model to the metadata.
+
+        :param name: the version of the model.
+        :return: None
+        """
+        add_name(self.file_id, name)
+
     def add_normaliser(self, column_name, normaliser_type, one, two):
         """
         Adds a normaliser to the model to the metadata for a column.
