@@ -114,7 +114,7 @@ mod tests {
 
     #[test]
     fn test_read_image() {
-        let _data = read_rgb_image("../data_stash/images/169_6300.jpg".to_string(), 480, 853);
+        let _data = read_rgb_image("./data_stash/images/169_6300.jpg".to_string(), 480, 853);
     }
 
     #[test]
@@ -152,7 +152,7 @@ mod tests {
 
     #[test]
     fn test_test_calculate_rgb_index_quality_control() {
-        let raw_data = std::fs::read_to_string("../data_stash/images/dummy_rgb_data.json").unwrap();
+        let raw_data = std::fs::read_to_string("./data_stash/images/dummy_rgb_data.json").unwrap();
         let data: DummyJson = serde_json::from_str(&raw_data).unwrap();
 
         // This will give x y chunks of 50 and an entire rgb image of 150
