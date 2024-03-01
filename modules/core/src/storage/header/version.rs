@@ -1,4 +1,12 @@
 //! Defines the process of managing the version of the `surml` file in the file.
+use glue::{
+    safe_eject_option,
+    safe_eject,
+    errors::error::{
+        SurrealError,
+        SurrealErrorStatus
+    }
+};
 
 
 /// The `Version` struct represents the version of the `surml` file.
@@ -47,19 +55,20 @@ impl Version {
     /// 
     /// # Returns
     /// A new `Version` struct.
-    pub fn from_string(version: String) -> Self {
+    pub fn from_string(version: String) -> Result<Self, SurrealError> {
         if version == "".to_string() {
-            return Version::fresh();
+            return Ok(Version::fresh())
         }
         let mut split = version.split(".");
-        let one = split.next().unwrap().parse::<u8>().unwrap();
-        let two = split.next().unwrap().parse::<u8>().unwrap();
-        let three = split.next().unwrap().parse::<u8>().unwrap();
-        Version {
-            one,
-            two,
-            three,
-        }
+        let one_str = safe_eject_option!(split.next());
+        let two_str = safe_eject_option!(split.next());
+        let three_str = safe_eject_option!(split.next());
+
+        Ok(Version {
+            one: safe_eject!(one_str.parse::<u8>(), SurrealErrorStatus::BadRequest),
+            two: safe_eject!(two_str.parse::<u8>(), SurrealErrorStatus::BadRequest),
+            three: safe_eject!(three_str.parse::<u8>(), SurrealErrorStatus::BadRequest),
+        })
     }
 
     /// Increments the version by one.
@@ -84,12 +93,12 @@ pub mod tests {
 
     #[test]
     fn test_from_string() {
-        let version = Version::from_string("0.0.0".to_string());
+        let version = Version::from_string("0.0.0".to_string()).unwrap();
         assert_eq!(version.one, 0);
         assert_eq!(version.two, 0);
         assert_eq!(version.three, 0);
 
-        let version = Version::from_string("1.2.3".to_string());
+        let version = Version::from_string("1.2.3".to_string()).unwrap();
         assert_eq!(version.one, 1);
         assert_eq!(version.two, 2);
         assert_eq!(version.three, 3);

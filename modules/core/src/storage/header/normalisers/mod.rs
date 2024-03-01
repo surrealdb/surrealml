@@ -12,6 +12,10 @@ pub mod wrapper;
 use super::keys::KeyBindings;
 use utils::{extract_label, extract_two_numbers};
 use wrapper::NormaliserType;
+use glue::{
+    safe_eject_option,
+    errors::error::{SurrealError, SurrealErrorStatus}
+};
 
 
 /// A map of normalisers so they can be accessed by column name and input index.
@@ -47,12 +51,13 @@ impl NormaliserMap {
     /// * `normaliser` - The normaliser to add.
     /// * `column_name` - The name of the column to which the normaliser is applied.
     /// * `keys_reference` - A reference to the key bindings to extract the index.
-    pub fn add_normaliser(&mut self, normaliser: NormaliserType, column_name: String, keys_reference: &KeyBindings) {
+    pub fn add_normaliser(&mut self, normaliser: NormaliserType, column_name: String, keys_reference: &KeyBindings) -> Result<(), SurrealError> {
         let counter = self.store.len();
-        let column_input_index = keys_reference.reference.get(column_name.as_str()).unwrap();
+        let column_input_index = safe_eject_option!(keys_reference.reference.get(column_name.as_str()));
         self.reference.insert(column_input_index.clone() as usize, counter as usize);
         self.store.push(normaliser);
         self.store_ref.push(column_name);
+        Ok(())
     }
 
     /// Gets a normaliser from the map.
@@ -63,12 +68,12 @@ impl NormaliserMap {
     /// 
     /// # Returns
     /// The normaliser corresponding to the column name.
-    pub fn get_normaliser(&self, column_name: String, keys_reference: &KeyBindings) -> Option<&NormaliserType> {
-        let column_input_index = keys_reference.reference.get(column_name.as_str()).unwrap();
+    pub fn get_normaliser(&self, column_name: String, keys_reference: &KeyBindings) -> Result<Option<&NormaliserType>, SurrealError> {
+        let column_input_index = safe_eject_option!(keys_reference.reference.get(column_name.as_str()));
         let normaliser_index = self.reference.get(column_input_index);
         match normaliser_index {
-            Some(normaliser_index) => Some(&self.store[*normaliser_index]),
-            None => None,
+            Some(normaliser_index) => Ok(Some(&self.store[*normaliser_index])),
+            None => Ok(None),
         }
     }
 
@@ -79,13 +84,15 @@ impl NormaliserMap {
     /// 
     /// # Returns
     /// A tuple containing the label (type of normaliser), the numbers and the column name.
-    pub fn unpack_normaliser_data(normaliser_data: &str) -> (String, [f32; 2], String) {
+    pub fn unpack_normaliser_data(normaliser_data: &str) -> Result<(String, [f32; 2], String), SurrealError> {
         let mut normaliser_buffer = normaliser_data.split("=>");
-        let column_name = normaliser_buffer.next().unwrap();
-        let normaliser_type = normaliser_buffer.next().unwrap().to_string();
-        let label = extract_label(&normaliser_type);
-        let numbers = extract_two_numbers(&normaliser_type);
-        (label, numbers, column_name.to_string())
+
+        let column_name = safe_eject_option!(normaliser_buffer.next());
+        let normaliser_type = safe_eject_option!(normaliser_buffer.next()).to_string();
+
+        let label = extract_label(&normaliser_type)?;
+        let numbers = extract_two_numbers(&normaliser_type)?;
+        Ok((label, numbers, column_name.to_string()))
     }
 
     /// Constructs a `NormaliserMap` from a string.
@@ -96,9 +103,9 @@ impl NormaliserMap {
     /// 
     /// # Returns
     /// A `NormaliserMap` containing the normalisers.
-    pub fn from_string(data: String, keys_reference: &KeyBindings) -> Self {
+    pub fn from_string(data: String, keys_reference: &KeyBindings) -> Result<Self, SurrealError> {
         if data.len() == 0 {
-            return NormaliserMap::fresh();
+            return Ok(NormaliserMap::fresh())
         }
         let normalisers_data = data.split("//");
         let mut counter = 0;
@@ -107,19 +114,19 @@ impl NormaliserMap {
         let mut store_ref = Vec::new();
 
         for normaliser_data in normalisers_data {
-            let (normaliser, column_name) = NormaliserType::from_string(normaliser_data.to_string()).unwrap();
-            let column_input_index = keys_reference.reference.get(column_name.as_str()).unwrap();
+            let (normaliser, column_name) = NormaliserType::from_string(normaliser_data.to_string())?;
+            let column_input_index = safe_eject_option!(keys_reference.reference.get(column_name.as_str()));
             reference.insert(column_input_index.clone() as usize, counter as usize);
             store.push(normaliser);
             store_ref.push(column_name);
             counter += 1;
         }
 
-        NormaliserMap {
+        Ok(NormaliserMap {
             reference,
             store,
             store_ref
-        }
+        })
     }
 
     /// Converts the `NormaliserMap` to a string.
@@ -152,7 +159,7 @@ pub mod tests {
 
     pub fn generate_key_bindings() -> KeyBindings {
         let data = generate_key_bindings_string();
-        KeyBindings::from_string(data).unwrap()
+        KeyBindings::from_string(data)
     }
 
     #[test]
@@ -162,7 +169,7 @@ pub mod tests {
 
         let data = generate_string();
 
-        let normaliser_map = NormaliserMap::from_string(data, &key_bindings);
+        let normaliser_map = NormaliserMap::from_string(data, &key_bindings).unwrap();
 
         assert_eq!(normaliser_map.reference.len(), 4);
         assert_eq!(normaliser_map.store.len(), 4);
@@ -177,7 +184,7 @@ pub mod tests {
     fn test_to_string() {     
         let key_bindings = generate_key_bindings();
         let data = generate_string();
-        let normaliser_map = NormaliserMap::from_string(data, &key_bindings);
+        let normaliser_map = NormaliserMap::from_string(data, &key_bindings).unwrap();
         let normaliser_map_string = normaliser_map.to_string();
 
         assert_eq!(normaliser_map_string, "a=>linear_scaling(0,1)//b=>clipping(0,1.5)//c=>log_scaling(10,0)//e=>z_score(0,1)");
@@ -189,9 +196,9 @@ pub mod tests {
             let key_bindings = generate_key_bindings();
             let data = generate_string();
     
-            let mut normaliser_map = NormaliserMap::from_string(data, &key_bindings);
+            let mut normaliser_map = NormaliserMap::from_string(data, &key_bindings).unwrap();
     
-            normaliser_map.add_normaliser(NormaliserType::LinearScaling(linear_scaling::LinearScaling{min: 0.0, max: 1.0}), "d".to_string(), &key_bindings);
+            let _ = normaliser_map.add_normaliser(NormaliserType::LinearScaling(linear_scaling::LinearScaling{min: 0.0, max: 1.0}), "d".to_string(), &key_bindings);
     
             assert_eq!(normaliser_map.reference.len(), 5);
             assert_eq!(normaliser_map.store.len(), 5);
@@ -214,9 +221,9 @@ pub mod tests {
         let key_bindings = generate_key_bindings();
         let data = generate_string();
 
-        let normaliser_map = NormaliserMap::from_string(data, &key_bindings);
+        let normaliser_map = NormaliserMap::from_string(data, &key_bindings).unwrap();
 
-        let normaliser = normaliser_map.get_normaliser("e".to_string(), &key_bindings).unwrap();
+        let normaliser = normaliser_map.get_normaliser("e".to_string(), &key_bindings).unwrap().unwrap();
 
         match normaliser {
             NormaliserType::ZScore(z_score) => {

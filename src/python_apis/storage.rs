@@ -250,7 +250,7 @@ pub fn upload_model(
 ) -> Result<(), std::io::Error> {
     let client = Client::new();
     let uri: Uri = url.parse().map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?;
-    let generator = StreamAdapter::new(chunk_size, file_path);
+    let generator = StreamAdapter::new(chunk_size, file_path).unwrap();
     let body = Body::wrap_stream(generator);
 
     let part_req = Request::builder()

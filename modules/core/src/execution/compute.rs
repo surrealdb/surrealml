@@ -4,6 +4,10 @@ use std::collections::HashMap;
 use ndarray::{ArrayD, CowArray};
 use ort::{SessionBuilder, Value, session::Input};
 use super::onnx_environment::ENVIRONMENT;
+use glue::{
+    safe_eject,
+    errors::error::{SurrealError, SurrealErrorStatus}
+};
 
 
 /// A wrapper for the loaded machine learning model so we can perform computations on the loaded model.
@@ -24,9 +28,9 @@ impl <'a>ModelComputation<'a> {
     /// 
     /// # Returns
     /// A Tensor that can be used as input to the loaded model.
-    pub fn input_tensor_from_key_bindings(&self, input_values: HashMap<String, f32>) -> ArrayD<f32> {
-        let buffer = self.input_vector_from_key_bindings(input_values);
-        ndarray::arr1::<f32>(&buffer).into_dyn()
+    pub fn input_tensor_from_key_bindings(&self, input_values: HashMap<String, f32>) -> Result<ArrayD<f32>, SurrealError> {
+        let buffer = self.input_vector_from_key_bindings(input_values)?;
+        Ok(ndarray::arr1::<f32>(&buffer).into_dyn())
     }
 
     /// Creates a vector of dimensions for the input tensor from the loaded model.
@@ -54,16 +58,18 @@ impl <'a>ModelComputation<'a> {
     /// 
     /// # Returns
     /// A Vector that can be used manipulated with other operations such as normalisation.
-    pub fn input_vector_from_key_bindings(&self, mut input_values: HashMap<String, f32>) -> Vec<f32> {
+    pub fn input_vector_from_key_bindings(&self, mut input_values: HashMap<String, f32>) -> Result<Vec<f32>, SurrealError> {
         let mut buffer = Vec::with_capacity(self.surml_file.header.keys.store.len());
+
         for key in &self.surml_file.header.keys.store {
             let value = match input_values.get_mut(key) {
                 Some(value) => value,
-                None => panic!("Key {} not found in input values", key)
+                None => return Err(SurrealError::new(format!("src/execution/compute.rs 67: Key {} not found in input values", key), SurrealErrorStatus::NotFound))
             };
             buffer.push(std::mem::take(value));
         }
-        buffer
+
+        Ok(buffer)
     }
 
     /// Performs a raw computation on the loaded model.
@@ -73,15 +79,15 @@ impl <'a>ModelComputation<'a> {
     /// 
     /// # Returns
     /// The computed output tensor from the loaded model.
-    pub fn raw_compute(&self, tensor: ArrayD<f32>, _dims: Option<(i32, i32)>) -> Result<Vec<f32>, String> {
-        let session = SessionBuilder::new(&ENVIRONMENT).map_err(|e| e.to_string())?
-                                                       .with_model_from_memory(&self.surml_file.model)
-                                                       .map_err(|e| e.to_string())?;
+    pub fn raw_compute(&self, tensor: ArrayD<f32>, _dims: Option<(i32, i32)>) -> Result<Vec<f32>, SurrealError> {
+        let session = safe_eject!(SessionBuilder::new(&ENVIRONMENT), SurrealErrorStatus::Unknown);
+        let session = safe_eject!(session.with_model_from_memory(&self.surml_file.model), SurrealErrorStatus::Unknown);
         let unwrapped_dims = ModelComputation::process_input_dims(&session.inputs[0]);
-        let tensor = tensor.into_shape(unwrapped_dims).map_err(|e| e.to_string())?;
+        let tensor = safe_eject!(tensor.into_shape(unwrapped_dims), SurrealErrorStatus::Unknown);
 
         let x = CowArray::from(tensor).into_dyn();
-        let outputs = session.run(vec![Value::from_array(session.allocator(), &x).unwrap()]).map_err(|e| e.to_string())?;
+        let input_values = safe_eject!(Value::from_array(session.allocator(), &x), SurrealErrorStatus::Unknown);
+        let outputs = safe_eject!(session.run(vec![input_values]), SurrealErrorStatus::Unknown);
 
         let mut buffer: Vec<f32> = Vec::new();
 
@@ -93,13 +99,8 @@ impl <'a>ModelComputation<'a> {
                 }
             },
             Err(_) => {
-                match outputs[0].try_extract::<i64>() {
-                    Ok(y) => {
-                        for i in y.view().clone().into_iter() {
-                            buffer.push(*i as f32);
-                        }
-                    },
-                    Err(e) => return Err(e.to_string())
+                for i in safe_eject!(outputs[0].try_extract::<i64>(), SurrealErrorStatus::Unknown).view().clone().into_iter() {
+                    buffer.push(*i as f32);
                 }
             }
         };
@@ -117,18 +118,18 @@ impl <'a>ModelComputation<'a> {
     /// 
     /// # Returns
     /// The computed output tensor from the loaded model.
-    pub fn buffered_compute(&self, input_values: &mut HashMap<String, f32>) -> Result<Vec<f32>, String> {
+    pub fn buffered_compute(&self, input_values: &mut HashMap<String, f32>) -> Result<Vec<f32>, SurrealError> {
         // applying normalisers if present
         for (key, value) in &mut *input_values {
             let value_ref = value.clone();
-            match self.surml_file.header.get_normaliser(&key.to_string()) {
+            match self.surml_file.header.get_normaliser(&key.to_string())? {
                 Some(normaliser) => {
                     *value = normaliser.normalise(value_ref);
                 },
                 None => {}
             }
         }
-        let tensor = self.input_tensor_from_key_bindings(input_values.clone());
+        let tensor = self.input_tensor_from_key_bindings(input_values.clone())?;
         let output = self.raw_compute(tensor, None)?;
         
         // if no normaliser is present, return the output
@@ -139,7 +140,10 @@ impl <'a>ModelComputation<'a> {
         // apply the normaliser to the output
         let output_normaliser = match self.surml_file.header.output.normaliser.as_ref() {
             Some(normaliser) => normaliser,
-            None => return Err(String::from("No normaliser present for output which shouldn't happen as passed initial check for"))
+            None => return Err(SurrealError::new(
+                String::from("No normaliser present for output which shouldn't happen as passed initial check for").to_string(), 
+                SurrealErrorStatus::Unknown
+            ))
         };
         let mut buffer = Vec::with_capacity(output.len());
 
@@ -168,7 +172,7 @@ mod tests {
         input_values.insert(String::from("squarefoot"), 1000.0);
         input_values.insert(String::from("num_floors"), 2.0);
 
-        let raw_input = model_computation.input_tensor_from_key_bindings(input_values);
+        let raw_input = model_computation.input_tensor_from_key_bindings(input_values).unwrap();
 
         let output = model_computation.raw_compute(raw_input, Some((1, 2))).unwrap();
         assert_eq!(output.len(), 1);
@@ -202,7 +206,7 @@ mod tests {
         input_values.insert(String::from("squarefoot"), 1000.0);
         input_values.insert(String::from("num_floors"), 2.0);
 
-        let raw_input = model_computation.input_tensor_from_key_bindings(input_values);
+        let raw_input = model_computation.input_tensor_from_key_bindings(input_values).unwrap();
 
         let output = model_computation.raw_compute(raw_input, None).unwrap();
         assert_eq!(output.len(), 1);
