@@ -7,6 +7,13 @@ use futures_core::stream::Stream;
 use futures_core::task::{Context, Poll};
 use std::pin::Pin;
 use std::error::Error;
+use glue::{
+    safe_eject,
+    errors::error::{
+        SurrealError,
+        SurrealErrorStatus
+    }
+};
 
 
 /// Stream adapter for file system.
@@ -29,12 +36,12 @@ impl StreamAdapter {
     /// 
     /// # Returns
     /// A new `StreamAdapter` struct.
-    pub fn new(chunk_size: usize, file_path: String) -> Self {
-        let file_pointer = File::open(file_path).unwrap();
-        StreamAdapter {
+    pub fn new(chunk_size: usize, file_path: String) -> Result<Self, SurrealError> {
+        let file_pointer = safe_eject!(File::open(file_path), SurrealErrorStatus::NotFound);
+        Ok(StreamAdapter {
             chunk_size,
             file_pointer
-        }
+        })
     }
 
 }
