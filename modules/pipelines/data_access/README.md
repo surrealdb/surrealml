@@ -130,7 +130,7 @@ fn main() -> std::io::Result<()> {
 
 ```
 
-# Local Test Setup
+# Local Test Setup for FFmpeg
 
 ## SRT listener server in OBS Studio
 
@@ -147,19 +147,12 @@ srt://127.0.0.1:9999?mode=listener&timeout=500000&transtype=live
 
 Output resolution is set to 1920 X 1080 with an FPS of 1. The images in the [CAMMA-public/cholect50](https://github.com/CAMMA-public/cholect50) are sourced as an Image Slide Show.
 
-## FFmpeg SRT caller server in Windows Powershell
+The listener listens for connection requests from callers. The callers are implemented in `srt_receiver.rs`.
 
-FFmpeg is installed and used in Windows Powershell. We tested our SRT caller server implementation in Powershell, using the command:
+## Download and Install FFmpeg
 
-```powershell
-ffmpeg -i srt://127.0.0.1:9999?mode=caller -f image2 -vcodec mjpeg -q:v 5 output%03d.jpg
-```
+Download FFmpeg [here](https://www.ffmpeg.org/download.html). Versions are available for Windows, Linux, and Mac OS.
 
-- **'127.0.0.1':** Destination IP address the caller calls
-- **'9999':** Destination port the caller calls
-- **'-f image2':** Set FFmpeg output image format to *image2*
-- **'-vcodec mjpeg':** Set FFmpeg output image codec to mjpeg
-- **'-q:v 5':** Sets the quality of the jpg images to 5 (2-31)
-- **'output%03d.jpg':** Sequentially incrementing file name, e.g. output001.jpg
+## FFmpeg Documentation
 
-The above command saves the SRT stream as a sequence of .jpg images. Through this process, we confirm this experimental setup with OBS Studio, FFmpeg, and SRT works in CLI.
+Official documentation of FFmpeg is [here](https://www.ffmpeg.org/documentation.html).
