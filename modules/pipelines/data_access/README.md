@@ -3,9 +3,26 @@
 Here is where we house libraries that handle the reading and writing of data. For now we are merely just reading from jpeg files. However,
 we will moved onto support for networking interfaces.
 
-# Basic
+# Python Bindings
 
-Basic is a library that handles the reading of jpeg files. It is a simple library that is used to read in the jpeg files and convert them
+Although this library is written in Rust we have the ability to use it in Python. This is done by using the `pyo3` crate. We can install
+the library using a `pip install` and pointing to the directory of this readme file. Once the library is installed we can use it in the
+following way:
+
+```python
+from data_access_layer.data_access_layer import read_rgb_image
+
+
+def main():
+    height = 480
+    width = 853
+    data = read_rgb_image("./assets/test.jpg", width, height)
+    print(f"\n\nThe image has {len(data)} pixels\n\n")
+```
+
+# Image Loading
+
+This library handles the reading of jpeg files. It is a simple library that is used to read in the jpeg files and convert them
 to a stream of bytes. The loading and conversion of the jpeg files is done in the `data_access/basic/src/images.rs`.
 For our images we are handling data in the following outline: 
 
@@ -68,8 +85,9 @@ can be seen in the file `engines/pytorch_train/tests/test_numpy_quality_control.
 
 # Networking
 
-At this point in time we are just handling image files in the `basic` module in rust, and piping this data into the
-python pytorch engine as seen in the following example:
+If you just want to use the raw rust binary for ML training, you can directly call the rust binary that loads the images,
+and pipe this data into the python pytorch engine as seen in the following example:
+
 
 ```bash
 ./data_access_rust_bin | python pytorch_engine.py

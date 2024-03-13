@@ -1,5 +1,12 @@
 //! Defines the struct housing data around the outputs of the model.
 use super::normalisers::wrapper::NormaliserType;
+use glue::{
+    safe_eject_option,
+    errors::error::{
+        SurrealError,
+        SurrealErrorStatus
+    }
+};
 
 
 /// Houses data around the outputs of the model.
@@ -76,27 +83,27 @@ impl Output {
     /// 
     /// # Returns
     /// * `Output` - The string as an instance of the Output struct.
-    pub fn from_string(data: String) -> Self {
+    pub fn from_string(data: String) -> Result<Self, SurrealError> {
         if data.contains("=>") == false {
-            return Output::fresh();
+            return Ok(Output::fresh())
         }
         let mut buffer = data.split("=>");
 
-        let name = buffer.next().unwrap();
+        let name = safe_eject_option!(buffer.next());
         let name = match name {
             "none" => None,
             _ => Some(name.to_string()),
         };
 
-        let normaliser = buffer.next().unwrap();
+        let normaliser = safe_eject_option!(buffer.next());
         let normaliser = match normaliser {
             "none" => None,
             _ => Some(NormaliserType::from_string(data).unwrap().0),
         };
-        return Output {
+        return Ok(Output {
             name,
             normaliser
-        }
+        })
     }
 }
 
@@ -123,7 +130,7 @@ pub mod tests {
     #[test]
     fn test_from_string() {
         let data = "test=>linear_scaling(0,1)".to_string();
-        let output = Output::from_string(data);
+        let output = Output::from_string(data).unwrap();
 
         assert_eq!(output.name.unwrap(), "test");
         assert_eq!(output.normaliser.is_some(), true);
@@ -133,7 +140,7 @@ pub mod tests {
     #[test]
     fn test_from_string_with_no_normaliser() {
         let data = "test=>none".to_string();
-        let output = Output::from_string(data);
+        let output = Output::from_string(data).unwrap();
 
         assert_eq!(output.name.unwrap(), "test");
         assert_eq!(output.normaliser.is_none(), true);
@@ -142,7 +149,7 @@ pub mod tests {
     #[test]
     fn test_from_string_with_no_name() {
         let data = "none=>none".to_string();
-        let output = Output::from_string(data);
+        let output = Output::from_string(data).unwrap();
 
         assert_eq!(output.name.is_none(), true);
         assert_eq!(output.normaliser.is_none(), true);
@@ -151,7 +158,7 @@ pub mod tests {
     #[test]
     fn test_from_string_with_empty_string() {
         let data = "".to_string();
-        let output = Output::from_string(data);
+        let output = Output::from_string(data).unwrap();
 
         assert_eq!(output.name.is_none(), true);
         assert_eq!(output.normaliser.is_none(), true);

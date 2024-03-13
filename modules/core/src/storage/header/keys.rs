@@ -1,5 +1,9 @@
 //! Defines the key bindings for input data.
 use std::collections::HashMap;
+use glue::{
+    errors::error::{SurrealError, SurrealErrorStatus}, 
+    safe_eject_internal
+};
 
 
 /// Defines the key bindings for input data.
@@ -46,9 +50,9 @@ impl KeyBindings {
     /// 
     /// # Returns
     /// The key bindings constructed from the string.
-    pub fn from_string(data: String) -> Result<Self, String> {
+    pub fn from_string(data: String) -> Self {
         if data.len() == 0 {
-            return Ok(KeyBindings::fresh())
+            return KeyBindings::fresh()
         }
         let mut store = Vec::new();
         let mut reference = HashMap::new();
@@ -61,11 +65,10 @@ impl KeyBindings {
             reference.insert(line.to_string(), count);
             count += 1;
         }
-
-        Ok(KeyBindings {
+        KeyBindings {
             store,
             reference,
-        })
+        }
     }
 
     /// converts the key bindings to a string.
@@ -83,12 +86,9 @@ impl KeyBindings {
     /// 
     /// # Returns
     /// The key bindings constructed from the bytes.
-    pub fn from_bytes(data: &[u8]) -> Result<Self, String> {
-        let data = match String::from_utf8(data.to_vec()) {
-            Ok(data) => data,
-            Err(_) => return Err("Error converting bytes to string for key bindings".to_string())
-        };
-        Self::from_string(data)
+    pub fn from_bytes(data: &[u8]) -> Result<Self, SurrealError> {
+        let data = safe_eject_internal!(String::from_utf8(data.to_vec()));
+        Ok(Self::from_string(data))
     }
 
     /// Converts the key bindings to bytes.
@@ -135,7 +135,7 @@ pub mod tests {
     #[test]
     fn test_from_string_with_empty_string() {
         let data = "".to_string();
-        let bindings = KeyBindings::from_string(data).unwrap();
+        let bindings = KeyBindings::from_string(data);
         assert_eq!(bindings.store.len(), 0);
         assert_eq!(bindings.reference.len(), 0);
     }
@@ -143,7 +143,7 @@ pub mod tests {
     #[test]
     fn test_from_string() {
         let data = generate_string();
-        let bindings = KeyBindings::from_string(data).unwrap();
+        let bindings = KeyBindings::from_string(data);
         assert_eq!(bindings.store[0], "a");
         assert_eq!(bindings.store[1], "b");
         assert_eq!(bindings.store[2], "c");
