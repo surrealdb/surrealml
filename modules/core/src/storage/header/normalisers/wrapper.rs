@@ -5,10 +5,9 @@ use super::log_scale;
 use super::z_score;
 use super::utils::{extract_label, extract_two_numbers};
 use super::traits::Normaliser;
-use glue::{
-    safe_eject_option,
-    errors::error::{SurrealError, SurrealErrorStatus}
-};
+
+use crate::safe_eject_option;
+use crate::errors::error::{SurrealError, SurrealErrorStatus};
 
 
 /// A wrapper for all different types of normalisers.

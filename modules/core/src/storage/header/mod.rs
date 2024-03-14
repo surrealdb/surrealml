@@ -17,13 +17,8 @@ use version::Version;
 use engine::Engine;
 use origin::Origin;
 use input_dims::InputDims;
-use glue::{
-    safe_eject,
-    errors::error::{
-        SurrealError,
-        SurrealErrorStatus
-    }
-};
+use crate::safe_eject;
+use crate::errors::error::{SurrealError, SurrealErrorStatus};
 
 
 /// The header of the model file.

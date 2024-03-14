@@ -7,7 +7,7 @@ use futures_core::stream::Stream;
 use futures_core::task::{Context, Poll};
 use std::pin::Pin;
 use std::error::Error;
-use glue::{
+use crate::{
     safe_eject,
     errors::error::{
         SurrealError,
