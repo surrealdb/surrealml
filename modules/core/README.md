@@ -5,12 +5,24 @@ An embedded ONNX runtime directly in the Rust binary when compiling result in no
 This crate is just the Rust implementation of the Surml API. It is advised that you just use this crate directly if you are running a Rust server. It must be noted that the version of ONNX needs to be the same as the client when using this crate. For this current version of Surml, the ONNX version is `1.16.0`.
 
 ## Compilation config
+
 If nothing is configured the crate will compile the ONNX runtime into the binary. This is the default behaviour. However, if you want to use an ONNX runtime that is installed on your system, you can set the environment variable `ONNXRUNTIME_LIB_PATH` before you compile the crate. This will make the crate use the ONNX runtime that is installed on your system.
 
+## Modules
+
+This crate uses other modules. However, the other modules would have to be published if we wanted to refernece them via path. To avoid this, we reference the modules via the github url. This means that if a module is to be updated, the updates of that module need to be
+pushed to the `main` branch of this repository before the core can reference the updates in that module. A good example of this would be our glue module as seen below:
+```toml
+glue = { git = "https://github.com/surrealdb/surrealml" }
+```
+This houses reusable errors that are used across all the crates in the Surml ecosystem, and these errors can construct HTTP responses for the Axum and Actix web frameworks.
+
 ## Nix Support
+
 At this point in time NIX is not directly supported. The `ONNXRUNTIME_LIB_PATH` needs to be defined. This is explained in the `Compilation config` section.
 
 ## Usage
+
 Surml can be used to store, load, and execute ONNX models.
 
 ### Storing and accessing models
