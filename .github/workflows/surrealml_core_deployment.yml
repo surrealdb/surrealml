@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - './modules/core/**'
+      - 'modules/core/**'
 
 jobs:
   post_merge_job:
