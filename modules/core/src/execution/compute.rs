@@ -3,11 +3,10 @@ use crate::storage::surml_file::SurMlFile;
 use std::collections::HashMap;
 use ndarray::{ArrayD, CowArray};
 use ort::{SessionBuilder, Value, session::Input};
+
 use super::onnx_environment::ENVIRONMENT;
-use glue::{
-    safe_eject,
-    errors::error::{SurrealError, SurrealErrorStatus}
-};
+use crate::safe_eject;
+use crate::errors::error::{SurrealError, SurrealErrorStatus};
 
 
 /// A wrapper for the loaded machine learning model so we can perform computations on the loaded model.

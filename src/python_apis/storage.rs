@@ -122,7 +122,7 @@ pub fn add_description(file_id: String, description: String) {
 pub fn add_version(file_id: String, version: String) {
     let mut python_state = PYTHON_STATE.lock().unwrap();
     let wrapped_file = python_state.get_mut(&file_id).unwrap();
-    wrapped_file.header.add_version(version);
+    let _ = wrapped_file.header.add_version(version);
 }
 
 
@@ -161,7 +161,7 @@ pub fn add_author(file_id: String, author: String) {
 pub fn add_origin(file_id: String, origin: String) {
     let mut python_state = PYTHON_STATE.lock().unwrap();
     let wrapped_file = python_state.get_mut(&file_id).unwrap();
-    wrapped_file.header.add_origin(origin);
+    let _ = wrapped_file.header.add_origin(origin);
 }
 
 
@@ -213,7 +213,7 @@ pub fn add_normaliser(file_id: String, column_name: String, normaliser_label: St
     let normaliser = NormaliserType::new(normaliser_label, one, two);
     let mut python_state = PYTHON_STATE.lock().unwrap();
     let file = python_state.get_mut(&file_id).unwrap();
-    file.header.normalisers.add_normaliser(normaliser, column_name, &file.header.keys);
+    let _ = file.header.normalisers.add_normaliser(normaliser, column_name, &file.header.keys);
 }
 
 
