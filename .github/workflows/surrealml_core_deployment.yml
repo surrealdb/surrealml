@@ -5,9 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'src/**'
-      - 'build.rs'
-      - 'Cargo.toml'
+      - './modules/core/**'
 
 jobs:
   post_merge_job:
