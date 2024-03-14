@@ -5,6 +5,10 @@ use super::log_scale;
 use super::z_score;
 use super::utils::{extract_label, extract_two_numbers};
 use super::traits::Normaliser;
+use glue::{
+    safe_eject_option,
+    errors::error::{SurrealError, SurrealErrorStatus}
+};
 
 
 /// A wrapper for all different types of normalisers.
@@ -51,13 +55,15 @@ impl NormaliserType {
     /// 
     /// # Returns
     /// (type of normaliser, [normaliser parameters], column name)
-    pub fn unpack_normaliser_data(normaliser_data: &str) -> (String, [f32; 2], String) {
+    pub fn unpack_normaliser_data(normaliser_data: &str) -> Result<(String, [f32; 2], String), SurrealError> {
         let mut normaliser_buffer = normaliser_data.split("=>");
-        let column_name = normaliser_buffer.next().unwrap();
-        let normaliser_type = normaliser_buffer.next().unwrap().to_string();
-        let label = extract_label(&normaliser_type);
-        let numbers = extract_two_numbers(&normaliser_type);
-        (label, numbers, column_name.to_string())
+
+        let column_name = safe_eject_option!(normaliser_buffer.next());
+        let normaliser_type = safe_eject_option!(normaliser_buffer.next()).to_string();
+
+        let label = extract_label(&normaliser_type)?;
+        let numbers = extract_two_numbers(&normaliser_type)?;
+        Ok((label, numbers, column_name.to_string()))
     }
 
     /// Constructs a normaliser from a string.
@@ -67,8 +73,8 @@ impl NormaliserType {
     /// 
     /// # Returns
     /// (normaliser, column name)
-    pub fn from_string(data: String) -> Result<(Self, String), String> {
-        let (label, numbers, column_name) = Self::unpack_normaliser_data(&data);
+    pub fn from_string(data: String) -> Result<(Self, String), SurrealError> {
+        let (label, numbers, column_name) = Self::unpack_normaliser_data(&data)?;
         let normaliser = match label.as_str() {
             "linear_scaling" => {
                 let min = numbers[0];
@@ -90,7 +96,13 @@ impl NormaliserType {
                 let std_dev = numbers[1];
                 NormaliserType::ZScore(z_score::ZScore{mean, std_dev})
             },
-            _ => return Err(format!("Unknown normaliser type: {}", label))
+            _ => {
+                let error = SurrealError::new(
+                    format!("Unknown normaliser type: {}", label).to_string(), 
+                    SurrealErrorStatus::Unknown
+                );
+                return Err(error)
+            }
         };
         Ok((normaliser, column_name))
     }
