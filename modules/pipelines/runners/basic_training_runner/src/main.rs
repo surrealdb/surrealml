@@ -1,3 +1,8 @@
+use basic::images::{
+    read_rgb_image,
+    write_frame_to_std_out,
+};
+use basic::tags::SurgeryStep;
 use data_access_layer::images::{
     read_rgb_image,
     write_frame_to_std_out,

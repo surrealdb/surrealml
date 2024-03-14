@@ -24,3 +24,5 @@ surrealml/rust_surrealml.cpython-310-darwin.so
 ./modules/pipelines/runners/integrated_training_runner/run_env/
 ./modules/pipelines/runners/batch_training_runner/run_env/
 ./modules/pipelines/data_access/target/
+./modules/pipelines/runners/integrated_training_runner/run_env/
+modules/pipelines/runners/integrated_training_runner/run_env/
