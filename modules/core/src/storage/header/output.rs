@@ -1,6 +1,6 @@
 //! Defines the struct housing data around the outputs of the model.
 use super::normalisers::wrapper::NormaliserType;
-use glue::{
+use crate::{
     safe_eject_option,
     errors::error::{
         SurrealError,

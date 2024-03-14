@@ -89,6 +89,7 @@
 //! ```
 pub mod storage;
 pub mod execution;
+pub mod errors;
 
 
 /// Returns the version of the ONNX runtime that is used.

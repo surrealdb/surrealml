@@ -1,5 +1,5 @@
 //! Defines the origin of the model in the file.
-use glue::errors::error::{SurrealError, SurrealErrorStatus};
+use crate::errors::error::{SurrealError, SurrealErrorStatus};
 
 use super::string_value::StringValue;
 
