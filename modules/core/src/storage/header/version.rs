@@ -1,5 +1,5 @@
 //! Defines the process of managing the version of the `surml` file in the file.
-use glue::{
+use crate::{
     safe_eject_option,
     safe_eject,
     errors::error::{

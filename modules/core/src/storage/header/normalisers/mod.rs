@@ -12,10 +12,8 @@ pub mod wrapper;
 use super::keys::KeyBindings;
 use utils::{extract_label, extract_two_numbers};
 use wrapper::NormaliserType;
-use glue::{
-    safe_eject_option,
-    errors::error::{SurrealError, SurrealErrorStatus}
-};
+use crate::safe_eject_option;
+use crate::errors::error::{SurrealError, SurrealErrorStatus};
 
 
 /// A map of normalisers so they can be accessed by column name and input index.
