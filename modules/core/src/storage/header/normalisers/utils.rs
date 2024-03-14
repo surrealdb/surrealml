@@ -1,10 +1,10 @@
 //! Utility functions for normalisers to reduce code duplication in areas that cannot be easily defined in a struct.
 use regex::{Regex, Captures};
-use glue::{
+use crate::{
     safe_eject_option,
     safe_eject_internal,
-    errors::error::{SurrealError, SurrealErrorStatus}
 };
+use crate::errors::error::{SurrealError, SurrealErrorStatus};
 
 
 /// Extracts the label from a normaliser string.

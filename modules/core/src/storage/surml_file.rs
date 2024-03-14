@@ -2,10 +2,10 @@
 use std::fs::File;
 use std::io::{Read, Write};
 
-use crate::storage::header::Header;
-use glue::{
+use crate::{
     safe_eject_internal,
     safe_eject,
+    storage::header::Header,
     errors::error::{
         SurrealError,
         SurrealErrorStatus

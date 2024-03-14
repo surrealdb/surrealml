@@ -1,4 +1,4 @@
-workspace = { members = ["modules/glue"] }
+
 [package]
 name = "surrealml"
 version = "0.1.0"

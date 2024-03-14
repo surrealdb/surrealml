@@ -1,9 +1,8 @@
 //! Defines the key bindings for input data.
 use std::collections::HashMap;
-use glue::{
-    errors::error::{SurrealError, SurrealErrorStatus}, 
-    safe_eject_internal
-};
+
+use crate::safe_eject_internal;
+use crate::errors::error::{SurrealError, SurrealErrorStatus};
 
 
 /// Defines the key bindings for input data.
