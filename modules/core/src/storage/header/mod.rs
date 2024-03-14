@@ -17,6 +17,13 @@ use version::Version;
 use engine::Engine;
 use origin::Origin;
 use input_dims::InputDims;
+use glue::{
+    safe_eject,
+    errors::error::{
+        SurrealError,
+        SurrealErrorStatus
+    }
+};
 
 
 /// The header of the model file.
@@ -76,8 +83,9 @@ impl Header {
     /// 
     /// # Arguments
     /// * `version` - The version to be added.
-    pub fn add_version(&mut self, version: String) {
-        self.version = Version::from_string(version);
+    pub fn add_version(&mut self, version: String) -> Result<(), SurrealError> {
+        self.version = Version::from_string(version)?;
+        Ok(())
     }
 
     /// Adds a description to the `self.description` field.
@@ -102,8 +110,9 @@ impl Header {
     /// # Arguments
     /// * `column_name` - The name of the column to which the normaliser will be applied.
     /// * `normaliser` - The normaliser to be applied to the column.
-    pub fn add_normaliser(&mut self, column_name: String, normaliser: NormaliserType) {
-        self.normalisers.add_normaliser(normaliser, column_name, &self.keys);
+    pub fn add_normaliser(&mut self, column_name: String, normaliser: NormaliserType) -> Result<(), SurrealError> {
+        let _ =  self.normalisers.add_normaliser(normaliser, column_name, &self.keys)?;
+        Ok(())
     }
 
     /// Gets the normaliser for a given column name.
@@ -113,7 +122,7 @@ impl Header {
     /// 
     /// # Returns
     /// The normaliser for the given column name.
-    pub fn get_normaliser(&self, column_name: &String) -> Option<&NormaliserType> {
+    pub fn get_normaliser(&self, column_name: &String) -> Result<Option<&NormaliserType>, SurrealError> {
         self.normalisers.get_normaliser(column_name.to_string(), &self.keys)
     }
 
@@ -147,8 +156,8 @@ impl Header {
     /// 
     /// # Arguments
     /// * `origin` - The origin to be added.
-    pub fn add_origin(&mut self, origin: String) {
-        self.origin.add_origin(origin);
+    pub fn add_origin(&mut self, origin: String) -> Result<(), SurrealError> {
+        self.origin.add_origin(origin)
     }
 
     /// The standard delimiter used to seperate each field in the header.
@@ -163,25 +172,20 @@ impl Header {
     /// 
     /// # Returns
     /// The `Header` struct.
-    pub fn from_bytes(data: Vec<u8>) -> Result<Self, std::io::Error> {
-        let string_data = match String::from_utf8(data) {
-            Ok(data) => data,
-            Err(e) => {
-                let message = format!("Error converting bytes to string for header: {}", e);
-                return Err(std::io::Error::new(std::io::ErrorKind::InvalidData, message))
-            }
-        };
+    pub fn from_bytes(data: Vec<u8>) -> Result<Self, SurrealError> {
+
+        let string_data = safe_eject!(String::from_utf8(data), SurrealErrorStatus::BadRequest);
+
         let buffer = string_data.split(Self::delimiter()).collect::<Vec<&str>>();
-        let keys = KeyBindings::from_string(buffer.get(1).unwrap_or(&"").to_string()).map_err(|e|
-            std::io::Error::new(std::io::ErrorKind::InvalidData, e)
-        )?;
-        let normalisers = NormaliserMap::from_string(buffer.get(2).unwrap_or(&"").to_string(), &keys);
-        let output = Output::from_string(buffer.get(3).unwrap_or(&"").to_string());
+
+        let keys: KeyBindings = KeyBindings::from_string(buffer.get(1).unwrap_or(&"").to_string());
+        let normalisers = NormaliserMap::from_string(buffer.get(2).unwrap_or(&"").to_string(), &keys)?;
+        let output = Output::from_string(buffer.get(3).unwrap_or(&"").to_string())?;
         let name = StringValue::from_string(buffer.get(4).unwrap_or(&"").to_string());
-        let version = Version::from_string(buffer.get(5).unwrap_or(&"").to_string());
+        let version = Version::from_string(buffer.get(5).unwrap_or(&"").to_string())?;
         let description = StringValue::from_string(buffer.get(6).unwrap_or(&"").to_string());
         let engine = Engine::from_string(buffer.get(7).unwrap_or(&"").to_string());
-        let origin = Origin::from_string(buffer.get(8).unwrap_or(&"").to_string());
+        let origin = Origin::from_string(buffer.get(8).unwrap_or(&"").to_string())?;
         let input_dims = InputDims::from_string(buffer.get(9).unwrap_or(&"").to_string());
         Ok(Header {keys, normalisers, output, name, version, description, engine, origin, input_dims})
     }
@@ -245,7 +249,7 @@ mod tests {
             Header::delimiter(),
             Engine::PyTorch.to_string(),
             Header::delimiter(),
-            Origin::from_string("author=>local".to_string()).to_string(),
+            Origin::from_string("author=>local".to_string()).unwrap().to_string(),
             Header::delimiter(),
             InputDims::from_string("1,2".to_string()).to_string(),
             Header::delimiter(),
@@ -340,19 +344,19 @@ mod tests {
         header.add_column("e".to_string());
         header.add_column("f".to_string());
 
-        header.add_normaliser(
+        let _ = header.add_normaliser(
             "a".to_string(), 
             NormaliserType::LinearScaling(LinearScaling { min: 0.0, max: 1.0 })
         );
-        header.add_normaliser(
+        let _ = header.add_normaliser(
             "b".to_string(), 
             NormaliserType::Clipping(Clipping { min: Some(0.0), max: Some(1.5) })
         );
-        header.add_normaliser(
+        let _ = header.add_normaliser(
             "c".to_string(), 
             NormaliserType::LogScaling(LogScaling { base: 10.0, min: 0.0 })
         );
-        header.add_normaliser(
+        let _ = header.add_normaliser(
             "e".to_string(), 
             NormaliserType::ZScore(ZScore { mean: 0.0, std_dev: 1.0 })
         );

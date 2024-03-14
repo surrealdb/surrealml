@@ -1,9 +1,11 @@
 [package]
-name = "basic_training_runner"
+name = "basic"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-data-access-layer = { path = "../../data_access" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+image = "0.24.8"

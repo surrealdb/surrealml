@@ -57,7 +57,7 @@ async fn run_server() {
 async fn send_request(path: &str) {
     let client = Client::new();
     let uri: Uri = "http://0.0.0.0:4000".parse().unwrap();
-    let generator = StreamAdapter::new(5, path.to_string());
+    let generator = StreamAdapter::new(5, path.to_string()).unwrap();
     let body = Body::wrap_stream(generator);
     let req = Request::post(uri).body(body).unwrap();
     let response = client.request(req).await.unwrap();
