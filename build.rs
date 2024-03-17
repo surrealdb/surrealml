@@ -29,8 +29,9 @@ fn main() {
 	let _ = std::fs::create_dir(Path::new("modules").join("core").join("target").join(profile));
 
 	// copy target folder to modules/utils/target profile for the utils modules
+	let target_dir = env::var("CARGO_TARGET_DIR").unwrap_or("target".into());
 	std::fs::copy(
-		Path::new("target").join(profile).join(target_lib),
+		Path::new(target_dir.as_str()).join(profile).join(target_lib),
 		Path::new("modules").join("core").join("target").join(profile).join(target_lib),
 	)
 	.unwrap();
