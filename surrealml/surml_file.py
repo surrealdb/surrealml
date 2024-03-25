@@ -73,22 +73,24 @@ class SurMlFile:
         """
         self.rust_adapter.add_output(output_name, normaliser_type, one, two)
 
-    def add_description(self, description):
+    def add_description(self, description: str) -> None:
         """
         Adds a description to the model to the metadata.
 
         :param description: the description of the model.
         :return: None
         """
+        self.description = description
         self.rust_adapter.add_description(description)
 
-    def add_version(self, version):
+    def add_version(self, version: str) -> None:
         """
         Adds a version to the model to the metadata.
 
         :param version: the version of the model.
         :return: None
         """
+        self.version = version
         self.rust_adapter.add_version(version)
 
     def add_name(self, name: str) -> None:
