@@ -40,6 +40,10 @@ setup(
         ],
         "torch": [
             "torch==2.1.2"
+        ],
+        "tensorflow": [
+            "tf2onnx==1.16.1",
+            "tensorflow==2.8.0"
         ]
     }
 )
