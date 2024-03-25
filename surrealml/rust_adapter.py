@@ -1,9 +1,9 @@
-# try:
 from surrealml.rust_surrealml import load_cached_raw_model, add_column, add_output, add_normaliser, save_model, \
     add_name, load_model, add_description, add_version, to_bytes, add_engine, add_author, add_origin
 from surrealml.rust_surrealml import raw_compute, buffered_compute, upload_model
 
 from typing import Optional
+import warnings
 
 from surrealml.engine import Engine
 
@@ -65,7 +65,7 @@ class RustAdapter:
         """
         add_version(self.file_id, version)
 
-    def add_name(self, name):
+    def add_name(self, name: str) -> None:
         """
         Adds a name to the model to the metadata.
 
@@ -74,7 +74,7 @@ class RustAdapter:
         """
         add_name(self.file_id, name)
 
-    def add_normaliser(self, column_name, normaliser_type, one, two):
+    def add_normaliser(self, column_name, normaliser_type, one, two) -> None:
         """
         Adds a normaliser to the model to the metadata for a column.
 
@@ -86,7 +86,7 @@ class RustAdapter:
         """
         add_normaliser(self.file_id, column_name, normaliser_type, one, two)
 
-    def add_author(self, author):
+    def add_author(self, author: str) -> None:
         """
         Adds an author to the model to the metadata.
 
@@ -95,17 +95,23 @@ class RustAdapter:
         """
         add_author(self.file_id, author)
 
-    def save(self, path):
+    def save(self, path: str, name: Optional[str]) -> None:
         """
         Saves the model to a file.
 
         :param path: the path to save the model to.
+        :param name: the name of the model.
+
         :return: None
         """
-        # right now the only engine is pytorch so we can hardcode it but when we add more engines we will need to
-        # add a parameter to the save function to specify the engine
         add_engine(self.file_id, self.engine.value)
         add_origin(self.file_id, "local")
+        if name is not None:
+            add_name(self.file_id, name)
+        else:
+            warnings.warn(
+                "You are saving a model without a name, you will not be able to upload this model to the database"
+            )
         save_model(path, self.file_id)
 
     def to_bytes(self):
