@@ -24,6 +24,10 @@ class SurMlFile:
         self.engine = engine
         self.file_id = self._cache_model()
         self.rust_adapter = RustAdapter(self.file_id, self.engine)
+        # below is optional metadata that can be added to the model through functions of the SurMlFile class
+        self.description = None
+        self.version = None
+        self.author = None
 
     def _cache_model(self) -> Optional[str]:
         """
@@ -69,31 +73,34 @@ class SurMlFile:
         """
         self.rust_adapter.add_output(output_name, normaliser_type, one, two)
 
-    def add_description(self, description):
+    def add_description(self, description: str) -> None:
         """
         Adds a description to the model to the metadata.
 
         :param description: the description of the model.
         :return: None
         """
+        self.description = description
         self.rust_adapter.add_description(description)
 
-    def add_version(self, version):
+    def add_version(self, version: str) -> None:
         """
         Adds a version to the model to the metadata.
 
         :param version: the version of the model.
         :return: None
         """
+        self.version = version
         self.rust_adapter.add_version(version)
 
-    def add_name(self, name):
+    def add_name(self, name: str) -> None:
         """
         Adds a name to th model to the metadata.
 
         :param name: the name of the model.
         :return: None
         """
+        self.name = name
         self.rust_adapter.add_name(name)
 
     def add_normaliser(self, column_name, normaliser_type, one, two):
@@ -126,7 +133,7 @@ class SurMlFile:
         """
         # right now the only engine is pytorch so we can hardcode it but when we add more engines we will need to
         # add a parameter to the save function to specify the engine
-        self.rust_adapter.save(path=path)
+        self.rust_adapter.save(path=path, name=self.name)
 
     def to_bytes(self):
         """
@@ -147,7 +154,7 @@ class SurMlFile:
         :return: The SurMlFile with loaded model and engine definition
         """
         self = SurMlFile()
-        self.file_id = self.rust_adapter.load(path)
+        self.file_id, self.name, self.description, self.version = self.rust_adapter.load(path)
         self.engine = engine
         self.rust_adapter = RustAdapter(self.file_id, self.engine)
         return self

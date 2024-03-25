@@ -47,6 +47,8 @@ class TestSurMlFile(TestCase):
             self.num_floors.mean(),
             self.num_floors.std()
         )
+        self.file.add_description(description="Model that predicts the price of a house")
+        self.file.add_version(version="1.0.0")
 
         self.file.save("./test.surml")
 
@@ -54,3 +56,7 @@ class TestSurMlFile(TestCase):
 
         self.assertEqual(float, type(new_file.raw_compute([1.0, 2.0])[0]))
         self.assertEqual(float, type(new_file.buffered_compute({"squarefoot": 1.0, "num_floors": 2.0})[0]))
+        self.assertEqual("House Price Prediction", new_file.name)
+        self.assertEqual("Model that predicts the price of a house", new_file.description)
+        self.assertEqual("1.0.0", new_file.version)
+        self.assertEqual(Engine.PYTORCH, new_file.engine)
