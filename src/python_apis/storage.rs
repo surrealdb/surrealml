@@ -29,14 +29,20 @@ use surrealml_core::storage::stream_adapter::StreamAdapter;
 /// * `file_path` - The path to the file to load.
 /// 
 /// # Returns
-/// A unique identifier for the loaded model.
+/// Meta data around the model and a unique identifier for the loaded model.
 #[pyfunction]
-pub fn load_model(file_path: String) -> String {
+pub fn load_model(file_path: String) -> (String, String, String, String) {
     let file_id = generate_unique_id();
     let file = SurMlFile::from_file(&file_path).unwrap();
+
+    // get the meta data from the file
+    let name = file.header.name.to_string();
+    let description = file.header.description.to_string();
+    let version = file.header.version.to_string();
+
     let mut python_state = PYTHON_STATE.lock().unwrap();
     python_state.insert(file_id.clone(), file);
-    file_id
+    (file_id, name, description, version)
 }
 
 
