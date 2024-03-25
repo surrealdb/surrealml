@@ -80,6 +80,16 @@ impl SurMlFile {
         buffer.copy_from_slice(&bytes[0..4]);
         let integer_value = u32::from_be_bytes(buffer);
 
+        // check to see if there is enough bytes to read
+        if bytes.len() < (4 + integer_value as usize) {
+            return Err(
+                SurrealError::new(
+                    "Not enough bytes to read for header, maybe the file format is not correct".to_string(),
+                    SurrealErrorStatus::BadRequest
+                )
+            );
+        }
+
         // Read the next integer_value bytes for the header
         header_bytes.extend_from_slice(&bytes[4..(4 + integer_value as usize)]);
 
@@ -87,7 +97,7 @@ impl SurMlFile {
         model_bytes.extend_from_slice(&bytes[(4 + integer_value as usize)..]);
 
         // construct the header and C model from the bytes
-        let header = Header::from_bytes(header_bytes).unwrap();
+        let header = Header::from_bytes(header_bytes)?;
         let model = model_bytes;
         Ok(Self {
             header,
