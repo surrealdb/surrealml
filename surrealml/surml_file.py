@@ -24,6 +24,10 @@ class SurMlFile:
         self.engine = engine
         self.file_id = self._cache_model()
         self.rust_adapter = RustAdapter(self.file_id, self.engine)
+        # below is optional metadata that can be added to the model through functions of the SurMlFile class
+        self.description = None
+        self.version = None
+        self.author = None
 
     def _cache_model(self) -> Optional[str]:
         """
@@ -126,7 +130,7 @@ class SurMlFile:
         """
         # right now the only engine is pytorch so we can hardcode it but when we add more engines we will need to
         # add a parameter to the save function to specify the engine
-        self.rust_adapter.save(path=path)
+        self.rust_adapter.save(path=path, name=self.name)
 
     def to_bytes(self):
         """
@@ -147,7 +151,7 @@ class SurMlFile:
         :return: The SurMlFile with loaded model and engine definition
         """
         self = SurMlFile()
-        self.file_id = self.rust_adapter.load(path)
+        self.file_id, self.name, self.description, self.version = self.rust_adapter.load(path)
         self.engine = engine
         self.rust_adapter = RustAdapter(self.file_id, self.engine)
         return self
