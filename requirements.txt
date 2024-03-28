@@ -4,3 +4,4 @@ scikit-learn
 torch
 tf2onnx
 tensorflow
+onnxruntime
