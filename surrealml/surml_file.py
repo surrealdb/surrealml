@@ -3,7 +3,7 @@ Defines the SurMlFile class which is used to save/load models and perform comput
 """
 from typing import Optional
 
-from surrealml.engine import Engine, SklearnOnnxAdapter, TorchOnnxAdapter
+from surrealml.engine import Engine, SklearnOnnxAdapter, TorchOnnxAdapter, TensorflowOnnxAdapter
 from surrealml.rust_adapter import RustAdapter
 
 
@@ -46,6 +46,11 @@ class SurMlFile:
             )
         elif self.engine == Engine.PYTORCH:
             raw_file_path: str = TorchOnnxAdapter.save_model_to_onnx(
+                model=self.model,
+                inputs=self.inputs
+            )
+        elif self.engine == Engine.TENSORFLOW:
+            raw_file_path: str = TensorflowOnnxAdapter.save_model_to_onnx(
                 model=self.model,
                 inputs=self.inputs
             )

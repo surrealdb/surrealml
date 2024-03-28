@@ -36,6 +36,12 @@ For `PyTorch`:
 pip install "git+https://github.com/surrealdb/surrealml#egg=surrealml[torch]"
 ```
 
+For `Tensorflow`:
+
+```bash
+pip install "git+https://github.com/surrealdb/surrealml#egg=surrealml[tensorflow]"
+```
+
 After that, you can train your model and save it in the SurrealML format.
 
 ## Compilation config
