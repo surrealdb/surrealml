@@ -44,7 +44,7 @@ setup(
         ],
         "tensorflow": [
             "tf2onnx==1.16.1",
-            "tensorflow==2.8.0"
+            "tensorflow==2.16.1"
         ]
     }
 )
