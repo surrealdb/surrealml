@@ -23,6 +23,7 @@ setup(
         "surrealml.model_templates.datasets",
         "surrealml.model_templates.sklearn",
         "surrealml.model_templates.torch",
+        "surrealml.model_templates.tensorflow",
     ],
     package_data={
         "surrealml": ["binaries/*"],
