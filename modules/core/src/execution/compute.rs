@@ -225,4 +225,36 @@ mod tests {
         let output = model_computation.buffered_compute(&mut input_values).unwrap();
         assert_eq!(output.len(), 1);
     }
+
+    #[test]
+    fn test_raw_compute_linear_tensorflow() {
+        let mut file = SurMlFile::from_file("./model_stash/tensorflow/surml/linear.surml").unwrap();
+        let model_computation = ModelComputation {
+            surml_file: &mut file,
+        };
+
+        let mut input_values = HashMap::new();
+        input_values.insert(String::from("squarefoot"), 1000.0);
+        input_values.insert(String::from("num_floors"), 2.0);
+
+        let raw_input = model_computation.input_tensor_from_key_bindings(input_values).unwrap();
+
+        let output = model_computation.raw_compute(raw_input, None).unwrap();
+        assert_eq!(output.len(), 1);
+    }
+
+    #[test]
+    fn test_buffered_compute_linear_tensorflow() {
+        let mut file = SurMlFile::from_file("./model_stash/tensorflow/surml/linear.surml").unwrap();
+        let model_computation = ModelComputation {
+            surml_file: &mut file,
+        };
+
+        let mut input_values = HashMap::new();
+        input_values.insert(String::from("squarefoot"), 1000.0);
+        input_values.insert(String::from("num_floors"), 2.0);
+
+        let output = model_computation.buffered_compute(&mut input_values).unwrap();
+        assert_eq!(output.len(), 1);
+    }
 }
