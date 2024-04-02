@@ -28,11 +28,9 @@ class SklearnOnnxAdapter:
         """
         SklearnOnnxAdapter.check_dependency()
         file_path = create_file_cache_path()
-        # the below check is to satisfy type checkers
-        if skl2onnx is not None:
-            onnx = skl2onnx.to_onnx(model, inputs)
+        onnx = skl2onnx.to_onnx(model, inputs)
 
-            with open(file_path, "wb") as f:
-                f.write(onnx.SerializeToString())
+        with open(file_path, "wb") as f:
+            f.write(onnx.SerializeToString())
 
-            return file_path
+        return file_path

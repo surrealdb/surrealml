@@ -2,6 +2,7 @@ from enum import Enum
 
 from surrealml.engine.sklearn import SklearnOnnxAdapter
 from surrealml.engine.torch import TorchOnnxAdapter
+from surrealml.engine.tensorflow import TensorflowOnnxAdapter
 
 
 class Engine(Enum):
@@ -12,7 +13,9 @@ class Engine(Enum):
         PYTORCH: The PyTorch engine which will be PyTorch and ONNX.
         NATIVE: The native engine which will be native rust and linfa.
         SKLEARN: The sklearn engine which will be sklearn and ONNX
+        TENSOFRLOW: The TensorFlow engine which will be TensorFlow and ONNX
     """
     PYTORCH = "pytorch"
     NATIVE = "native"
     SKLEARN = "sklearn"
+    TENSORFLOW = "tensorflow"
