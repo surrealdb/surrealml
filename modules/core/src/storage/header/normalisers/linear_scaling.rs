@@ -1,4 +1,5 @@
 //! The functionality and parameters around a linear scaling normaliser.
+use serde::{Serialize, Deserialize};
 use super::traits::Normaliser;
 
 
@@ -7,7 +8,7 @@ use super::traits::Normaliser;
 /// # Fields
 /// * `min` - The minimum value to scale to.
 /// * `max` - The maximum value to scale to.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct LinearScaling {
     pub min: f32,
     pub max: f32,

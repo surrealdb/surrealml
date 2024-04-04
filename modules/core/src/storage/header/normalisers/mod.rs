@@ -1,4 +1,5 @@
 //! Defines the loading and saving functionality of normalisers.
+use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 
 pub mod traits;
@@ -22,7 +23,7 @@ use crate::errors::error::{SurrealError, SurrealErrorStatus};
 /// * `store` - A vector of normalisers.
 /// * `store_ref` - A vector of column names to correlate with the normalisers in the store.
 /// * `reference` - A map of the index of the column in the key bindings to the index of the normaliser in the store.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct NormaliserMap {
     pub store: Vec<NormaliserType>,
     pub store_ref: Vec<String>,

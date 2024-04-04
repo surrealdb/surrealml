@@ -8,6 +8,7 @@
 //! * save the C model using torch.jit.save
 //! * load the model using the load_cached_raw_model function
 use pyo3::prelude::*;
+use pyo3::exceptions::PyIOError;
 use surrealml_core::storage::surml_file::SurMlFile;
 use surrealml_core::storage::header::normalisers::wrapper::NormaliserType;
 use std::fs::File;
@@ -282,4 +283,22 @@ pub fn upload_model(
         let _response = client.request(req).await.unwrap();
     });
     Ok(())
+}
+
+/// Converts the file header to a JSON string.
+///
+/// # Arguments
+/// * `file_id` - The unique identifier for the SurMlFile struct.
+///
+/// # Returns
+/// A JSON string representing the file's header.
+#[pyfunction]
+pub fn get_meta(file_id: String) -> PyResult<String> {
+    let mut python_state = PYTHON_STATE.lock().unwrap();
+    let file = python_state.get_mut(&file_id).unwrap();
+
+    match file.header.to_json() {
+        Ok(json_string) => Ok(json_string),
+        Err(e) => Err(PyIOError::new_err(format!("Failed to convert to JSON: {}", e))),
+    }
 }

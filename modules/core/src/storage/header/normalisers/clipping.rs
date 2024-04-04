@@ -1,4 +1,5 @@
 //! The functionality and parameters around a clipping normaliser.
+use serde::{Serialize, Deserialize};
 use super::traits::Normaliser;
 
 
@@ -7,7 +8,7 @@ use super::traits::Normaliser;
 /// # Fields
 /// * `min` - The minimum value to clip to.
 /// * `max` - The maximum value to clip to.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Clipping {
     pub min: Option<f32>,
     pub max: Option<f32>,

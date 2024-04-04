@@ -1,5 +1,5 @@
 from surrealml.rust_surrealml import load_cached_raw_model, add_column, add_output, add_normaliser, save_model, \
-    add_name, load_model, add_description, add_version, to_bytes, add_engine, add_author, add_origin
+    add_name, load_model, add_description, add_version, to_bytes, add_engine, add_author, add_origin, get_meta
 from surrealml.rust_surrealml import raw_compute, buffered_compute, upload_model
 
 from typing import Optional
@@ -121,6 +121,14 @@ class RustAdapter:
         :return: the model as bytes.
         """
         return to_bytes(self.file_id)
+
+    def get_meta(self):
+        """
+        Returns the header for the file as a JSON string.
+
+        :return: the header as a JSON string.
+        """
+        return get_meta(self.file_id)
 
     @staticmethod
     def load(path) -> str:

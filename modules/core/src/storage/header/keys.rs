@@ -1,5 +1,6 @@
 //! Defines the key bindings for input data.
 use std::collections::HashMap;
+use serde::{Serialize, Deserialize};
 
 use crate::safe_eject_internal;
 use crate::errors::error::{SurrealError, SurrealErrorStatus};
@@ -11,7 +12,7 @@ use crate::errors::error::{SurrealError, SurrealErrorStatus};
 /// * `store` - A vector of strings that represent the column names. The order of this store is the same as the order 
 ///             in which the columns are expected in the input data.
 /// * `reference` - A hashmap that maps the column names to their index in the `self.store` field.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct KeyBindings {
     pub store: Vec<String>,
     pub reference: HashMap<String, usize>,

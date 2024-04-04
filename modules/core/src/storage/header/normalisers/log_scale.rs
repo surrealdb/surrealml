@@ -1,4 +1,5 @@
 //! The functionality and parameters around a log scaling normaliser.
+use serde::{Serialize, Deserialize};
 use super::traits::Normaliser;
 
 
@@ -7,7 +8,7 @@ use super::traits::Normaliser;
 /// # Fields
 /// * `base` - The base of the logarithm.
 /// * `min` - The minimum value to scale to.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct LogScaling {
     pub base: f32,
     pub min: f32,

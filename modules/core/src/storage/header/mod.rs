@@ -1,4 +1,7 @@
 //! Handles the loading, saving, and utilisation of all the data in the header of the model file.
+use serde_json;
+use serde::Serialize;
+
 pub mod keys;
 pub mod normalisers;
 pub mod output;
@@ -32,7 +35,7 @@ use crate::errors::error::{SurrealError, SurrealErrorStatus};
 /// * `description` - The description of the model.
 /// * `engine` - The engine of the model (could be native or pytorch).
 /// * `origin` - The origin of the model which is where the model was created and who the author is.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize)]
 pub struct Header {
     pub keys: KeyBindings,
     pub normalisers: NormaliserMap,
@@ -206,6 +209,16 @@ impl Header {
         let buffer = buffer.join(Self::delimiter()).into_bytes();
         (buffer.len() as i32, buffer)
     }
+
+    /// Converts the `Header` struct into a JSON string.
+    ///
+    /// # Returns
+    /// Either the converted JSON string or a serde_json error.
+    pub fn to_json(&self) -> Result<String, serde_json::Error> {
+        let json_string = serde_json::to_string(self)?;
+        Ok(json_string)
+    }
+
 }
 
 
@@ -361,6 +374,14 @@ mod tests {
         assert_eq!(header.normalisers.store[1], NormaliserType::Clipping(Clipping { min: Some(0.0), max: Some(1.5) }));
         assert_eq!(header.normalisers.store[2], NormaliserType::LogScaling(LogScaling { base: 10.0, min: 0.0 }));
         assert_eq!(header.normalisers.store[3], NormaliserType::ZScore(ZScore { mean: 0.0, std_dev: 1.0 }));
+    }
+
+    #[test]
+    fn to_json() {
+        let header = Header::fresh();
+        let json_string = header.to_json();
+
+        assert!(json_string.is_ok());
     }
 
 }

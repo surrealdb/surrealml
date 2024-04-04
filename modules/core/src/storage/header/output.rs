@@ -1,4 +1,5 @@
 //! Defines the struct housing data around the outputs of the model.
+use serde::{Serialize, Deserialize};
 use super::normalisers::wrapper::NormaliserType;
 use crate::{
     safe_eject_option,
@@ -14,7 +15,7 @@ use crate::{
 /// # Fields
 /// * `name` - The name of the output.
 /// * `normaliser` - The normaliser to be applied to the output if there is one.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
     pub name: Option<String>,
     pub normaliser: Option<NormaliserType>,
