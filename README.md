@@ -96,6 +96,15 @@ print(new_file.buffered_compute(value_map={"squarefoot": 5, "num_floors": 6}))
 print(new_file.raw_compute(input_vector=[5, 6]))
 ```
 
+## Raw ONNX models
+
+You may not have a model that is supported by the `surrealml` library. However, if you can convert the model into ONNX
+format by yourself, you can merely use the `ONNX` engine when saving your model with the following code:
+
+```python
+file = SurMlFile(model=raw_onnx_model, name="linear", inputs=HOUSE_LINEAR["inputs"], engine=Engine.ONNX)
+```
+
 ## Python tutorial using Pytorch
 
 First we need to have one script where we create and store the model. In this example we will merely do a linear regression model
