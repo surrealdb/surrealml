@@ -53,7 +53,7 @@ jobs:
     #     deactivate
 
     - name: Run Core Unit Tests
-      run: cd modules/core && cargo test --features sklearn
+      run: cd modules/core && cargo test --features sklearn-tests
 
     - name: Run HTTP Transfer Tests
       run: cargo test
