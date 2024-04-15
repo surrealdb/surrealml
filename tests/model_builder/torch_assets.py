@@ -3,6 +3,7 @@ This file trains and saves the torch linear model to the model stash directory f
 """
 from tests.model_builder.utils import install_package
 install_package("torch==2.1.2")
+install_package("onnx==1.16.0")
 import os
 
 from surrealml.model_templates.torch.torch_linear import train_model as linear_torch_train_model
