@@ -1,6 +1,7 @@
 from tests.model_builder.utils import install_package
-install_package("torch==2.1.2")
+# install_package("torch==2.1.2")
 install_package("onnx==1.16.0")
+install_package("scikit-learn==1.4.0")
 import os
 import onnx
 
