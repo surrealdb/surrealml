@@ -26,9 +26,9 @@ delete_directory(dir_path=torch_surml_stash_directory)
 delete_directory(dir_path=torch_onnx_stash_directory)
 
 # create directories for the torch models
-os.mkdir(torch_stash_directory)
-os.mkdir(torch_surml_stash_directory)
-os.mkdir(torch_onnx_stash_directory)
+create_directory(torch_stash_directory)
+create_directory(torch_surml_stash_directory)
+create_directory(torch_onnx_stash_directory)
 
 # train and stash torch models
 torch_linear_model, x = linear_torch_train_model()
