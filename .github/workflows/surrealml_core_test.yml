@@ -36,6 +36,7 @@ jobs:
         echo "Building local version of core module"
         
         pip install .
+        export PYTHONPATH="."
         
         python ./tests/scripts/ci_local_build.py
         echo "Local build complete"
