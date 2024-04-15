@@ -160,6 +160,7 @@ mod tests {
 
     use super::*;
 
+    #[cfg(feature = "sklearn-tests")]
     #[test]
     fn test_raw_compute_linear_sklearn() {
         let mut file = SurMlFile::from_file("./model_stash/sklearn/surml/linear.surml").unwrap();
@@ -178,7 +179,7 @@ mod tests {
         assert_eq!(output[0], 985.57745);
     }
 
-
+    #[cfg(feature = "sklearn-tests")]
     #[test]
     fn test_buffered_compute_linear_sklearn() {
         let mut file = SurMlFile::from_file("./model_stash/sklearn/surml/linear.surml").unwrap();
@@ -194,6 +195,7 @@ mod tests {
         assert_eq!(output.len(), 1);
     }
 
+    #[cfg(feature = "onnx-tests")]
     #[test]
     fn test_raw_compute_linear_onnx() {
         let mut file = SurMlFile::from_file("./model_stash/onnx/surml/linear.surml").unwrap();
@@ -212,6 +214,7 @@ mod tests {
         assert_eq!(output[0], 985.57745);
     }
 
+    #[cfg(feature = "onnx-tests")]
     #[test]
     fn test_buffered_compute_linear_onnx() {
         let mut file = SurMlFile::from_file("./model_stash/onnx/surml/linear.surml").unwrap();
@@ -227,6 +230,7 @@ mod tests {
         assert_eq!(output.len(), 1);
     }
 
+    #[cfg(feature = "torch-tests")]
     #[test]
     fn test_raw_compute_linear_torch() {
         let mut file = SurMlFile::from_file("./model_stash/torch/surml/linear.surml").unwrap();
@@ -244,6 +248,7 @@ mod tests {
         assert_eq!(output.len(), 1);
     }
 
+    #[cfg(feature = "torch-tests")]
     #[test]
     fn test_buffered_compute_linear_torch() {
         let mut file = SurMlFile::from_file("./model_stash/torch/surml/linear.surml").unwrap();
@@ -259,6 +264,7 @@ mod tests {
         assert_eq!(output.len(), 1);
     }
 
+    #[cfg(feature = "tensorflow-tests")]
     #[test]
     fn test_raw_compute_linear_tensorflow() {
         let mut file = SurMlFile::from_file("./model_stash/tensorflow/surml/linear.surml").unwrap();
@@ -276,6 +282,7 @@ mod tests {
         assert_eq!(output.len(), 1);
     }
 
+    #[cfg(feature = "tensorflow-tests")]
     #[test]
     fn test_buffered_compute_linear_tensorflow() {
         let mut file = SurMlFile::from_file("./model_stash/tensorflow/surml/linear.surml").unwrap();
