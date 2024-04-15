@@ -1,3 +1,8 @@
+"""
+This file trains and saves the torch linear model to the model stash directory for the core to test against
+"""
+from tests.model_builder.utils import install_package
+install_package("torch==2.1.2")
 import os
 
 from surrealml.model_templates.torch.torch_linear import train_model as linear_torch_train_model
