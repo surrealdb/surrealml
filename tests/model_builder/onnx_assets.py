@@ -1,7 +1,8 @@
 from tests.model_builder.utils import install_package
 # install_package("torch==2.1.2")
 install_package("onnx==1.16.0")
-install_package("scikit-learn==1.4.0")
+install_package("scikit-learn==1.4.0") # use sklearn to train the model
+install_package("skl2onnx==1.16.0") # use skl2onnx to convert the model to onnx to test the raw onnx loading
 import os
 import onnx
 
