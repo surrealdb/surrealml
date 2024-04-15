@@ -1,4 +1,4 @@
-name: Run Torch Tests
+name: Run Tensorflow Tests
 
 on:
   pull_request:
@@ -42,17 +42,8 @@ jobs:
         echo "Local build complete"
         
         # train the models for the tests
-        python ./tests/model_builder/torch_assets.py
-        deactivate
-
-    - name: Run Python Unit Tests
-      run: |
-        source venv/bin/activate
-        export PYTHONPATH="."
-        python tests/unit_tests/engine/test_torch.py
-        python tests/unit_tests/test_rust_adapter.py
-        python tests/unit_tests/test_surml_file.py
+        python ./tests/model_builder/tensorflow_assets.py
         deactivate
 
     - name: Run Core Unit Tests
-      run: cd modules/core && cargo test --features torch-tests
+      run: cd modules/core && cargo test --features tensorflow-tests

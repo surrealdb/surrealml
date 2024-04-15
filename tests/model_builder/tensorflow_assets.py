@@ -1,3 +1,6 @@
+from tests.model_builder.utils import install_package
+install_package("tf2onnx==1.16.1")
+install_package("tensorflow==2.16.1")
 import os
 
 from surrealml.model_templates.tensorflow.tensorflow_linear import train_model as linear_tensorflow_train_model
