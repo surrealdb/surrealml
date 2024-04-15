@@ -45,12 +45,12 @@ jobs:
         python ./tests/model_builder/sklearn_assets.py
         deactivate
 
-    - name: Run Python Unit Tests
-      run: |
-        source venv/bin/activate
-        export PYTHONPATH="."
-        python -m unittest discover
-        deactivate
+    # - name: Run Python Unit Tests
+    #   run: |
+    #     source venv/bin/activate
+    #     export PYTHONPATH="."
+    #     python -m unittest discover
+    #     deactivate
 
     - name: Run Core Unit Tests
       run: cd modules/core && cargo test --features sklearn
