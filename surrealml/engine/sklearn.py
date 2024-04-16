@@ -1,3 +1,6 @@
+"""
+This file defines the adapter that converts an sklearn model to an onnx model and saves the onnx model to a file.
+"""
 try:
     import skl2onnx
 except ImportError:
@@ -7,6 +10,9 @@ from surrealml.engine.utils import create_file_cache_path
 
 
 class SklearnOnnxAdapter:
+    """
+    Converts and saves sklearn models to onnx format.
+    """
 
     @staticmethod
     def check_dependency() -> None:
