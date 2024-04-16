@@ -160,6 +160,7 @@ mod tests {
 
     use super::*;
 
+    #[cfg(feature = "sklearn-tests")]
     #[test]
     fn test_raw_compute_linear_sklearn() {
         let mut file = SurMlFile::from_file("./model_stash/sklearn/surml/linear.surml").unwrap();
@@ -178,7 +179,7 @@ mod tests {
         assert_eq!(output[0], 985.57745);
     }
 
-
+    #[cfg(feature = "sklearn-tests")]
     #[test]
     fn test_buffered_compute_linear_sklearn() {
         let mut file = SurMlFile::from_file("./model_stash/sklearn/surml/linear.surml").unwrap();
@@ -194,6 +195,42 @@ mod tests {
         assert_eq!(output.len(), 1);
     }
 
+    #[cfg(feature = "onnx-tests")]
+    #[test]
+    fn test_raw_compute_linear_onnx() {
+        let mut file = SurMlFile::from_file("./model_stash/onnx/surml/linear.surml").unwrap();
+        let model_computation = ModelComputation {
+            surml_file: &mut file,
+        };
+
+        let mut input_values = HashMap::new();
+        input_values.insert(String::from("squarefoot"), 1000.0);
+        input_values.insert(String::from("num_floors"), 2.0);
+
+        let raw_input = model_computation.input_tensor_from_key_bindings(input_values).unwrap();
+
+        let output = model_computation.raw_compute(raw_input, Some((1, 2))).unwrap();
+        assert_eq!(output.len(), 1);
+        assert_eq!(output[0], 985.57745);
+    }
+
+    #[cfg(feature = "onnx-tests")]
+    #[test]
+    fn test_buffered_compute_linear_onnx() {
+        let mut file = SurMlFile::from_file("./model_stash/onnx/surml/linear.surml").unwrap();
+        let model_computation = ModelComputation {
+            surml_file: &mut file,
+        };
+
+        let mut input_values = HashMap::new();
+        input_values.insert(String::from("squarefoot"), 1000.0);
+        input_values.insert(String::from("num_floors"), 2.0);
+
+        let output = model_computation.buffered_compute(&mut input_values).unwrap();
+        assert_eq!(output.len(), 1);
+    }
+
+    #[cfg(feature = "torch-tests")]
     #[test]
     fn test_raw_compute_linear_onnx() {
         let mut file = SurMlFile::from_file("./model_stash/onnx/surml/linear.surml").unwrap();
@@ -244,6 +281,7 @@ mod tests {
         assert_eq!(output.len(), 1);
     }
 
+    #[cfg(feature = "torch-tests")]
     #[test]
     fn test_buffered_compute_linear_torch() {
         let mut file = SurMlFile::from_file("./model_stash/torch/surml/linear.surml").unwrap();
@@ -259,6 +297,7 @@ mod tests {
         assert_eq!(output.len(), 1);
     }
 
+    #[cfg(feature = "tensorflow-tests")]
     #[test]
     fn test_raw_compute_linear_tensorflow() {
         let mut file = SurMlFile::from_file("./model_stash/tensorflow/surml/linear.surml").unwrap();
@@ -276,6 +315,7 @@ mod tests {
         assert_eq!(output.len(), 1);
     }
 
+    #[cfg(feature = "tensorflow-tests")]
     #[test]
     fn test_buffered_compute_linear_tensorflow() {
         let mut file = SurMlFile::from_file("./model_stash/tensorflow/surml/linear.surml").unwrap();

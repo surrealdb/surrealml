@@ -12,6 +12,11 @@ license-file = "LICENSE"
 axum-feature = ["axum"]
 actix-feature = ["actix-web"]
 default = []
+# below are the features for testing different engines
+sklearn-tests = []
+onnx-tests = []
+torch-tests = []
+tensorflow-tests = []
 
 [dependencies]
 regex = "1.9.3"

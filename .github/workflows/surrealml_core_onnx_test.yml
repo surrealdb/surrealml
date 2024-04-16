@@ -1,4 +1,4 @@
-name: Run SkLearn Tests
+name: Run Onnx Tests
 
 on:
   pull_request:
@@ -42,18 +42,8 @@ jobs:
         echo "Local build complete"
         
         # train the models for the tests
-        python ./tests/model_builder/sklearn_assets.py
-        deactivate
-
-    - name: Run Python Unit Tests
-      run: |
-        source venv/bin/activate
-        export PYTHONPATH="."
-        python tests/unit_tests/engine/test_sklearn.py
+        python ./tests/model_builder/onnx_assets.py
         deactivate
 
     - name: Run Core Unit Tests
-      run: cd modules/core && cargo test --features sklearn-tests
-
-    - name: Run HTTP Transfer Tests
-      run: cargo test
+      run: cd modules/core && cargo test --features onnx-tests
