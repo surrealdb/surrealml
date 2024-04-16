@@ -21,6 +21,10 @@ from surrealml.model_templates.sklearn.sklearn_linear import train_model as line
 from surrealml.model_templates.sklearn.sklearn_linear import export_model_onnx as linear_sklearn_export_model_onnx
 from surrealml.model_templates.sklearn.sklearn_linear import export_model_surml as linear_sklearn_export_model_surml
 
+from surrealml.model_templates.onnx.onnx_linear import train_model as linear_onnx_train_model
+from surrealml.model_templates.onnx.onnx_linear import export_model_onnx as linear_onnx_export_model_onnx
+from surrealml.model_templates.onnx.onnx_linear import export_model_surml as linear_onnx_export_model_surml
+
 from surrealml.model_templates.torch.torch_linear import train_model as linear_torch_train_model
 from surrealml.model_templates.torch.torch_linear import export_model_onnx as linear_torch_export_model_onnx
 from surrealml.model_templates.torch.torch_linear import export_model_surml as linear_torch_export_model_surml
@@ -71,14 +75,22 @@ core_directory = os.path.join(main_directory, "modules", "core")
 
 model_stash_directory = os.path.join(core_directory, "model_stash")
 
+# defining directories for sklearn
 sklearn_stash_directory = os.path.join(model_stash_directory, "sklearn")
 sklearn_surml_stash_directory = os.path.join(sklearn_stash_directory, "surml")
 sklearn_onnx_stash_directory = os.path.join(sklearn_stash_directory, "onnx")
 
+# defining directories for onnx
+onnx_stash_directory = os.path.join(model_stash_directory, "onnx")
+onnx_surml_stash_directory = os.path.join(onnx_stash_directory, "surml")
+onnx_onnx_stash_directory = os.path.join(onnx_stash_directory, "onnx")
+
+# defining directories for torch
 torch_stash_directory = os.path.join(model_stash_directory, "torch")
 torch_surml_stash_directory = os.path.join(torch_stash_directory, "surml")
 torch_onnx_stash_directory = os.path.join(torch_stash_directory, "onnx")
 
+# defining directories for tensorflow
 tensorflow_stash_directory = os.path.join(model_stash_directory, "tensorflow")
 tensorflow_surml_stash_directory = os.path.join(tensorflow_stash_directory, "surml")
 tensorflow_onnx_stash_directory = os.path.join(tensorflow_stash_directory, "onnx")
@@ -95,9 +107,14 @@ def main():
 
     os.mkdir(model_stash_directory)
 
+    # create directories for the different model types
     os.mkdir(sklearn_stash_directory)
     os.mkdir(sklearn_surml_stash_directory)
     os.mkdir(sklearn_onnx_stash_directory)
+
+    os.mkdir(onnx_stash_directory)
+    os.mkdir(onnx_surml_stash_directory)
+    os.mkdir(onnx_onnx_stash_directory)
 
     os.mkdir(torch_stash_directory)
     os.mkdir(torch_surml_stash_directory)
@@ -118,6 +135,19 @@ def main():
     onnx.save(
         sklearn_linear_onnx_file,
         os.path.join(sklearn_onnx_stash_directory, "linear.onnx")
+    )
+
+    # train and stash onnx models
+    onnx_linear_model = linear_onnx_train_model()
+    onnx_linear_surml_file = linear_onnx_export_model_surml(onnx_linear_model)
+    onnx_linear_onnx_file = linear_onnx_export_model_onnx(onnx_linear_model)
+
+    onnx_linear_surml_file.save(
+        path=str(os.path.join(onnx_surml_stash_directory, "linear.surml"))
+    )
+    onnx.save(
+        onnx_linear_onnx_file,
+        os.path.join(onnx_onnx_stash_directory, "linear.onnx")
     )
 
     # train and stash torch models

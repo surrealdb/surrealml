@@ -1,6 +1,6 @@
 [package]
 name = "surrealml-core"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 build = "./build.rs"
 description = "The core machine learning library for SurrealML that enables SurrealDB to store and load ML models"
@@ -12,6 +12,11 @@ license-file = "LICENSE"
 axum-feature = ["axum"]
 actix-feature = ["actix-web"]
 default = []
+# below are the features for testing different engines
+sklearn-tests = []
+onnx-tests = []
+torch-tests = []
+tensorflow-tests = []
 
 [dependencies]
 regex = "1.9.3"

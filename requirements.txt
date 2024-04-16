@@ -1,7 +1,2 @@
-numpy
-skl2onnx
-scikit-learn
-torch
-tf2onnx
-tensorflow
-onnxruntime
+onnxruntime==1.17.3
+numpy==1.26.3
