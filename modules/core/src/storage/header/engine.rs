@@ -1,4 +1,5 @@
 //! Defines the placeholder for the type of model engine in the header.
+use serde::{Serialize, Deserialize};
 
 
 /// Defines the type of engine being used to run the model.
@@ -7,7 +8,7 @@
 /// * `Native` - The native engine which will be native rust and linfa.
 /// * `PyTorch` - The PyTorch engine which will be PyTorch and tch-rs.
 /// * `Undefined` - The undefined engine which will be used when the engine is not defined.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum Engine {
     Native,
     PyTorch,

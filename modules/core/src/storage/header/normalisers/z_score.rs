@@ -1,4 +1,5 @@
 //! The functionality and parameters around a z-score normaliser.
+use serde::{Serialize, Deserialize};
 use super::traits::Normaliser;
 
 
@@ -7,7 +8,7 @@ use super::traits::Normaliser;
 /// # Fields
 /// * `mean` - The mean of the normaliser.
 /// * `std_dev` - The standard deviation of the normaliser.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ZScore {
     pub mean: f32,
     pub std_dev: f32,

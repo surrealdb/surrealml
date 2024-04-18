@@ -1,11 +1,12 @@
 //! InputDims is a struct that holds the dimensions of the input tensors for the model.
+use serde::{Serialize, Deserialize};
 
 
 /// InputDims is a struct that holds the dimensions of the input tensors for the model.
 /// 
 /// # Fields
 /// * `dims` - The dimensions of the input tensors.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct InputDims {
     pub dims: [i32; 2],
 }

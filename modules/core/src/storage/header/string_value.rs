@@ -1,11 +1,12 @@
 //! Defines a generic string value for the header.
+use serde::{Serialize, Deserialize};
 
 
 /// Defines a generic string value for the header.
 /// 
 /// # Fields
 /// * `value` - The value of the string.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct StringValue {
     pub value: Option<String>,
 }

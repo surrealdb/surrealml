@@ -1,4 +1,5 @@
 //! Defines the process of managing the version of the `surml` file in the file.
+use serde::{Serialize, Deserialize};
 use crate::{
     safe_eject_option,
     safe_eject,
@@ -15,7 +16,7 @@ use crate::{
 /// * `one` - The first number in the version.
 /// * `two` - The second number in the version.
 /// * `three` - The third number in the version.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Version {
     pub one: u8,
     pub two: u8,

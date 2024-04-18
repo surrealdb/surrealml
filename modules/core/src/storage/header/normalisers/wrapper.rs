@@ -1,4 +1,6 @@
 //! Defines the constructing and storing of normalisers.
+use serde::{Serialize, Deserialize};
+
 use super::linear_scaling;
 use super::clipping;
 use super::log_scale;
@@ -17,7 +19,7 @@ use crate::errors::error::{SurrealError, SurrealErrorStatus};
 /// * `Clipping` - A clipping normaliser.
 /// * `LogScaling` - A log scaling normaliser.
 /// * `ZScore` - A z-score normaliser.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum NormaliserType {
     LinearScaling(linear_scaling::LinearScaling),
     Clipping(clipping::Clipping),

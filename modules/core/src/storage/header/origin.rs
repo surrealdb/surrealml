@@ -1,4 +1,5 @@
 //! Defines the origin of the model in the file.
+use serde::{Serialize, Deserialize};
 use crate::errors::error::{SurrealError, SurrealErrorStatus};
 
 use super::string_value::StringValue;
@@ -15,7 +16,7 @@ const NONE: &str = "";
 /// * `Local` - The model was created locally.
 /// * `SurrealDb` - The model was created in the surreal database.
 /// * `None` - The model has no origin
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum OriginValue {
     Local(StringValue),
     SurrealDb(StringValue),
@@ -68,7 +69,7 @@ impl OriginValue {
 /// # Fields
 /// * `origin` - The origin of the model.
 /// * `author` - The author of the model.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Origin {
     pub origin: OriginValue,
     pub author: StringValue,
