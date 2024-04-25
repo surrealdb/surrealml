@@ -1,8 +1,13 @@
 //! Defines the operations around performing computations on a loaded model.
 use crate::storage::surml_file::SurMlFile;
 use std::collections::HashMap;
+use std::os::unix::process;
 use ndarray::{ArrayD, CowArray};
+use ort::tensor;
 use ort::{SessionBuilder, Value, session::Input};
+use ort_v2::Session as SessionV2;
+use ort_v2::{Value as ValueV2, Input as InputV2};
+use ort_v2::Tensor;
 
 use super::onnx_environment::ENVIRONMENT;
 use crate::safe_eject;
@@ -45,6 +50,28 @@ impl <'a>ModelComputation<'a> {
             match dim {
                 Some(dim) => buffer.push(dim as usize),
                 None => buffer.push(1)
+            }
+        }
+        buffer
+    }
+
+    /// Creates a vector of dimensions for the input tensor from the loaded model.
+    /// 
+    /// # Arguments
+    /// * `input_dims` - The input dimensions from the loaded model.
+    /// 
+    /// # Returns
+    /// A vector of dimensions for the input tensor to be reshaped into from the loaded model.
+    fn process_input_dims_v2(input_dims: &InputV2) -> Vec<usize> {
+        let mut buffer = Vec::new();
+        match input_dims.input_type.tensor_dimensions() {
+            Some(dims) => {
+                for dim in dims {
+                    buffer.push(*dim as usize);
+                }
+            },
+            None => {
+                buffer.push(1)
             }
         }
         buffer
@@ -104,6 +131,55 @@ impl <'a>ModelComputation<'a> {
             }
         };
         return Ok(buffer)
+    }
+
+    pub fn raw_compute_v2(&self, tensor: ArrayD<f32>, _dims: Option<(i32, i32)>) -> Result<Vec<f32>, SurrealError> {
+        let session = match SessionV2::builder() {
+            Ok(builder) => builder,
+            Err(_) => return Err(SurrealError::new(
+                String::from("Failed to create a session builder for the model (V2)").to_string(), 
+                SurrealErrorStatus::Unknown
+            ))
+        }.commit_from_memory(&self.surml_file.model).map_err(|e| {
+            SurrealError::new(
+                format!("Failed to commit the model to the session (V2): {}", e).to_string(), 
+                SurrealErrorStatus::Unknown
+            )
+        })?;
+        let unwrapped_dims = ModelComputation::process_input_dims_v2(&session.inputs[0]);
+        let tensor = safe_eject!(tensor.into_shape(unwrapped_dims), SurrealErrorStatus::Unknown);
+        let input_values = match ort_v2::inputs![tensor] {
+            Ok(inputs) => inputs,
+            Err(e) => return Err(SurrealError::new(
+                format!("Failed to create input values for the model (V2): {}", e).to_string(), 
+                SurrealErrorStatus::Unknown
+            ))
+        };
+        // input_values.
+
+        // let x = CowArray::from(tensor).into_dyn();
+        // let input_values = safe_eject!(ValueV2::from_array(tensor), SurrealErrorStatus::Unknown);
+        let outputs = safe_eject!(
+            session.run(input_values), 
+            SurrealErrorStatus::Unknown
+        );
+
+        let mut buffer: Vec<f32> = Vec::new();
+
+        match outputs[0].try_extract_tensor::<f32>() {
+            Ok(y) => {
+                for i in y.view().clone().into_iter() {
+                    buffer.push(*i);
+                }
+            },
+            Err(_) => {
+                for i in safe_eject!(outputs[0].try_extract_tensor::<i64>(), SurrealErrorStatus::Unknown).view().clone().into_iter() {
+                    buffer.push(*i as f32);
+                }
+            }
+        };
+        return Ok(buffer)
+
     }
 
     /// Checks the header applying normalisers if present and then performs a raw computation on the loaded model. Will
@@ -173,10 +249,13 @@ mod tests {
         input_values.insert(String::from("num_floors"), 2.0);
 
         let raw_input = model_computation.input_tensor_from_key_bindings(input_values).unwrap();
+        let raw_input_two = raw_input.clone();
 
         let output = model_computation.raw_compute(raw_input, Some((1, 2))).unwrap();
         assert_eq!(output.len(), 1);
         assert_eq!(output[0], 985.57745);
+        let output = model_computation.raw_compute_v2(raw_input_two, Some((1, 2))).unwrap();
+        println!("{:?}", output);
     }
 
     #[cfg(feature = "sklearn-tests")]
