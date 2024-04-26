@@ -96,6 +96,17 @@ let data: ArrayD<f32> = ndarray::arr1(&x).into_dyn();
 let output = compute_unit.raw_compute(data, None).unwrap();
 ```
 
+### V2 Ort
+Version 2 of Ort is now supported as well but this is in beta as V2 of Ort in general is also
+in beta. Everything is the same apart from you adding `v2` to the end of your execution calls
+like so:
+
+```rust
+let output = compute_unit.buffered_compute_v2(&mut input_values).unwrap();
+
+let output = compute_unit.raw_compute_v2(data, None).unwrap();
+```
+
 ## ONNX runtime assets
 
 We can find the ONNX assets with the following link:
