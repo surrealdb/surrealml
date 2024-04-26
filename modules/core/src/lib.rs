@@ -92,8 +92,30 @@
 //! Version 2 of Ort is now supported as well but this is in beta as V2 of Ort in general is also
 //! in beta. Everything is the same apart from you adding `v2` to the end of your execution calls
 //! like so:
-//! 
 //! ```rust
+//! use surrealml_core::storage::surml_file::SurMlFile;
+//! use surrealml_core::execution::compute::ModelComputation;
+//! use ndarray::ArrayD;
+//! use std::collections::HashMap;
+//!
+//!
+//! let mut file = SurMlFile::from_file("./stash/test.surml").unwrap();
+//!
+//! let compute_unit = ModelComputation {
+//!     surml_file: &mut file,
+//! };
+//!
+//! // automatically map inputs and apply normalisers to the compute if this data was put in the header
+//! let mut input_values = HashMap::new();
+//! input_values.insert(String::from("squarefoot"), 1000.0);
+//! input_values.insert(String::from("num_floors"), 2.0);
+//!
+//! let output = compute_unit.buffered_compute(&mut input_values).unwrap();
+//!
+//! // feed a raw ndarray into the model if no header was provided or if you want to bypass the header
+//! let x = vec![1000.0, 2.0];
+//! let data: ArrayD<f32> = ndarray::arr1(&x).into_dyn();
+//!
 //! let output = compute_unit.buffered_compute_v2(&mut input_values).unwrap();
 //! let output = compute_unit.raw_compute_v2(data, None).unwrap();
 //! ```
