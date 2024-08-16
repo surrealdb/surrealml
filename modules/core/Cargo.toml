@@ -11,7 +11,7 @@ license-file = "LICENSE"
 [features]
 axum-feature = ["axum"]
 actix-feature = ["actix-web"]
-default = ["sklearn-tests"]
+default = []
 # below are the features for testing different engines
 sklearn-tests = []
 onnx-tests = []
