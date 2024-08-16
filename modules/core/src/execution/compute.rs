@@ -181,6 +181,25 @@ mod tests {
 
     #[cfg(feature = "sklearn-tests")]
     #[test]
+    fn test_raw_compute_linear_sklearn_multiple() {
+        let mut file = SurMlFile::from_file("./model_stash/sklearn/surml/multiple_linear.surml").unwrap();
+        let model_computation = ModelComputation {
+            surml_file: &mut file,
+        };
+
+        let mut input_values = HashMap::new();
+        input_values.insert(String::from("squarefoot"), 1000.0);
+        input_values.insert(String::from("num_floors"), 2.0);
+
+        let inputs = vec![1000.0 as f32, 2.0, 3.0];
+        let inputs = ndarray::arr1::<f32>(&inputs).into_dyn();
+
+        let output = model_computation.raw_compute(inputs, Some((1, 2))).unwrap();
+        assert_eq!(output.len(), 3);
+    }
+
+    #[cfg(feature = "sklearn-tests")]
+    #[test]
     fn test_buffered_compute_linear_sklearn() {
         let mut file = SurMlFile::from_file("./model_stash/sklearn/surml/linear.surml").unwrap();
         let model_computation = ModelComputation {

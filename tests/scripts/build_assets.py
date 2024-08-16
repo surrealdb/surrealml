@@ -25,6 +25,11 @@ from surrealml.model_templates.onnx.onnx_linear import train_model as linear_onn
 from surrealml.model_templates.onnx.onnx_linear import export_model_onnx as linear_onnx_export_model_onnx
 from surrealml.model_templates.onnx.onnx_linear import export_model_surml as linear_onnx_export_model_surml
 
+from surrealml.model_templates.sklearn.sklearn_linear_multiple import export_model_onnx as multiple_linear_sklearn_export_model_onnx
+from surrealml.model_templates.sklearn.sklearn_linear_multiple import export_model_surml as multiple_linear_sklearn_export_model_surml
+from surrealml.model_templates.sklearn.sklearn_linear_multiple import train_model as multiple_linear_sklearn_train_model
+from surrealml.model_templates.sklearn.sklearn_linear_multiple import generate_data as multiple_linear_sklearn_generate_data
+
 from surrealml.model_templates.torch.torch_linear import train_model as linear_torch_train_model
 from surrealml.model_templates.torch.torch_linear import export_model_onnx as linear_torch_export_model_onnx
 from surrealml.model_templates.torch.torch_linear import export_model_surml as linear_torch_export_model_surml
@@ -135,6 +140,20 @@ def main():
     onnx.save(
         sklearn_linear_onnx_file,
         os.path.join(sklearn_onnx_stash_directory, "linear.onnx")
+    )
+
+    # train and stash sklearn model with multiple outputs
+    X, Y = multiple_linear_sklearn_generate_data()
+    sklearn_multiple_linear_model = multiple_linear_sklearn_train_model(X, Y)
+    sklearn_multiple_linear_surml_file = multiple_linear_sklearn_export_model_surml(sklearn_multiple_linear_model, X)
+    sklearn_multiple_linear_onnx_file = multiple_linear_sklearn_export_model_onnx(sklearn_multiple_linear_model, X)
+
+    sklearn_multiple_linear_surml_file.save(
+        path=str(os.path.join(sklearn_surml_stash_directory, "multiple_linear.surml"))
+    )
+    onnx.save(
+        sklearn_multiple_linear_onnx_file,
+        os.path.join(sklearn_onnx_stash_directory, "multiple_linear.onnx")
     )
 
     # train and stash onnx models
