@@ -60,7 +60,6 @@ pub fn buffered_compute(file_id: String, mut input_values_map: HashMap<String, f
 
     let output_tensor = compute_unit.buffered_compute(&mut input_values_map);
     let mut buffer: Vec<f32> = Vec::with_capacity(output_tensor.size()[0] as usize);
-    println!("{:?}", output_tensor);
     for i in 0..output_tensor.size()[0] {
         buffer.push(output_tensor.double_value(&[i]) as f32);
     }
