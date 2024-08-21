@@ -3,6 +3,7 @@ use crate::storage::surml_file::SurMlFile;
 use std::collections::HashMap;
 use ndarray::{ArrayD, CowArray};
 use ort::{SessionBuilder, Value, session::Input};
+use ort_v2::Session as SessionV2;
 
 use super::onnx_environment::ENVIRONMENT;
 use crate::safe_eject;
@@ -48,6 +49,33 @@ impl <'a>ModelComputation<'a> {
             }
         }
         buffer
+    }
+
+    /// Creates a vector of dimensions for the input tensor from the loaded model.
+    /// 
+    /// # Arguments
+    /// * `input_dims` - The input dimensions from the loaded model.
+    /// 
+    /// # Returns
+    /// A vector of dimensions for the input tensor to be reshaped into from the loaded model.
+    fn process_input_dims_v2(input_dims: Option<&Vec<i64>>) -> Result<Vec<usize>, SurrealError> {
+        let input_dims = match input_dims {
+            Some(dims) => dims,
+            None => return Err(SurrealError::new(
+                String::from("src/execution/compute.rs 66: No input dimensions found for the model (V2)").to_string(), 
+                SurrealErrorStatus::Unknown
+            ))
+        };
+        let mut buffer = Vec::new();
+        for dim in input_dims {
+            if dim == &-1 {
+                buffer.push(1);
+            }
+            else {
+                buffer.push(*dim as usize);
+            }
+        }
+        Ok(buffer)
     }
 
     /// Creates a Vector that can be used manipulated with other operations such as normalisation from a hashmap of keys and values.
@@ -106,6 +134,60 @@ impl <'a>ModelComputation<'a> {
         return Ok(buffer)
     }
 
+    pub fn raw_compute_v2(&self, tensor: ArrayD<f32>, _dims: Option<(i32, i32)>) -> Result<Vec<f32>, SurrealError> {
+        let session = match SessionV2::builder() {
+            Ok(builder) => builder,
+            Err(_) => return Err(SurrealError::new(
+                String::from("Failed to create a session builder for the model (V2)").to_string(), 
+                SurrealErrorStatus::Unknown
+            ))
+        }.commit_from_memory(&self.surml_file.model).map_err(|e| {
+            SurrealError::new(
+                format!("Failed to commit the model to the session (V2): {}", e).to_string(), 
+                SurrealErrorStatus::Unknown
+            )
+        })?;
+        let unwrapped_dims = ModelComputation::process_input_dims_v2(
+            session.inputs[0].input_type.tensor_dimensions()
+        )?;
+
+        let tensor = match tensor.into_shape(unwrapped_dims) {
+            Ok(tensor) => tensor,
+            Err(e) => return Err(SurrealError::new(
+                format!("Failed to reshape the input tensor for the model (V2): {}", e).to_string(), 
+                SurrealErrorStatus::Unknown
+            ))
+        };
+        let input_values = match ort_v2::inputs![tensor] {
+            Ok(inputs) => inputs,
+            Err(e) => return Err(SurrealError::new(
+                format!("Failed to create input values for the model (V2): {}", e).to_string(), 
+                SurrealErrorStatus::Unknown
+            ))
+        };
+        let outputs = safe_eject!(
+            session.run(input_values), 
+            SurrealErrorStatus::Unknown
+        );
+
+        let mut buffer: Vec<f32> = Vec::new();
+
+        match outputs[0].try_extract_tensor::<f32>() {
+            Ok(y) => {
+                for i in y.view().clone().into_iter() {
+                    buffer.push(*i);
+                }
+            },
+            Err(_) => {
+                for i in safe_eject!(outputs[0].try_extract_tensor::<i64>(), SurrealErrorStatus::Unknown).view().clone().into_iter() {
+                    buffer.push(*i as f32);
+                }
+            }
+        };
+        return Ok(buffer)
+
+    }
+
     /// Checks the header applying normalisers if present and then performs a raw computation on the loaded model. Will
     /// also apply inverse normalisers if present on the outputs.
     /// 
@@ -129,7 +211,57 @@ impl <'a>ModelComputation<'a> {
             }
         }
         let tensor = self.input_tensor_from_key_bindings(input_values.clone())?;
+        // dims are None because dims is depcrecated as we are now getting the dims from the ONNX file but
+        // we will keep it here for now to keep the function signature the same and to see if we need it later
         let output = self.raw_compute(tensor, None)?;
+        
+        // if no normaliser is present, return the output
+        if self.surml_file.header.output.normaliser == None {
+            return Ok(output)
+        }
+
+        // apply the normaliser to the output
+        let output_normaliser = match self.surml_file.header.output.normaliser.as_ref() {
+            Some(normaliser) => normaliser,
+            None => return Err(SurrealError::new(
+                String::from("No normaliser present for output which shouldn't happen as passed initial check for").to_string(), 
+                SurrealErrorStatus::Unknown
+            ))
+        };
+        let mut buffer = Vec::with_capacity(output.len());
+
+        for value in output {
+            buffer.push(output_normaliser.inverse_normalise(value));
+        }
+        return Ok(buffer)
+    }
+
+    /// Checks the header applying normalisers if present and then performs a raw computation on the loaded model. Will
+    /// also apply inverse normalisers if present on the outputs.
+    /// 
+    /// # Notes
+    /// This function is fairly coupled and will consider breaking out the functions later on if needed.
+    /// 
+    /// # Arguments
+    /// * `input_values` - A hashmap of keys and values that will be used to create the input tensor.
+    /// 
+    /// # Returns
+    /// The computed output tensor from the loaded model.
+    pub fn buffered_compute_v2(&self, input_values: &mut HashMap<String, f32>) -> Result<Vec<f32>, SurrealError> {
+        // applying normalisers if present
+        for (key, value) in &mut *input_values {
+            let value_ref = value.clone();
+            match self.surml_file.header.get_normaliser(&key.to_string())? {
+                Some(normaliser) => {
+                    *value = normaliser.normalise(value_ref);
+                },
+                None => {}
+            }
+        }
+        let tensor = self.input_tensor_from_key_bindings(input_values.clone())?;
+        // dims are None because dims is depcrecated as we are now getting the dims from the ONNX file but
+        // we will keep it here for now to keep the function signature the same and to see if we need it later
+        let output = self.raw_compute_v2(tensor, None)?;
         
         // if no normaliser is present, return the output
         if self.surml_file.header.output.normaliser == None {
@@ -173,8 +305,14 @@ mod tests {
         input_values.insert(String::from("num_floors"), 2.0);
 
         let raw_input = model_computation.input_tensor_from_key_bindings(input_values).unwrap();
+        let raw_input_two = raw_input.clone();
 
         let output = model_computation.raw_compute(raw_input, Some((1, 2))).unwrap();
+        assert_eq!(output.len(), 1);
+        assert_eq!(output[0], 985.57745);
+
+        // testing the v2
+        let output = model_computation.raw_compute_v2(raw_input_two, Some((1, 2))).unwrap();
         assert_eq!(output.len(), 1);
         assert_eq!(output[0], 985.57745);
     }
@@ -212,6 +350,10 @@ mod tests {
 
         let output = model_computation.buffered_compute(&mut input_values).unwrap();
         assert_eq!(output.len(), 1);
+
+        // testing the v2
+        let output = model_computation.buffered_compute_v2(&mut input_values).unwrap();
+        assert_eq!(output.len(), 1);
     }
 
     #[cfg(feature = "onnx-tests")]
@@ -227,8 +369,14 @@ mod tests {
         input_values.insert(String::from("num_floors"), 2.0);
 
         let raw_input = model_computation.input_tensor_from_key_bindings(input_values).unwrap();
+        let raw_input_two = raw_input.clone();
 
         let output = model_computation.raw_compute(raw_input, Some((1, 2))).unwrap();
+        assert_eq!(output.len(), 1);
+        assert_eq!(output[0], 985.57745);
+
+        // testing the v2
+        let output = model_computation.raw_compute_v2(raw_input_two, Some((1, 2))).unwrap();
         assert_eq!(output.len(), 1);
         assert_eq!(output[0], 985.57745);
     }
@@ -247,6 +395,10 @@ mod tests {
 
         let output = model_computation.buffered_compute(&mut input_values).unwrap();
         assert_eq!(output.len(), 1);
+
+        // testing the v2
+        let output = model_computation.buffered_compute_v2(&mut input_values).unwrap();
+        assert_eq!(output.len(), 1);
     }
 
     #[cfg(feature = "torch-tests")]
@@ -262,8 +414,13 @@ mod tests {
         input_values.insert(String::from("num_floors"), 2.0);
 
         let raw_input = model_computation.input_tensor_from_key_bindings(input_values).unwrap();
+        let raw_input_two = raw_input.clone();
 
         let output = model_computation.raw_compute(raw_input, None).unwrap();
+        assert_eq!(output.len(), 1);
+
+        // testing V2
+        let output = model_computation.raw_compute_v2(raw_input_two, None).unwrap();
         assert_eq!(output.len(), 1);
     }
 
@@ -281,6 +438,10 @@ mod tests {
 
         let output = model_computation.buffered_compute(&mut input_values).unwrap();
         assert_eq!(output.len(), 1);
+
+        // testing V2
+        let output = model_computation.buffered_compute_v2(&mut input_values).unwrap();
+        assert_eq!(output.len(), 1);
     }
 
     #[cfg(feature = "tensorflow-tests")]
@@ -296,8 +457,13 @@ mod tests {
         input_values.insert(String::from("num_floors"), 2.0);
 
         let raw_input = model_computation.input_tensor_from_key_bindings(input_values).unwrap();
+        let raw_input_two = raw_input.clone();
 
         let output = model_computation.raw_compute(raw_input, None).unwrap();
+        assert_eq!(output.len(), 1);
+
+        // testing v2
+        let output = model_computation.raw_compute_v2(raw_input_two, None).unwrap();
         assert_eq!(output.len(), 1);
     }
 
@@ -314,6 +480,10 @@ mod tests {
         input_values.insert(String::from("num_floors"), 2.0);
 
         let output = model_computation.buffered_compute(&mut input_values).unwrap();
+        assert_eq!(output.len(), 1);
+
+        // testing v2
+        let output = model_computation.buffered_compute_v2(&mut input_values).unwrap();
         assert_eq!(output.len(), 1);
     }
 }

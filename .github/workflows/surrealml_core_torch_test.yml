@@ -55,4 +55,4 @@ jobs:
         deactivate
 
     - name: Run Core Unit Tests
-      run: cd modules/core && cargo test --features torch-tests
+      run: cd modules/core && cargo test --features torch-tests --lib
