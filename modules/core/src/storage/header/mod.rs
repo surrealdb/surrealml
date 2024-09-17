@@ -20,8 +20,8 @@ use version::Version;
 use engine::Engine;
 use origin::Origin;
 use input_dims::InputDims;
-use crate::safe_eject;
-use crate::errors::error::{SurrealError, SurrealErrorStatus};
+use nanoservices_utils::safe_eject;
+use nanoservices_utils::errors::{NanoServiceError, NanoServiceErrorStatus};
 
 
 /// The header of the model file.
@@ -81,7 +81,7 @@ impl Header {
     /// 
     /// # Arguments
     /// * `version` - The version to be added.
-    pub fn add_version(&mut self, version: String) -> Result<(), SurrealError> {
+    pub fn add_version(&mut self, version: String) -> Result<(), NanoServiceError> {
         self.version = Version::from_string(version)?;
         Ok(())
     }
@@ -108,7 +108,7 @@ impl Header {
     /// # Arguments
     /// * `column_name` - The name of the column to which the normaliser will be applied.
     /// * `normaliser` - The normaliser to be applied to the column.
-    pub fn add_normaliser(&mut self, column_name: String, normaliser: NormaliserType) -> Result<(), SurrealError> {
+    pub fn add_normaliser(&mut self, column_name: String, normaliser: NormaliserType) -> Result<(), NanoServiceError> {
         let _ =  self.normalisers.add_normaliser(normaliser, column_name, &self.keys)?;
         Ok(())
     }
@@ -120,7 +120,7 @@ impl Header {
     /// 
     /// # Returns
     /// The normaliser for the given column name.
-    pub fn get_normaliser(&self, column_name: &String) -> Result<Option<&NormaliserType>, SurrealError> {
+    pub fn get_normaliser(&self, column_name: &String) -> Result<Option<&NormaliserType>, NanoServiceError> {
         self.normalisers.get_normaliser(column_name.to_string(), &self.keys)
     }
 
@@ -154,7 +154,7 @@ impl Header {
     /// 
     /// # Arguments
     /// * `origin` - The origin to be added.
-    pub fn add_origin(&mut self, origin: String) -> Result<(), SurrealError> {
+    pub fn add_origin(&mut self, origin: String) -> Result<(), NanoServiceError> {
         self.origin.add_origin(origin)
     }
 
@@ -170,9 +170,9 @@ impl Header {
     /// 
     /// # Returns
     /// The `Header` struct.
-    pub fn from_bytes(data: Vec<u8>) -> Result<Self, SurrealError> {
+    pub fn from_bytes(data: Vec<u8>) -> Result<Self, NanoServiceError> {
 
-        let string_data = safe_eject!(String::from_utf8(data), SurrealErrorStatus::BadRequest);
+        let string_data = safe_eject!(String::from_utf8(data), NanoServiceErrorStatus::BadRequest)?;
 
         let buffer = string_data.split(Self::delimiter()).collect::<Vec<&str>>();
 

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
 use crate::safe_eject_internal;
-use crate::errors::error::{SurrealError, SurrealErrorStatus};
+use nanoservices_utils::errors::{NanoServiceError, NanoServiceErrorStatus};
 
 
 /// Defines the key bindings for input data.
@@ -86,7 +86,7 @@ impl KeyBindings {
     /// 
     /// # Returns
     /// The key bindings constructed from the bytes.
-    pub fn from_bytes(data: &[u8]) -> Result<Self, SurrealError> {
+    pub fn from_bytes(data: &[u8]) -> Result<Self, NanoServiceError> {
         let data = safe_eject_internal!(String::from_utf8(data.to_vec()));
         Ok(Self::from_string(data))
     }

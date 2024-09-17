@@ -9,7 +9,7 @@ use super::utils::{extract_label, extract_two_numbers};
 use super::traits::Normaliser;
 
 use crate::safe_eject_option;
-use crate::errors::error::{SurrealError, SurrealErrorStatus};
+use nanoservices_utils::errors::{NanoServiceError, NanoServiceErrorStatus};
 
 
 /// A wrapper for all different types of normalisers.
@@ -56,7 +56,7 @@ impl NormaliserType {
     /// 
     /// # Returns
     /// (type of normaliser, [normaliser parameters], column name)
-    pub fn unpack_normaliser_data(normaliser_data: &str) -> Result<(String, [f32; 2], String), SurrealError> {
+    pub fn unpack_normaliser_data(normaliser_data: &str) -> Result<(String, [f32; 2], String), NanoServiceError> {
         let mut normaliser_buffer = normaliser_data.split("=>");
 
         let column_name = safe_eject_option!(normaliser_buffer.next());
@@ -74,7 +74,7 @@ impl NormaliserType {
     /// 
     /// # Returns
     /// (normaliser, column name)
-    pub fn from_string(data: String) -> Result<(Self, String), SurrealError> {
+    pub fn from_string(data: String) -> Result<(Self, String), NanoServiceError> {
         let (label, numbers, column_name) = Self::unpack_normaliser_data(&data)?;
         let normaliser = match label.as_str() {
             "linear_scaling" => {
@@ -98,9 +98,9 @@ impl NormaliserType {
                 NormaliserType::ZScore(z_score::ZScore{mean, std_dev})
             },
             _ => {
-                let error = SurrealError::new(
+                let error = NanoServiceError::new(
                     format!("Unknown normaliser type: {}", label).to_string(), 
-                    SurrealErrorStatus::Unknown
+                    NanoServiceErrorStatus::Unknown
                 );
                 return Err(error)
             }

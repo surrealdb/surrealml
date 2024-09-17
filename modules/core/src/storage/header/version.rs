@@ -1,12 +1,9 @@
 //! Defines the process of managing the version of the `surml` file in the file.
 use serde::{Serialize, Deserialize};
-use crate::{
-    safe_eject_option,
+use crate::safe_eject_option;
+use nanoservices_utils::{
     safe_eject,
-    errors::error::{
-        SurrealError,
-        SurrealErrorStatus
-    }
+    errors::{NanoServiceError, NanoServiceErrorStatus}
 };
 
 
@@ -56,7 +53,7 @@ impl Version {
     /// 
     /// # Returns
     /// A new `Version` struct.
-    pub fn from_string(version: String) -> Result<Self, SurrealError> {
+    pub fn from_string(version: String) -> Result<Self, NanoServiceError> {
         if version == "".to_string() {
             return Ok(Version::fresh())
         }
@@ -66,9 +63,9 @@ impl Version {
         let three_str = safe_eject_option!(split.next());
 
         Ok(Version {
-            one: safe_eject!(one_str.parse::<u8>(), SurrealErrorStatus::BadRequest),
-            two: safe_eject!(two_str.parse::<u8>(), SurrealErrorStatus::BadRequest),
-            three: safe_eject!(three_str.parse::<u8>(), SurrealErrorStatus::BadRequest),
+            one: safe_eject!(one_str.parse::<u8>(), NanoServiceErrorStatus::BadRequest)?,
+            two: safe_eject!(two_str.parse::<u8>(), NanoServiceErrorStatus::BadRequest)?,
+            three: safe_eject!(three_str.parse::<u8>(), NanoServiceErrorStatus::BadRequest)?,
         })
     }
 
