@@ -1,6 +1,6 @@
 //! Defines the origin of the model in the file.
 use serde::{Serialize, Deserialize};
-use crate::errors::error::{SurrealError, SurrealErrorStatus};
+use nanoservices_utils::errors::{NanoServiceError, NanoServiceErrorStatus};
 
 use super::string_value::StringValue;
 
@@ -40,12 +40,12 @@ impl OriginValue {
     /// 
     /// # Returns
     /// A new `OriginValue`.
-    pub fn from_string(origin: String) -> Result<Self, SurrealError> {
+    pub fn from_string(origin: String) -> Result<Self, NanoServiceError> {
         match origin.to_lowercase().as_str() {
             LOCAL => Ok(OriginValue::Local(StringValue::from_string(origin))),
             SURREAL_DB => Ok(OriginValue::SurrealDb(StringValue::from_string(origin))),
             NONE => Ok(OriginValue::None(StringValue::from_string(origin))),
-            _ => Err(SurrealError::new(format!("invalid origin: {}", origin), SurrealErrorStatus::BadRequest))
+            _ => Err(NanoServiceError::new(format!("invalid origin: {}", origin), NanoServiceErrorStatus::BadRequest))
         }
     }
 
@@ -100,7 +100,7 @@ impl Origin {
     /// Adds an origin to the origin struct.
     /// 
     /// # Arguments
-    pub fn add_origin(&mut self, origin: String) -> Result<(), SurrealError> {
+    pub fn add_origin(&mut self, origin: String) -> Result<(), NanoServiceError> {
         self.origin = OriginValue::from_string(origin)?;
         Ok(())
     }
@@ -123,7 +123,7 @@ impl Origin {
     /// 
     /// # Returns
     /// A new origin.
-    pub fn from_string(origin: String) -> Result<Self, SurrealError> {
+    pub fn from_string(origin: String) -> Result<Self, NanoServiceError> {
         if origin == "".to_string() {
             return Ok(Origin::fresh());
         }

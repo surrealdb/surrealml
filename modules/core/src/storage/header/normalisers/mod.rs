@@ -14,7 +14,7 @@ use super::keys::KeyBindings;
 use utils::{extract_label, extract_two_numbers};
 use wrapper::NormaliserType;
 use crate::safe_eject_option;
-use crate::errors::error::{SurrealError, SurrealErrorStatus};
+use nanoservices_utils::errors::{NanoServiceError, NanoServiceErrorStatus};
 
 
 /// A map of normalisers so they can be accessed by column name and input index.
@@ -50,7 +50,7 @@ impl NormaliserMap {
     /// * `normaliser` - The normaliser to add.
     /// * `column_name` - The name of the column to which the normaliser is applied.
     /// * `keys_reference` - A reference to the key bindings to extract the index.
-    pub fn add_normaliser(&mut self, normaliser: NormaliserType, column_name: String, keys_reference: &KeyBindings) -> Result<(), SurrealError> {
+    pub fn add_normaliser(&mut self, normaliser: NormaliserType, column_name: String, keys_reference: &KeyBindings) -> Result<(), NanoServiceError> {
         let counter = self.store.len();
         let column_input_index = safe_eject_option!(keys_reference.reference.get(column_name.as_str()));
         self.reference.insert(column_input_index.clone() as usize, counter as usize);
@@ -67,7 +67,7 @@ impl NormaliserMap {
     /// 
     /// # Returns
     /// The normaliser corresponding to the column name.
-    pub fn get_normaliser(&self, column_name: String, keys_reference: &KeyBindings) -> Result<Option<&NormaliserType>, SurrealError> {
+    pub fn get_normaliser(&self, column_name: String, keys_reference: &KeyBindings) -> Result<Option<&NormaliserType>, NanoServiceError> {
         let column_input_index = safe_eject_option!(keys_reference.reference.get(column_name.as_str()));
         let normaliser_index = self.reference.get(column_input_index);
         match normaliser_index {
@@ -83,7 +83,7 @@ impl NormaliserMap {
     /// 
     /// # Returns
     /// A tuple containing the label (type of normaliser), the numbers and the column name.
-    pub fn unpack_normaliser_data(normaliser_data: &str) -> Result<(String, [f32; 2], String), SurrealError> {
+    pub fn unpack_normaliser_data(normaliser_data: &str) -> Result<(String, [f32; 2], String), NanoServiceError> {
         let mut normaliser_buffer = normaliser_data.split("=>");
 
         let column_name = safe_eject_option!(normaliser_buffer.next());
@@ -102,7 +102,7 @@ impl NormaliserMap {
     /// 
     /// # Returns
     /// A `NormaliserMap` containing the normalisers.
-    pub fn from_string(data: String, keys_reference: &KeyBindings) -> Result<Self, SurrealError> {
+    pub fn from_string(data: String, keys_reference: &KeyBindings) -> Result<Self, NanoServiceError> {
         if data.len() == 0 {
             return Ok(NormaliserMap::fresh())
         }

@@ -7,11 +7,11 @@ use futures_core::stream::Stream;
 use futures_core::task::{Context, Poll};
 use std::pin::Pin;
 use std::error::Error;
-use crate::{
+use nanoservices_utils::{
     safe_eject,
-    errors::error::{
-        SurrealError,
-        SurrealErrorStatus
+    errors::{
+        NanoServiceError,
+        NanoServiceErrorStatus
     }
 };
 
@@ -36,8 +36,8 @@ impl StreamAdapter {
     /// 
     /// # Returns
     /// A new `StreamAdapter` struct.
-    pub fn new(chunk_size: usize, file_path: String) -> Result<Self, SurrealError> {
-        let file_pointer = safe_eject!(File::open(file_path), SurrealErrorStatus::NotFound);
+    pub fn new(chunk_size: usize, file_path: String) -> Result<Self, NanoServiceError> {
+        let file_pointer = safe_eject!(File::open(file_path), NanoServiceErrorStatus::NotFound)?;
         Ok(StreamAdapter {
             chunk_size,
             file_pointer

@@ -1,13 +1,8 @@
 //! Defines the struct housing data around the outputs of the model.
 use serde::{Serialize, Deserialize};
 use super::normalisers::wrapper::NormaliserType;
-use crate::{
-    safe_eject_option,
-    errors::error::{
-        SurrealError,
-        SurrealErrorStatus
-    }
-};
+use crate::safe_eject_option;
+use nanoservices_utils::errors::{NanoServiceError, NanoServiceErrorStatus};
 
 
 /// Houses data around the outputs of the model.
@@ -84,7 +79,7 @@ impl Output {
     /// 
     /// # Returns
     /// * `Output` - The string as an instance of the Output struct.
-    pub fn from_string(data: String) -> Result<Self, SurrealError> {
+    pub fn from_string(data: String) -> Result<Self, NanoServiceError> {
         if data.contains("=>") == false {
             return Ok(Output::fresh())
         }
