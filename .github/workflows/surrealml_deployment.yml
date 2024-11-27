@@ -18,7 +18,7 @@ jobs:
         run: "echo 'Waiting for other workflow to complete...'"
 
   build: # Workflow credit to https://github.com/samuelcolvin/rtoml/blob/main/.github/workflows/ci.yml
-    if: github.event.pull_request.merged == true
+    if: github.ref == 'refs/heads/main' && github.event.pusher
     name: >
       build ${{ matrix.python-version }} on ${{ matrix.platform || matrix.os }}
       (${{ matrix.alt_arch_name || matrix.arch }})
@@ -155,7 +155,7 @@ jobs:
           path: wheelhouse
 
   release:
-    if: github.event.pull_request.merged == true
+    if: github.ref == 'refs/heads/main' && github.event.pusher
     needs: build
     runs-on: ubuntu-latest
     steps:
