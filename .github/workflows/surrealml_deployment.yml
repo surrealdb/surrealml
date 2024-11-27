@@ -60,10 +60,10 @@ jobs:
         with:
           toolchain: stable
 
-      - name: update pip version
-        run: |
-          pip install requests
-          python get_latest_version.py
+      # - name: update pip version
+      #   run: |
+      #     pip install requests
+      #     python get_latest_version.py
 
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
