@@ -263,8 +263,8 @@ pub fn upload_model(
         .method(Method::POST)
         .uri(uri)
         .header(CONTENT_TYPE, "application/octet-stream")
-        .header("ns", HeaderValue::from_str(&ns).unwrap())
-        .header("db", HeaderValue::from_str(&db).unwrap());
+        .header("surreal-ns", HeaderValue::from_str(&ns).unwrap())
+        .header("surreal-db", HeaderValue::from_str(&db).unwrap());
 
     let req;
     if username.is_none() == false && password.is_none() == false {
