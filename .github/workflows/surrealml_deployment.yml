@@ -60,10 +60,11 @@ jobs:
         with:
           toolchain: stable
 
-      # - name: update pip version
-      #   run: |
-      #     pip install requests
-      #     python get_latest_version.py
+      - name: install the onnx library
+        run: |
+          pip install -r requirements.txt
+          # pip install requests
+          # python get_latest_version.py
 
       - name: Setup Rust cache
         uses: Swatinem/rust-cache@v2
