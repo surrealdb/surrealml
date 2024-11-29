@@ -54,6 +54,32 @@ fn unpack_onnx() -> std::io::Result<()> {
 			let lib_path = lib_path.to_str().unwrap();
 			println!("Surrealml Core Debug: lib_path={}", lib_path);
 
+			// Check if the path exists
+			if fs::metadata(lib_path).is_ok() {
+				println!("Surrealml Core Debug: lib_path exists");
+			} else {
+				println!("Surrealml Core Debug: lib_path does not exist");
+				// Extract the directory path
+				if let Some(parent) = std::path::Path::new(lib_path).parent() {
+					// Print the contents of the directory
+					match fs::read_dir(parent) {
+						Ok(entries) => {
+							println!("Surrealml Core Debug: content of directory {}", parent.display());
+							for entry in entries {
+								if let Ok(entry) = entry {
+									println!("{}", entry.path().display());
+								}
+							}
+						}
+						Err(e) => {
+							println!("Surrealml Core Debug: Failed to read directory {}: {}", parent.display(), e);
+						}
+					}
+				} else {
+					println!("Surrealml Core Debug: Could not determine the parent directory of the path.");
+				}
+			}
+
 			// put it next to the file of the embedding
 			let destination = Path::new(target_lib);
 			fs::copy(lib_path, destination)?;
