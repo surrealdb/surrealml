@@ -50,7 +50,7 @@ fn unpack_onnx() -> std::io::Result<()> {
 
 			let lib_path = build_dir.join(target_lib);
 			let lib_path = lib_path.to_str().unwrap();
-			println!("Debug: lib_path={}", lib_path.display());
+			println!("Debug: lib_path={}", lib_path);
 
 			// put it next to the file of the embedding
 			let destination = Path::new(target_lib);
