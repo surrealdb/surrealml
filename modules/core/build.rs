@@ -75,15 +75,6 @@ fn unpack_onnx() -> std::io::Result<()> {
 							println!("Surrealml Core Debug: Failed to read directory {}: {}", parent.display(), e);
 						}
 					}
-					let debug_dir = parent.parent().unwrap().join("debug");
-					println!("Surrealml Core Debug: content of directory {}", debug_dir.display());
-					let enteries = fs::read_dir(debug_dir).unwrap();
-					for entry in enteries {
-						if let Ok(entry) = entry {
-							println!("{}", entry.path().display());
-						}
-					}
-
 				} else {
 					println!("Surrealml Core Debug: Could not determine the parent directory of the path.");
 				}
