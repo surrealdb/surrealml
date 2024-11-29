@@ -36,10 +36,12 @@ fn unpack_onnx() -> std::io::Result<()> {
 		.expect("Failed to find debug directory");
 
 	match std::env::var("ONNXRUNTIME_LIB_PATH") {
-		Ok(_) => {
+		Ok(onnx_path) => {
+			println!("Surrealml Core Debug: ONNXRUNTIME_LIB_PATH set at: {}", onnx_path);
 			println!("cargo:rustc-cfg=onnx_runtime_env_var_set");
 		}
 		Err(_) => {
+			println!("Surrealml Core Debug: ONNXRUNTIME_LIB_PATH not set");
 			let target_lib = match env::var("CARGO_CFG_TARGET_OS").unwrap() {
 				ref s if s.contains("linux") => "libonnxruntime.so",
 				ref s if s.contains("macos") => "libonnxruntime.dylib",
@@ -50,11 +52,12 @@ fn unpack_onnx() -> std::io::Result<()> {
 
 			let lib_path = build_dir.join(target_lib);
 			let lib_path = lib_path.to_str().unwrap();
-			println!("Debug: lib_path={}", lib_path);
+			println!("Surrealml Core Debug: lib_path={}", lib_path);
 
 			// put it next to the file of the embedding
 			let destination = Path::new(target_lib);
 			fs::copy(lib_path, destination)?;
+			println!("Surrealml Core Debug: onnx lib copied from {} to {}", lib_path, destination.display());
 		}
 	}
 	Ok(())
