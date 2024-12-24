@@ -1,12 +1,13 @@
 //! Defines the operations around performing computations on a loaded model.
 use crate::storage::surml_file::SurMlFile;
 use std::collections::HashMap;
-use ndarray::{ArrayD, CowArray};
-use ort::{SessionBuilder, Value, session::Input};
+use ndarray::ArrayD;
+use ort::value::ValueType;
+use ort::session::Session;
 
-use super::onnx_environment::ENVIRONMENT;
 use crate::safe_eject;
 use crate::errors::error::{SurrealError, SurrealErrorStatus};
+use crate::execution::session::get_session;
 
 
 /// A wrapper for the loaded machine learning model so we can perform computations on the loaded model.
@@ -39,15 +40,21 @@ impl <'a>ModelComputation<'a> {
     /// 
     /// # Returns
     /// A vector of dimensions for the input tensor to be reshaped into from the loaded model.
-    fn process_input_dims(input_dims: &Input) -> Vec<usize> {
-        let mut buffer = Vec::new();
-        for dim in input_dims.dimensions() {
-            match dim {
-                Some(dim) => buffer.push(dim as usize),
-                None => buffer.push(1)
+    fn process_input_dims(session_ref: &Session) -> Vec<usize> {
+        let some_dims = match &session_ref.inputs[0].input_type {
+            ValueType::Tensor{ ty: _, dimensions: new_dims, dimension_symbols: _ } => Some(new_dims),
+            _ => None
+        };
+        let mut dims_cache = Vec::new();
+        for dim in some_dims.unwrap() {
+            if dim < &0 {
+                dims_cache.push((dim * -1) as usize);
+            }
+            else {
+                dims_cache.push(*dim as usize);
             }
         }
-        buffer
+        dims_cache
     }
 
     /// Creates a Vector that can be used manipulated with other operations such as normalisation from a hashmap of keys and values.
@@ -79,26 +86,24 @@ impl <'a>ModelComputation<'a> {
     /// # Returns
     /// The computed output tensor from the loaded model.
     pub fn raw_compute(&self, tensor: ArrayD<f32>, _dims: Option<(i32, i32)>) -> Result<Vec<f32>, SurrealError> {
-        let session = safe_eject!(SessionBuilder::new(&ENVIRONMENT), SurrealErrorStatus::Unknown);
-        let session = safe_eject!(session.with_model_from_memory(&self.surml_file.model), SurrealErrorStatus::Unknown);
-        let unwrapped_dims = ModelComputation::process_input_dims(&session.inputs[0]);
-        let tensor = safe_eject!(tensor.into_shape(unwrapped_dims), SurrealErrorStatus::Unknown);
-
-        let x = CowArray::from(tensor).into_dyn();
-        let input_values = safe_eject!(Value::from_array(session.allocator(), &x), SurrealErrorStatus::Unknown);
-        let outputs = safe_eject!(session.run(vec![input_values]), SurrealErrorStatus::Unknown);
+        let session = get_session(self.surml_file.model.clone())?;
+        let dims_cache = ModelComputation::process_input_dims(&session);
+        let tensor = tensor.into_shape_with_order(dims_cache).unwrap();
+        let tensor = ort::value::Tensor::from_array(tensor).unwrap();
+        let x = ort::inputs![tensor].unwrap();
+        let outputs = safe_eject!(session.run(x), SurrealErrorStatus::Unknown);
 
         let mut buffer: Vec<f32> = Vec::new();
 
         // extract the output tensor converting the values to f32 if they are i64
-        match outputs[0].try_extract::<f32>() {
+        match outputs[0].try_extract_tensor::<f32>() {
             Ok(y) => {
                 for i in y.view().clone().into_iter() {
                     buffer.push(*i);
                 }
             },
             Err(_) => {
-                for i in safe_eject!(outputs[0].try_extract::<i64>(), SurrealErrorStatus::Unknown).view().clone().into_iter() {
+                for i in safe_eject!(outputs[0].try_extract_tensor::<i64>(), SurrealErrorStatus::Unknown).view().clone().into_iter() {
                     buffer.push(*i as f32);
                 }
             }
