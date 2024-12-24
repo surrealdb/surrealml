@@ -1,0 +1,12 @@
+[package]
+name = "c-wrapper"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+surrealml-core = { path = "../core" }
+uuid = { version = "1.4.1", features = ["v4"] }
+ndarray = "0.16.1"
+
+[lib]
+crate-type = ["cdylib"]
