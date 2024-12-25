@@ -1,10 +1,16 @@
-use crate::state::STATE;
-use surrealml_core::storage::header::normalisers::wrapper::NormaliserType;
-use crate::{process_string_for_empty_return, empty_return_safe_eject};
-use crate::utils::EmptyReturn;
+//! Defines the C API interface for interacting with the meta data of a SurML file.
+// Standard library imports
+use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
-use std::ffi::CString;
-use std::ffi::CStr;
+
+// External crate imports
+use surrealml_core::storage::header::normalisers::wrapper::NormaliserType;
+
+// Local module imports
+use crate::state::STATE;
+use crate::utils::EmptyReturn;
+use crate::{empty_return_safe_eject, process_string_for_empty_return};
+
 
 
 /// Adds a name to the SurMlFile struct.
@@ -17,7 +23,7 @@ pub extern "C" fn add_name(file_id_ptr: *const c_char, model_name_ptr: *const c_
     let file_id = process_string_for_empty_return!(file_id_ptr, "file id");
     let model_name = process_string_for_empty_return!(model_name_ptr, "model name");
     let mut state = STATE.lock().unwrap();
-    let wrapped_file = state.get_mut(&file_id).unwrap();
+    let wrapped_file = empty_return_safe_eject!(state.get_mut(&file_id), "Model not found", Option);
     wrapped_file.header.add_name(model_name);
     EmptyReturn::success()
 }
@@ -33,7 +39,7 @@ pub extern "C" fn add_description(file_id_ptr: *const c_char, description_ptr: *
     let file_id = process_string_for_empty_return!(file_id_ptr, "file id");
     let description = process_string_for_empty_return!(description_ptr, "description");
     let mut state = STATE.lock().unwrap();
-    let wrapped_file = state.get_mut(&file_id).unwrap();
+    let wrapped_file = empty_return_safe_eject!(state.get_mut(&file_id), "Model not found", Option);
     wrapped_file.header.add_description(description);
     EmptyReturn::success()
 }
@@ -49,7 +55,7 @@ pub extern "C" fn add_version(file_id: *const c_char, version: *const c_char) ->
     let file_id = process_string_for_empty_return!(file_id, "file id");
     let version = process_string_for_empty_return!(version, "version");
     let mut state = STATE.lock().unwrap();
-    let wrapped_file = state.get_mut(&file_id).unwrap();
+    let wrapped_file = empty_return_safe_eject!(state.get_mut(&file_id), "Model not found", Option);
     let _ = wrapped_file.header.add_version(version);
     EmptyReturn::success()
 }
@@ -65,7 +71,7 @@ pub extern "C" fn add_column(file_id: *const c_char, column_name: *const c_char)
     let file_id = process_string_for_empty_return!(file_id, "file id");
     let column_name = process_string_for_empty_return!(column_name, "column name");
     let mut state = STATE.lock().unwrap();
-    let wrapped_file = state.get_mut(&file_id).unwrap();
+    let wrapped_file = empty_return_safe_eject!(state.get_mut(&file_id), "Model not found", Option);
     wrapped_file.header.add_column(column_name);
     EmptyReturn::success()
 }
@@ -81,7 +87,7 @@ pub extern "C" fn add_author(file_id: *const c_char, author: *const c_char) -> E
     let file_id = process_string_for_empty_return!(file_id, "file id");
     let author = process_string_for_empty_return!(author, "author");
     let mut state = STATE.lock().unwrap();
-    let wrapped_file = state.get_mut(&file_id).unwrap();
+    let wrapped_file = empty_return_safe_eject!(state.get_mut(&file_id), "Model not found", Option);
     wrapped_file.header.add_author(author);
     EmptyReturn::success()
 }
@@ -97,7 +103,7 @@ pub extern "C" fn add_origin(file_id: *const c_char, origin: *const c_char) -> E
     let file_id = process_string_for_empty_return!(file_id, "file id");
     let origin = process_string_for_empty_return!(origin, "origin");
     let mut state = STATE.lock().unwrap();
-    let wrapped_file = state.get_mut(&file_id).unwrap();
+    let wrapped_file = empty_return_safe_eject!(state.get_mut(&file_id), "Model not found", Option);
     let _ = wrapped_file.header.add_origin(origin);
     EmptyReturn::success()
 }
@@ -113,7 +119,7 @@ pub extern "C" fn add_engine(file_id: *const c_char, engine: *const c_char) -> E
     let file_id = process_string_for_empty_return!(file_id, "file id");
     let engine = process_string_for_empty_return!(engine, "engine");
     let mut state = STATE.lock().unwrap();
-    let wrapped_file = state.get_mut(&file_id).unwrap();
+    let wrapped_file = empty_return_safe_eject!(state.get_mut(&file_id), "Model not found", Option);
     wrapped_file.header.add_engine(engine);
     EmptyReturn::success()
 }
@@ -199,7 +205,7 @@ pub extern "C" fn add_normaliser(
 
     let normaliser = NormaliserType::new(normaliser_label, one, two);
     let mut state = STATE.lock().unwrap();
-    let file = state.get_mut(&file_id).unwrap();
+    let file = empty_return_safe_eject!(state.get_mut(&file_id), "Model not found", Option);
     let _ = file.header.normalisers.add_normaliser(normaliser, column_name, &file.header.keys);
     EmptyReturn::success()
 }

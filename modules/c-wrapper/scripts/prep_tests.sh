@@ -32,7 +32,7 @@ esac
 SOURCE_DIR="target/debug"
 
 # Destination directory (tests directory)
-DEST_DIR="tests"
+DEST_DIR="tests/test_utils"
 
 
 # Copy the library to the tests directory

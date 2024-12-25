@@ -1,8 +1,17 @@
+//! This module contains the raw_compute function that is called from the C API to compute the model.
 use crate::state::STATE;
 use std::ffi::{c_float, CStr, CString, c_int, c_char};
 use surrealml_core::execution::compute::ModelComputation;
 
 
+/// Holds the data around the outcome of the raw_compute function.
+/// 
+/// # Fields
+/// * `data` - The data returned from the computation.
+/// * `length` - The length of the data.
+/// * `capacity` - The capacity of the data.
+/// * `is_error` - A flag indicating if an error occurred (1 for error, 0 for success).
+/// * `error_message` - An error message if the computation failed.
 #[repr(C)]
 pub struct Vecf32Return {
     pub data: *mut f32,
@@ -13,6 +22,10 @@ pub struct Vecf32Return {
 }
 
 
+/// Frees the memory allocated for the Vecf32Return.
+/// 
+/// # Arguments
+/// * `vecf32_return` - The Vecf32Return to free.
 #[no_mangle]
 pub extern "C" fn free_vecf32_return(vecf32_return: Vecf32Return) {
     // Free the data if it is not null
@@ -26,7 +39,15 @@ pub extern "C" fn free_vecf32_return(vecf32_return: Vecf32Return) {
 }
 
 
-
+/// Computes the model with the given data.
+/// 
+/// # Arguments
+/// * `file_id_ptr` - A pointer to the unique identifier for the loaded model.
+/// * `data_ptr` - A pointer to the data to compute.
+/// * `length` - The length of the data.
+/// 
+/// # Returns
+/// A Vecf32Return object containing the outcome of the computation.
 #[no_mangle]
 pub extern "C" fn raw_compute(file_id_ptr: *const c_char, data_ptr: *const c_float, length: usize) -> Vecf32Return {
 

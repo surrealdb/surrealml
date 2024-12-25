@@ -1,7 +1,10 @@
 import ctypes
-from pathlib import Path
 import platform
+from pathlib import Path
 from unittest import TestCase, main
+from test_utils.c_lib_loader import load_library
+from test_utils.routes import TEST_SURML_PATH
+
 
 class FileInfo(ctypes.Structure):
     _fields_ = [
@@ -22,38 +25,10 @@ class Vecf32Return(ctypes.Structure):
     ]
 
 
-def load_library(lib_name: str) -> ctypes.CDLL:
-    """
-    Load the correct shared library based on the operating system.
-
-    Args:
-        lib_name (str): The base name of the library without extension (e.g., "libc_wrapper").
-
-    Returns:
-        ctypes.CDLL: The loaded shared library.
-    """
-    current_dir = Path(__file__).parent
-    system_name = platform.system()
-
-    if system_name == "Windows":
-        lib_path = current_dir.joinpath(f"{lib_name}.dll")
-    elif system_name == "Darwin":  # macOS
-        lib_path = current_dir.joinpath(f"{lib_name}.dylib")
-    elif system_name == "Linux":
-        lib_path = current_dir.joinpath(f"{lib_name}.so")
-    else:
-        raise OSError(f"Unsupported operating system: {system_name}")
-
-    if not lib_path.exists():
-        raise FileNotFoundError(f"Shared library not found at: {lib_path}")
-
-    return ctypes.CDLL(str(lib_path))
-
-
 class TestExecution(TestCase):
 
     def setUp(self) -> None:
-        self.lib = load_library("libc_wrapper")
+        self.lib = load_library()
 
         # Define the Rust function signatures
         self.lib.load_model.argtypes = [ctypes.c_char_p]
@@ -68,15 +43,14 @@ class TestExecution(TestCase):
 
     def test_raw_compute(self):
         # Load a test model
-        current_dir = Path(__file__).parent.joinpath("assets").joinpath("test.surml")
-        c_string = str(current_dir).encode('utf-8')
+        c_string = str(TEST_SURML_PATH).encode('utf-8')
         file_info = self.lib.load_model(c_string)
 
         if file_info.error_message:
             self.fail(f"Failed to load model: {file_info.error_message.decode('utf-8')}")
 
         # Prepare input data as a ctypes array
-        input_data = (ctypes.c_float * 2)(1.0, 2.0)
+        input_data = (ctypes.c_float * 2)(1.0, 4.0)
 
         # Call the raw_compute function
         result = self.lib.raw_compute(file_info.file_id, input_data, len(input_data))

@@ -88,9 +88,18 @@ impl <'a>ModelComputation<'a> {
     pub fn raw_compute(&self, tensor: ArrayD<f32>, _dims: Option<(i32, i32)>) -> Result<Vec<f32>, SurrealError> {
         let session = get_session(self.surml_file.model.clone())?;
         let dims_cache = ModelComputation::process_input_dims(&session);
-        let tensor = tensor.into_shape_with_order(dims_cache).unwrap();
-        let tensor = ort::value::Tensor::from_array(tensor).unwrap();
-        let x = ort::inputs![tensor].unwrap();
+        let tensor = match tensor.into_shape_with_order(dims_cache) {
+            Ok(tensor) => tensor,
+            Err(_) => return Err(SurrealError::new("Failed to reshape tensor to input dimensions".to_string(), SurrealErrorStatus::Unknown))
+        };
+        let tensor = match ort::value::Tensor::from_array(tensor) {
+            Ok(tensor) => tensor,
+            Err(_) => return Err(SurrealError::new("Failed to convert tensor to ort tensor".to_string(), SurrealErrorStatus::Unknown))
+        };
+        let x = match ort::inputs![tensor] {
+            Ok(x) => x,
+            Err(_) => return Err(SurrealError::new("Failed to create input tensor".to_string(), SurrealErrorStatus::Unknown))
+        };
         let outputs = safe_eject!(session.run(x), SurrealErrorStatus::Unknown);
 
         let mut buffer: Vec<f32> = Vec::new();

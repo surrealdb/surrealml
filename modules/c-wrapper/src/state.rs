@@ -1,10 +1,13 @@
 //! Defines operations for handling memory of a python program that is accessing the rust library.
+// Standard library imports
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
-use uuid::Uuid;
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock, Mutex};
 
+// External crate imports
 use surrealml_core::storage::surml_file::SurMlFile;
+
+// External library imports
+use uuid::Uuid;
 
 
 /// A hashmap of unique identifiers to loaded machine learning models. As long as the python program keeps the unique

@@ -1,7 +1,13 @@
+//! Defines macros and C structs for reducing the amount of boilerplate code required for the C API.
 use std::os::raw::{c_char, c_int};
 use std::ffi::CString;
 
 
+/// Checks that the pointer to the string is not null and converts to a Rust string. Any errors are returned as an `EmptyReturn`.
+/// 
+/// # Arguments
+/// * `str_ptr` - The pointer to the string.
+/// * `var_name` - The name of the variable being processed (for error messages).
 #[macro_export]
 macro_rules! process_string_for_empty_return {
     ($str_ptr:expr, $var_name:expr) => {
@@ -28,6 +34,11 @@ macro_rules! process_string_for_empty_return {
     };
 }
 
+/// Checks that the pointer to the string is not null and converts to a Rust string. Any errors are returned as a `StringReturn`.
+/// 
+/// # Arguments
+/// * `str_ptr` - The pointer to the string.
+/// * `var_name` - The name of the variable being processed (for error messages).
 #[macro_export]
 macro_rules! process_string_for_string_return {
     ($str_ptr:expr, $var_name:expr) => {
@@ -56,6 +67,12 @@ macro_rules! process_string_for_string_return {
     };
 }
 
+
+/// Checks that the pointer to the string is not null and converts to a Rust string. Any errors are returned as a `VecU8Return`.
+/// 
+/// # Arguments
+/// * `str_ptr` - The pointer to the string.
+/// * `var_name` - The name of the variable being processed (for error messages).
 #[macro_export]
 macro_rules! process_string_for_vec_u8_return {
     ($str_ptr:expr, $var_name:expr) => {
@@ -88,6 +105,11 @@ macro_rules! process_string_for_vec_u8_return {
     };
 }
 
+
+/// Checks the result of an execution and returns an `StringReturn` if an error occurred.
+/// 
+/// # Arguments
+/// * `execution` - The execution such as a function call to map to `StringReturn` if an error occurred.
 #[macro_export]
 macro_rules! string_return_safe_eject {
     ($execution:expr) => {
@@ -105,6 +127,15 @@ macro_rules! string_return_safe_eject {
 }
 
 
+/// Checks the result of an execution and returns an `EmptyReturn` if an error occurred or a none is returned.
+/// 
+/// # Arguments
+/// * `execution` - The execution such as a function call to map to `EmptyReturn` if an error occurred.
+/// * `var` - The variable name to include in the error message.
+/// * `Option` - The type of the execution.
+/// 
+/// # Arguments
+/// * `execution` - The execution such as a function call to map to `EmptyReturn` if an error occurred.
 #[macro_export]
 macro_rules! empty_return_safe_eject {
     ($execution:expr, $var:expr, Option) => {
@@ -132,6 +163,12 @@ macro_rules! empty_return_safe_eject {
 }
 
 
+/// Returns a simple String to the caller.
+/// 
+/// # Fields
+/// * `string` - The string to return.
+/// * `is_error` - A flag indicating if an error occurred (1 if error 0 if not).
+/// * `error_message` - An optional error message.
 #[repr(C)]
 pub struct StringReturn {
     pub string: *mut c_char,
@@ -141,6 +178,14 @@ pub struct StringReturn {
 
 
 impl StringReturn {
+
+    /// Returns a new `StringReturn` object with the string and no error.
+    /// 
+    /// # Arguments
+    /// * `string` - The string to return.
+    /// 
+    /// # Returns
+    /// A new `StringReturn` object.
     pub fn success(string: String) -> Self {
         StringReturn {
             string: CString::new(string).unwrap().into_raw(),
@@ -151,6 +196,10 @@ impl StringReturn {
 }
 
 
+/// Frees the memory allocated for the `StringReturn` object.
+/// 
+/// # Arguments
+/// * `string_return` - The `StringReturn` object to free.
 #[no_mangle]
 pub extern "C" fn free_string_return(string_return: StringReturn) {
     // Free the string if it is not null
@@ -164,6 +213,11 @@ pub extern "C" fn free_string_return(string_return: StringReturn) {
 }
 
 
+/// Returns a simple empty return object to the caller.
+/// 
+/// # Fields
+/// * `is_error` - A flag indicating if an error occurred (1 if error 0 if not).
+/// * `error_message` - An optional error message.
 #[repr(C)]
 pub struct EmptyReturn {
     pub is_error: c_int,           // 0 for success, 1 for error
@@ -171,6 +225,11 @@ pub struct EmptyReturn {
 }
 
 impl EmptyReturn {
+
+    /// Returns a new `EmptyReturn` object with no error.
+    /// 
+    /// # Returns
+    /// A new `EmptyReturn` object.
     pub fn success() -> Self {
         EmptyReturn {
             is_error: 0,
@@ -180,6 +239,10 @@ impl EmptyReturn {
 }
 
 
+/// Frees the memory allocated for the `EmptyReturn` object.
+/// 
+/// # Arguments
+/// * `empty_return` - The `EmptyReturn` object to free.
 #[no_mangle]
 pub extern "C" fn free_empty_return(empty_return: EmptyReturn) {
     // Free the error message if it is not null
@@ -189,6 +252,14 @@ pub extern "C" fn free_empty_return(empty_return: EmptyReturn) {
 }
 
 
+/// Returns a vector of bytes to the caller.
+/// 
+/// # Fields
+/// * `data` - The pointer to the data.
+/// * `length` - The length of the data.
+/// * `capacity` - The capacity of the data.
+/// * `is_error` - A flag indicating if an error occurred (1 if error 0 if not).
+/// * `error_message` - An optional error message.
 #[repr(C)]
 pub struct VecU8Return {
     pub data: *mut u8,
@@ -200,6 +271,14 @@ pub struct VecU8Return {
 
 
 impl VecU8Return {
+
+    /// Returns a new `VecU8Return` object with the data and no error.
+    /// 
+    /// # Arguments
+    /// * `data` - The data to return.
+    /// 
+    /// # Returns
+    /// A new `VecU8Return` object.
     pub fn success(data: Vec<u8>) -> Self {
         let mut data = data;
         let data_ptr = data.as_mut_ptr();
@@ -217,6 +296,10 @@ impl VecU8Return {
 }
 
 
+/// Frees the memory allocated for the `VecU8Return` object.
+/// 
+/// # Arguments
+/// * `vec_u8` - The `VecU8Return` object to free.
 #[no_mangle]
 pub extern "C" fn free_vec_u8(vec_u8: VecU8Return) {
     // Free the data if it is not null

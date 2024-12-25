@@ -1,11 +1,15 @@
+//! Save a model to a file, deleting the file from the `STATE` in the process.
+// Standard library imports
+use std::ffi::{CStr, CString};
+use std::os::raw::c_char;
+
+// External crate imports
 use surrealml_core::storage::surml_file::SurMlFile;
 
+// Local module imports
 use crate::state::STATE;
-use std::ffi::CStr;
-use std::ffi::CString;
-use std::os::raw::c_char;
-use crate::{process_string_for_empty_return, empty_return_safe_eject};
 use crate::utils::EmptyReturn;
+use crate::{empty_return_safe_eject, process_string_for_empty_return};
 
 
 /// Saves a model to a file, deleting the file from the `PYTHON_STATE` in the process.

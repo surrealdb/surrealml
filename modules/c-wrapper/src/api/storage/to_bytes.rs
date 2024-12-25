@@ -1,11 +1,16 @@
-use crate::state::STATE;
+//! convert the entire SurML file to bytes
+// Standard library imports
+use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
+
+// Local module imports
+use crate::state::STATE;
 use crate::utils::VecU8Return;
 use crate::process_string_for_vec_u8_return;
-use std::ffi::CString;
-use std::ffi::CStr;
 
-/// Converts the entire file to bytes.
+
+
+/// Converts the entire SurML file to bytes.
 /// 
 /// # Arguments
 /// * `file_id` - The unique identifier for the SurMlFile struct.

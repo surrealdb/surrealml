@@ -1,19 +1,39 @@
-use crate::state::{STATE, generate_unique_id};
+//! Defines the C interface for loading a surml file and getting the meta data around the model.
+// Standard library imports
+use std::ffi::{CStr, CString};
+use std::os::raw::{c_char, c_int};
+
+// External crate imports
 use surrealml_core::storage::surml_file::SurMlFile;
-use std::ffi::CStr;
-use std::ffi::CString;
-use std::os::raw::c_char;
+
+// Local module imports
+use crate::state::{generate_unique_id, STATE};
 
 
+/// Holds the data around the outcome of the load_model function.
+/// 
+/// # Fields
+/// * `file_id` - The unique identifier for the loaded model.
+/// * `name` - The name of the model.
+/// * `description` - The description of the model.
+/// * `version` - The version of the model.
+/// * `error_message` - An error message if the loading failed.
+/// * `is_error` - A flag indicating if an error occurred (1 for error, 0 for success).
 #[repr(C)]
 pub struct FileInfo {
-    file_id: *mut c_char,
-    name: *mut c_char,
-    description: *mut c_char,
-    version: *mut c_char,
-    error_message: *mut c_char
+    pub file_id: *mut c_char,
+    pub name: *mut c_char,
+    pub description: *mut c_char,
+    pub version: *mut c_char,
+    pub error_message: *mut c_char,
+    pub is_error: c_int,
 }
 
+
+/// Frees the memory allocated for the file info.
+/// 
+/// # Arguments
+/// * `info` - The file info to free.
 #[no_mangle]
 pub extern "C" fn free_file_info(info: FileInfo) {
     // Free all allocated strings if they are not null
@@ -51,7 +71,8 @@ pub extern "C" fn load_model(file_path_ptr: *const c_char) -> FileInfo {
             name: std::ptr::null_mut(),
             description: std::ptr::null_mut(),
             version: std::ptr::null_mut(),
-            error_message: CString::new("Received a null pointer for file path").unwrap().into_raw()
+            error_message: CString::new("Received a null pointer for file path").unwrap().into_raw(),
+            is_error: 1
         };
     }
 
@@ -67,7 +88,8 @@ pub extern "C" fn load_model(file_path_ptr: *const c_char) -> FileInfo {
                 name: std::ptr::null_mut(),
                 description: std::ptr::null_mut(),
                 version: std::ptr::null_mut(),
-                error_message: CString::new("Invalid UTF-8 string received for file path").unwrap().into_raw()
+                error_message: CString::new("Invalid UTF-8 string received for file path").unwrap().into_raw(),
+                is_error: 1
             };
         }
     };
@@ -80,7 +102,8 @@ pub extern "C" fn load_model(file_path_ptr: *const c_char) -> FileInfo {
                 name: std::ptr::null_mut(),
                 description: std::ptr::null_mut(),
                 version: std::ptr::null_mut(),
-                error_message: CString::new(e.to_string()).unwrap().into_raw()
+                error_message: CString::new(e.to_string()).unwrap().into_raw(),
+                is_error: 1
             };
         }
     };
@@ -106,6 +129,7 @@ pub extern "C" fn load_model(file_path_ptr: *const c_char) -> FileInfo {
         name: name.into_raw(),
         description: description.into_raw(),
         version: version.into_raw(),
-        error_message: std::ptr::null_mut()
+        error_message: std::ptr::null_mut(),
+        is_error: 0
     }
 }
