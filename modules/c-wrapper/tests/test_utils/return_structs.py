@@ -1,7 +1,7 @@
 """
 Defines all the C structs that are used in the tests.
 """
-from ctypes import Structure, c_char_p, c_int
+from ctypes import Structure, c_char_p, c_int, c_size_t, POINTER, c_float
 
 
 class StringReturn(Structure):
@@ -51,4 +51,14 @@ class FileInfo(Structure):
         ("version", c_char_p),        # Corresponds to *mut c_char
         ("error_message", c_char_p),  # Corresponds to *mut c_char
         ("is_error", c_int)           # Corresponds to c_int
+    ]
+
+
+class Vecf32Return(Structure):
+    _fields_ = [
+        ("data", POINTER(c_float)),  # Pointer to f32 array
+        ("length", c_size_t),              # Length of the array
+        ("capacity", c_size_t),            # Capacity of the array
+        ("is_error", c_int),               # Indicates if it's an error
+        ("error_message", c_char_p),       # Optional error message
     ]

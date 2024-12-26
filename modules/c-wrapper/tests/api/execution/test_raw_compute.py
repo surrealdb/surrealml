@@ -1,28 +1,9 @@
 import ctypes
-import platform
-from pathlib import Path
 from unittest import TestCase, main
+
 from test_utils.c_lib_loader import load_library
+from test_utils.return_structs import FileInfo, Vecf32Return
 from test_utils.routes import TEST_SURML_PATH
-
-
-class FileInfo(ctypes.Structure):
-    _fields_ = [
-        ("file_id", ctypes.c_char_p),
-        ("name", ctypes.c_char_p),
-        ("description", ctypes.c_char_p),
-        ("version", ctypes.c_char_p),
-        ("error_message", ctypes.c_char_p),  # Optional error message
-    ]
-
-class Vecf32Return(ctypes.Structure):
-    _fields_ = [
-        ("data", ctypes.POINTER(ctypes.c_float)),  # Pointer to f32 array
-        ("length", ctypes.c_size_t),              # Length of the array
-        ("capacity", ctypes.c_size_t),            # Capacity of the array
-        ("is_error", ctypes.c_int),               # Indicates if it's an error
-        ("error_message", ctypes.c_char_p),       # Optional error message
-    ]
 
 
 class TestExecution(TestCase):
@@ -60,7 +41,7 @@ class TestExecution(TestCase):
 
         # Extract and verify the computation result
         outcome = [result.data[i] for i in range(result.length)]
-        print(f"Computation Result: {outcome}")
+        self.assertEqual(1.8246129751205444, outcome[0])
 
         # Free allocated memory
         self.lib.free_vecf32_return(result)
