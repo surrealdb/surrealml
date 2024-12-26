@@ -31,7 +31,9 @@ class TestExecution(TestCase):
             self.fail(f"Failed to load model: {file_info.error_message.decode('utf-8')}")
 
         # Prepare input data as a ctypes array
-        input_data = (ctypes.c_float * 2)(1.0, 4.0)
+        data_buffer = [1.0, 4.0]
+        array_type = ctypes.c_float * len(data_buffer)  # Create an array type of the appropriate size
+        input_data = array_type(*data_buffer)          # Instantiate the array with the list elements
 
         # Call the raw_compute function
         result = self.lib.raw_compute(file_info.file_id, input_data, len(input_data))
