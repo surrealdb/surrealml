@@ -38,7 +38,7 @@ class TestMeta(TestCase):
         # define the load raw model signature
         self.lib.load_cached_raw_model.restype = StringReturn
         self.lib.load_cached_raw_model.argtypes = [ctypes.c_char_p]
-        # define the dave model signature
+        # define the save model signature
         self.lib.save_model.restype = EmptyReturn
         self.lib.save_model.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
         # load the model for tests

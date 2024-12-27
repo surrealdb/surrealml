@@ -37,8 +37,8 @@ class TestLoadCachedRawModel(TestCase):
         self.assertEqual(0, outcome.is_error)
 
     def test_success(self):
-        wrong_file_type = str(TEST_ONNX_FILE_PATH).encode('utf-8')
-        outcome: StringReturn = self.lib.load_cached_raw_model(wrong_file_type)
+        right_file = str(TEST_ONNX_FILE_PATH).encode('utf-8')
+        outcome: StringReturn = self.lib.load_cached_raw_model(right_file)
         self.assertEqual(0, outcome.is_error)
 
 
