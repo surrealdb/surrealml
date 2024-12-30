@@ -1,13 +1,16 @@
-from typing import Optional
+"""
+The adapter to interact with the Rust module compiled to a C dynamic library
+"""
 import ctypes
-import warnings
 import platform
+import warnings
 from pathlib import Path
-from surrealml.c_structs import EmptyReturn, StringReturn, Vecf32Return, FileInfo
-from surrealml.loader import LibLoader
 from typing import List, Tuple
+from typing import Optional
 
+from surrealml.c_structs import EmptyReturn, StringReturn, Vecf32Return, FileInfo, VecU8Return
 from surrealml.engine import Engine
+from surrealml.loader import LibLoader
 
 
 def load_library(lib_name: str = "libc_wrapper") -> ctypes.CDLL:
@@ -173,8 +176,13 @@ class RustAdapter:
         :param author: the author of the model.
         :return: None
         """
-        # add_author(self.file_id, author)
-        pass
+        outcome: EmptyReturn = self.loader.lib.add_author(
+            self.file_id.encode("utf-8"),
+            author.encode("utf-8"),
+        )
+        if outcome.is_error == 1:
+            raise RuntimeError(outcome.error_message.decode("utf-8"))
+        self.loader.lib.free_empty_return(outcome)
 
     def save(self, path: str, name: Optional[str]) -> None:
         """
@@ -185,25 +193,54 @@ class RustAdapter:
 
         :return: None
         """
-        pass
-        # add_engine(self.file_id, self.engine.value)
-        # add_origin(self.file_id, "local")
-        # if name is not None:
-        #     add_name(self.file_id, name)
-        # else:
-        #     warnings.warn(
-        #         "You are saving a model without a name, you will not be able to upload this model to the database"
-        #     )
-        # save_model(path, self.file_id)
+        outcome: EmptyReturn = self.loader.lib.add_engine(
+            self.file_id.encode("utf-8"),
+            self.engine.value.encode("utf-8"),
+        )
+        if outcome.is_error == 1:
+            raise RuntimeError(outcome.error_message.decode("utf-8"))
+        self.loader.lib.free_empty_return(outcome)
+        outcome: EmptyReturn = self.loader.lib.add_origin(
+            self.file_id.encode("utf-8"),
+            "local".encode("utf-8"),
+        )
+        if outcome.is_error == 1:
+            raise RuntimeError(outcome.error_message.decode("utf-8"))
+        self.loader.lib.free_empty_return(outcome)
+        if name is not None:
+            outcome: EmptyReturn = self.loader.lib.add_name(
+                self.file_id.encode("utf-8"),
+                name.encode("utf-8"),
+            )
+            if outcome.is_error == 1:
+                raise RuntimeError(outcome.error_message.decode("utf-8"))
+            self.loader.lib.free_empty_return(outcome)
+        else:
+            warnings.warn(
+                "You are saving a model without a name, you will not be able to upload this model to the database"
+            )
+        outcome: EmptyReturn = self.loader.lib.save_model(
+            path.encode("utf-8"),
+            self.file_id.encode("utf-8")
+        )
+        if outcome.is_error == 1:
+            raise RuntimeError(outcome.error_message.decode("utf-8"))
+        self.loader.lib.free_empty_return(outcome)
 
-    def to_bytes(self):
+    def to_bytes(self) -> bytes:
         """
         Converts the model to bytes.
 
         :return: the model as bytes.
         """
-        pass
-        # return to_bytes(self.file_id)
+        outcome: VecU8Return = self.loader.lib.to_bytes(
+            self.file_id.encode("utf-8"),
+        )
+        if outcome.is_error == 1:
+            raise RuntimeError(outcome.error_message.decode("utf-8"))
+        byte_vec = outcome.data
+        self.loader.lib.free_vec_u8(outcome)
+        return byte_vec
 
     @staticmethod
     def load(path) -> Tuple[str, str, str, str]:
@@ -251,16 +288,19 @@ class RustAdapter:
 
         :return: None
         """
-        pass
-        # upload_model(
-        #     path,
-        #     url,
-        #     chunk_size,
-        #     namespace,
-        #     database,
-        #     username,
-        #     password
-        # )
+        loader = LibLoader()
+        outcome = loader.lib.upload_model(
+            path.encode("utf-8"),
+            url.encode("utf-8"),
+            chunk_size,
+            namespace.encode("utf-8"),
+            database.encode("utf-8"),
+            username.encode("utf-8"),
+            password.encode("utf-8"),
+        )
+        if outcome.is_error == 1:
+            raise RuntimeError(outcome.error_message.decode("utf-8"))
+        loader.lib.free_file_info(outcome)
 
     def raw_compute(self, input_vector, dims=None) -> List[float]:
         """
@@ -283,14 +323,36 @@ class RustAdapter:
         self.loader.lib.free_vecf32_return(outcome)
         return package
 
-        # return raw_compute(self.file_id, input_vector, dims)
-
-    def buffered_compute(self, value_map):
+    def buffered_compute(self, value_map: dict) -> List[float]:
         """
         Calculates an output from the model given a value map.
 
         :param value_map: a dictionary of inputs to the model with the column names as keys and floats as values.
         :return: the output of the model.
         """
-        pass
-        # return buffered_compute(self.file_id, value_map)
+        string_buffer = []
+        data_buffer = []
+        for key, value in value_map.items():
+            string_buffer.append(key.encode('utf-8'))
+            data_buffer.append(value)
+
+        # Prepare input data as a ctypes array
+        array_type = ctypes.c_float * len(data_buffer)  # Create an array type of the appropriate size
+        input_data = array_type(*data_buffer)  # Instantiate the array with the list elements
+
+        # prepare the input strings
+        string_array = (ctypes.c_char_p * len(string_buffer))(*string_buffer)
+        string_count = len(string_buffer)
+
+        outcome = self.loader.lib.buffered_compute(
+            self.file_id.encode("utf-8"),
+            input_data,
+            len(input_data),
+            string_array,
+            string_count
+        )
+        if outcome.is_error == 1:
+            raise RuntimeError(outcome.error_message.decode("utf-8"))
+        return_data = [outcome.data[i] for i in range(outcome.length)]
+        self.loader.lib.free_vecf32_return(outcome)
+        return return_data

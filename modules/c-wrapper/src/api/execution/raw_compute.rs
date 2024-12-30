@@ -59,6 +59,7 @@ pub extern "C" fn raw_compute(file_id_ptr: *const c_char, data_ptr: *const c_flo
             }
         }
     };
+    
     let mut file = match state.get_mut(&file_id) {
         Some(file) => file,
         None => {

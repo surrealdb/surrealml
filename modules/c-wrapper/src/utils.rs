@@ -32,6 +32,25 @@ macro_rules! process_string_for_empty_return {
             }
         }
     };
+    ($str_ptr:expr, $var_name:expr, Option) => {
+        match $str_ptr.is_null() {
+            true => {
+                return None;
+            },
+            false => {
+                let c_str = unsafe { CStr::from_ptr($str_ptr) };
+                match c_str.to_str() {
+                    Ok(s) => Some(s.to_owned()),
+                    Err(_) => {
+                        return EmptyReturn {
+                            is_error: 1,
+                            error_message: CString::new(format!("Invalid UTF-8 string received for {}", $var_name)).unwrap().into_raw()
+                        };
+                    }
+                }
+            }
+        }
+    }
 }
 
 /// Checks that the pointer to the string is not null and converts to a Rust string. Any errors are returned as a `StringReturn`.

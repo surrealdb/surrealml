@@ -14,6 +14,10 @@ SurrealML is a feature that allows you to store trained machine learning models 
 4. Python Environment Setup: A Python environment with necessary libraries installed, including SurrealML, PyTorch or SKLearn (depending on your model preference).
 5. SurrealDB Installation: Ensure you have SurrealDB installed and running on your machine or server
 
+## New Clients
+
+We are removing the `PyO3` bindings and just using raw C bindings for the `surrealml-core` library. This will simplfy builds and also enable clients in other languges to use the `surrealml-core` library. The `c-wrapper` module can be found in the `modules/c-wrapper` directory. The new clients can be found in the `clients` directory.
+
 ## Installation
 
 To install SurrealML, make sure you have Python installed. Then, install the `SurrealML` library and either `PyTorch` or 

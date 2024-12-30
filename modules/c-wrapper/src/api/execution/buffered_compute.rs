@@ -78,7 +78,6 @@ pub extern "C" fn buffered_compute(
             }
         })
         .collect();
-
     for i in rust_strings.iter() {
         if i.is_empty() {
             return Vecf32Return {
@@ -135,7 +134,6 @@ pub extern "C" fn buffered_compute(
             }
         }
     };
-
     let compute_unit = ModelComputation {
         surml_file: &mut file
     };
