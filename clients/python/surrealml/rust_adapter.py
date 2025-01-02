@@ -288,7 +288,7 @@ class RustAdapter:
 
         :return: None
         """
-        loader = LibLoader()
+        loader: EmptyReturn = LibLoader()
         outcome = loader.lib.upload_model(
             path.encode("utf-8"),
             url.encode("utf-8"),
@@ -300,7 +300,7 @@ class RustAdapter:
         )
         if outcome.is_error == 1:
             raise RuntimeError(outcome.error_message.decode("utf-8"))
-        loader.lib.free_file_info(outcome)
+        loader.lib.free_empty_return(outcome)
 
     def raw_compute(self, input_vector, dims=None) -> List[float]:
         """
