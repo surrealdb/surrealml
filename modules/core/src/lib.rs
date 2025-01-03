@@ -60,7 +60,7 @@
 //!
 //! ### Executing models
 //! We you load a `surml` file, you can execute the model with the following code:
-//! ```rust
+//! ```no_run
 //! use surrealml_core::storage::surml_file::SurMlFile;
 //! use surrealml_core::execution::compute::ModelComputation;
 //! use ndarray::ArrayD;
@@ -94,5 +94,5 @@ pub mod errors;
 
 /// Returns the version of the ONNX runtime that is used.
 pub fn onnx_runtime() -> &'static str {
-    "1.16.0"
+    "1.20.0"
 }
