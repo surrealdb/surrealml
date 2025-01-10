@@ -29,4 +29,5 @@ surrealml/rust_surrealml.cpython-310-darwin.so
 modules/pipelines/runners/integrated_training_runner/run_env/
 modules/pipelines/data_access/target/
 clients/python/build-context/
+modules/c-wrapper/build-context/
 *.dylib

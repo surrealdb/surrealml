@@ -32,6 +32,5 @@ RUN apt install -y python3.11-venv
 RUN python3 -m venv venv
 RUN source venv/bin/activate && cd clients/python && pip install .
 
-
 CMD ["tail", "-f", "/dev/null"]
 
