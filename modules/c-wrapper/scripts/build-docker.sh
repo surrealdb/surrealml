@@ -30,3 +30,4 @@ cd "$BUILD_DIR"
 docker build --no-cache -t c-wrapper-tests .
 
 docker run c-wrapper-tests
+# docker run -it c-wrapper-tests /bin/bash
