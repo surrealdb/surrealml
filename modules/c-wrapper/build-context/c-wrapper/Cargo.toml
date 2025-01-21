@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-surrealml-core = { path = "../core" }
-uuid = { version = "1.4.1", features = ["v4"] }
+surrealml-core = { path = "../core", features = ["dynamic"] }
+uuid = { version = "1.11.1", features = ["v4"] }
 ndarray = "0.16.1"
 
 # for the uploading the model to the server
@@ -15,3 +15,10 @@ base64 = "0.13"
 
 [lib]
 crate-type = ["cdylib"]
+
+[build-dependencies]
+reqwest = { version = "0.12.12", features = ["blocking", "json"] }
+# tokio = { version = "1", features = ["full"] }  # Required for reqwest
+tar = "0.4"       # For extracting tar files
+flate2 = "1.0"    # For handling gzip
+zip = "2.2.2"

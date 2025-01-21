@@ -21,3 +21,4 @@ reqwest = { version = "0.12.12", features = ["blocking", "json"] }
 # tokio = { version = "1", features = ["full"] }  # Required for reqwest
 tar = "0.4"       # For extracting tar files
 flate2 = "1.0"    # For handling gzip
+zip = "2.2.2"

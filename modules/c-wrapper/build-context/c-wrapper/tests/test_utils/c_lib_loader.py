@@ -2,6 +2,7 @@ import ctypes
 import platform
 from pathlib import Path
 import os
+from test_utils.return_structs import EmptyReturn
 
 
 def load_library(lib_name: str = "libc_wrapper") -> ctypes.CDLL:
@@ -38,9 +39,18 @@ def load_library(lib_name: str = "libc_wrapper") -> ctypes.CDLL:
     # os.environ["LD_LIBRARY_PATH"] = f"{onnx_lib_path}:{current_ld_library_path}"
     # os.environ["ORT_LIB_LOCATION"] = str(onnx_lib_path)
 
-    ctypes.CDLL(str(onnx_path), mode=ctypes.RTLD_GLOBAL)
+    # ctypes.CDLL(str(onnx_path), mode=ctypes.RTLD_GLOBAL)
+    onnx_path = current_dir.joinpath("onnxruntime")
 
     if not lib_path.exists():
         raise FileNotFoundError(f"Shared library not found at: {lib_path}")
+    
+    loaded_lib = ctypes.CDLL(str(lib_path))
+    loaded_lib.link_onnx.argtypes = [ctypes.c_char_p]
+    loaded_lib.link_onnx.restype = EmptyReturn
+    c_string = str(onnx_path).encode('utf-8')
+    load_info = loaded_lib.link_onnx(c_string)
+    if load_info.error_message:
+        raise OSError(f"Failed to load onnxruntime: {load_info.error_message.decode('utf-8')}")
 
     return ctypes.CDLL(str(lib_path))
