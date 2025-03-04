@@ -36,26 +36,38 @@ def load_library(lib_name: str = "libc_wrapper") -> ctypes.CDLL:
         ctypes.CDLL: The loaded shared library.
     """
     root_dep_dir = os.path.expanduser("~/surrealml_deps")
-    print(f"loading lib root_dep_dir: {root_dep_dir}")
     dynamic_lib_dir = os.path.join(root_dep_dir, "core_ml_lib", DYNAMIC_LIB_VERSION)
-    print(f"loading lib dynamic_lib_dir: {dynamic_lib_dir}")
 
     system_name = platform.system()
 
     if system_name == "Windows":
         lib_path = dynamic_lib_dir.join(f"{lib_name}.dll")
+        lib_path = Path(dynamic_lib_dir) / f"{lib_name}.dll"
     elif system_name == "Darwin":  # macOS
         lib_path = dynamic_lib_dir.join(f"{lib_name}.dylib")
+        lib_path = Path(dynamic_lib_dir) / f"{lib_name}.dylib"
     elif system_name == "Linux":
         lib_path = dynamic_lib_dir.join(f"{lib_name}.so")
+        lib_path = Path(dynamic_lib_dir) / f"{lib_name}.so"
     else:
         raise OSError(f"Unsupported operating system: {system_name}")
 
-    print(f"loading lib lib_path: {lib_path}")
     if not Path(lib_path).exists():
         raise FileNotFoundError(f"Shared library not found at: {lib_path}")
 
     return ctypes.CDLL(str(lib_path))
+
+
+def get_onnx_lib_name() -> str:
+    system_name = platform.system()
+    if system_name == "Windows":
+        return "libonnxruntime.dll"
+    elif system_name == "Darwin":  # macOS
+        return "libonnxruntime.dylib"
+    elif system_name == "Linux":
+        return "libonnxruntime.so"
+    else:
+        raise OSError(f"Unsupported operating system: {system_name}")
 
 
 class LibLoader(metaclass=Singleton):
@@ -67,7 +79,6 @@ class LibLoader(metaclass=Singleton):
         args:
             lib_name (str): The base name of the library without extension (e.g., "libc_wrapper").
         """
-        print(f"passing in lib_name to loader: {lib_name}")
         self.lib = load_library(lib_name=lib_name)
         functions = [
             self.lib.add_name,
@@ -121,7 +132,7 @@ class LibLoader(metaclass=Singleton):
 
         # link the onnx runtime
         root_dep_dir = os.path.expanduser("~/surrealml_deps")
-        onnx_lib_dir = os.path.join(root_dep_dir, "onnxruntime", ONNX_VERSION)
+        onnx_lib_dir = os.path.join(root_dep_dir, "onnxruntime", ONNX_VERSION, get_onnx_lib_name())
         self.lib.link_onnx.argtypes = [ctypes.c_char_p]
         self.lib.link_onnx.restype = EmptyReturn
         c_string = str(onnx_lib_dir).encode('utf-8')
