@@ -1,10 +1,66 @@
 #!/usr/bin/env python
 from setuptools import setup
 from setuptools_rust import Binding, RustExtension
+import sys
+import os
+import urllib.request
+import tarfile
+import zipfile
+import platform
 
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
+
+
+def get_onnxruntime_url():
+    onnxruntime_version = "1.20.0"
+    base_url = f"https://github.com/microsoft/onnxruntime/releases/download/v{onnxruntime_version}/"
+    
+    os_name = sys.platform
+    arch = platform.machine().lower()
+
+    if os_name.startswith("linux"):
+        if arch == "x86_64":
+            return f"{base_url}onnxruntime-linux-x64-{onnxruntime_version}.tgz", f"onnxruntime-linux-x64-{onnxruntime_version}"
+        elif arch in ("arm64", "aarch64"):
+            return f"{base_url}onnxruntime-linux-aarch64-{onnxruntime_version}.tgz", f"onnxruntime-linux-aarch64-{onnxruntime_version}"
+    
+    elif os_name == "darwin":
+        if arch == "x86_64":
+            return f"{base_url}onnxruntime-osx-x86_64-{onnxruntime_version}.tgz", f"onnxruntime-osx-x86_64-{onnxruntime_version}"
+        elif arch == "arm64":
+            return f"{base_url}onnxruntime-osx-arm64-{onnxruntime_version}.tgz", f"onnxruntime-osx-arm64-{onnxruntime_version}"
+
+    elif os_name == "win32":
+        if arch == "x86_64":
+            return f"{base_url}onnxruntime-win-x64-{onnxruntime_version}.zip", f"onnxruntime-win-x64-{onnxruntime_version}"
+        elif arch == "arm64":
+            return f"{base_url}onnxruntime-win-arm64-{onnxruntime_version}.zip", f"onnxruntime-win-arm64-{onnxruntime_version}"
+    
+    raise Exception(f"Unsupported platform or architecture: {os_name}")
+
+def download_and_extract_onnxruntime():
+    url, extracted_dir = get_onnxruntime_url()
+
+    os.makedirs("onnxruntime", exist_ok=True)
+    file_path = os.path.join("onnxruntime", os.path.basename(url))
+
+    if not os.path.exists(file_path):
+        print(f"Downloading ONNX Runtime from {url}")
+        urllib.request.urlretrieve(url, file_path)
+
+    # Extract based on file type
+    if file_path.endswith(".tgz"):
+        with tarfile.open(file_path, "r:gz") as tar:
+            tar.extractall(path="onnxruntime")
+    elif file_path.endswith(".zip"):
+        with zipfile.ZipFile(file_path, "r") as zip_ref:
+            zip_ref.extractall("onnxruntime")
+
+    return extracted_dir
+
+onnxruntime_path = download_and_extract_onnxruntime()
 
 
 setup(
@@ -26,7 +82,11 @@ setup(
         "surrealml.model_templates.tensorflow",
     ],
     package_data={
-        "surrealml": ["binaries/*"],
+        "surrealml": [
+            "binaries/*",
+            f"../c_libs/*",
+            f"../onnxruntime/{onnxruntime_path}/*",
+        ],
     },
     # rust extensions are not zip safe, just like C-extensions.
     zip_safe=False,

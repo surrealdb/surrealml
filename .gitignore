@@ -31,3 +31,5 @@ modules/pipelines/data_access/target/
 clients/python/build-context/
 modules/c-wrapper/build-context/
 *.dylib
+clients/python/surrealml/onnxruntime/
+modules/c-wrapper/build-context/

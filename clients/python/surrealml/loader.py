@@ -4,8 +4,13 @@ The loader for the dynamic C lib written in Rust.
 import ctypes
 import platform
 from pathlib import Path
+import os
 
 from surrealml.c_structs import EmptyReturn, StringReturn, Vecf32Return, FileInfo, VecU8Return
+
+
+ONNX_VERSION = "1.20.0"
+DYNAMIC_LIB_VERSION = "1.0.0"
 
 
 class Singleton(type):
@@ -30,19 +35,24 @@ def load_library(lib_name: str = "libc_wrapper") -> ctypes.CDLL:
     Returns:
         ctypes.CDLL: The loaded shared library.
     """
-    current_dir = Path(__file__).parent
+    root_dep_dir = os.path.expanduser("~/surrealml_deps")
+    print(f"loading lib root_dep_dir: {root_dep_dir}")
+    dynamic_lib_dir = os.path.join(root_dep_dir, "core_ml_lib", DYNAMIC_LIB_VERSION)
+    print(f"loading lib dynamic_lib_dir: {dynamic_lib_dir}")
+
     system_name = platform.system()
 
     if system_name == "Windows":
-        lib_path = current_dir.joinpath(f"{lib_name}.dll")
+        lib_path = dynamic_lib_dir.join(f"{lib_name}.dll")
     elif system_name == "Darwin":  # macOS
-        lib_path = current_dir.joinpath(f"{lib_name}.dylib")
+        lib_path = dynamic_lib_dir.join(f"{lib_name}.dylib")
     elif system_name == "Linux":
-        lib_path = current_dir.joinpath(f"{lib_name}.so")
+        lib_path = dynamic_lib_dir.join(f"{lib_name}.so")
     else:
         raise OSError(f"Unsupported operating system: {system_name}")
 
-    if not lib_path.exists():
+    print(f"loading lib lib_path: {lib_path}")
+    if not Path(lib_path).exists():
         raise FileNotFoundError(f"Shared library not found at: {lib_path}")
 
     return ctypes.CDLL(str(lib_path))
@@ -57,6 +67,7 @@ class LibLoader(metaclass=Singleton):
         args:
             lib_name (str): The base name of the library without extension (e.g., "libc_wrapper").
         """
+        print(f"passing in lib_name to loader: {lib_name}")
         self.lib = load_library(lib_name=lib_name)
         functions = [
             self.lib.add_name,
@@ -107,6 +118,16 @@ class LibLoader(metaclass=Singleton):
         self.lib.free_vec_u8.argtypes = [VecU8Return]
         self.lib.free_vecf32_return.argtypes = [Vecf32Return]
         self.lib.free_file_info.argtypes = [FileInfo]
+
+        # link the onnx runtime
+        root_dep_dir = os.path.expanduser("~/surrealml_deps")
+        onnx_lib_dir = os.path.join(root_dep_dir, "onnxruntime", ONNX_VERSION)
+        self.lib.link_onnx.argtypes = [ctypes.c_char_p]
+        self.lib.link_onnx.restype = EmptyReturn
+        c_string = str(onnx_lib_dir).encode('utf-8')
+        load_info = self.lib.link_onnx(c_string)
+        if load_info.error_message:
+            raise OSError(f"Failed to load onnxruntime: {load_info.error_message.decode('utf-8')}")
 
 
 
