@@ -1,4 +1,4 @@
-from tests.model_builder.utils import install_package
+from model_builder.utils import install_package
 install_package("tf2onnx==1.16.1")
 install_package("tensorflow==2.16.1")
 import os
@@ -7,7 +7,7 @@ from surrealml.model_templates.tensorflow.tensorflow_linear import train_model a
 from surrealml.model_templates.tensorflow.tensorflow_linear import export_model_onnx as linear_tensorflow_export_model_onnx
 from surrealml.model_templates.tensorflow.tensorflow_linear import export_model_surml as linear_tensorflow_export_model_surml
 
-from tests.model_builder.utils import delete_directory, create_directory, MODEL_STASH_DIRECTORY
+from model_builder.utils import delete_directory, create_directory, MODEL_STASH_DIRECTORY
 
 
 # create the model stash directory if it does not exist

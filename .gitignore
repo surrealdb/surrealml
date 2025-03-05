@@ -13,6 +13,7 @@ surrealml.egg-info/
 .vscode/
 ./modules/utils/target/
 modules/core/target/
+modules/c-wrapper/target/
 ./modules/onnx_driver/target/
 modules/onnx_driver/target/
 surrealdb_build/
@@ -27,3 +28,9 @@ surrealml/rust_surrealml.cpython-310-darwin.so
 ./modules/pipelines/runners/integrated_training_runner/run_env/
 modules/pipelines/runners/integrated_training_runner/run_env/
 modules/pipelines/data_access/target/
+clients/python/build-context/
+modules/c-wrapper/build-context/
+*.dylib
+clients/python/surrealml/onnxruntime/
+modules/c-wrapper/build-context/
+clients/javascript/node_modules/

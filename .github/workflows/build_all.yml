@@ -1,0 +1,80 @@
+name: Build All Platforms
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: x86_64-apple-darwin,aarch64-apple-darwin
+
+      - name: Build macOS binaries
+        working-directory: modules/c-wrapper
+        run: |
+          cargo build --release --target x86_64-apple-darwin
+          cargo build --release --target aarch64-apple-darwin
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-binaries
+          path: modules/c-wrapper/target/*/release/
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
+
+      - name: Build Linux binaries
+        working-directory: modules/c-wrapper
+        run: |
+          cargo build --release --target x86_64-unknown-linux-gnu
+          cargo build --release --target aarch64-unknown-linux-gnu
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-binaries
+          path: modules/c-wrapper/target/*/release/
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: x86_64-pc-windows-gnu,aarch64-pc-windows-gnu
+
+      - name: Build Windows binaries
+        working-directory: modules/c-wrapper
+        run: |
+          cargo build --release --target x86_64-pc-windows-gnu
+          cargo build --release --target aarch64-pc-windows-gnu
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-binaries
+          path: modules/c-wrapper/target/*/release/
