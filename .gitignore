@@ -33,3 +33,4 @@ modules/c-wrapper/build-context/
 *.dylib
 clients/python/surrealml/onnxruntime/
 modules/c-wrapper/build-context/
+clients/javascript/node_modules/
