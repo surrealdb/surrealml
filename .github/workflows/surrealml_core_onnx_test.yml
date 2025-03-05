@@ -13,37 +13,5 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Set up Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        override: true
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.11'
-
-    - name: Pre-test Setup
-      run: |
-        python3 -m venv venv
-        source venv/bin/activate
-        pip install --upgrade pip
-        pip install -r requirements.txt
-        
-        # build the local version of the core module to be loaded into python
-        echo "Building local version of core module"
-        
-        pip install .
-        export PYTHONPATH="."
-        
-        python ./tests/scripts/ci_local_build.py
-        echo "Local build complete"
-        
-        # train the models for the tests
-        python ./tests/model_builder/onnx_assets.py
-        deactivate
-
     - name: Run Core Unit Tests
-      run: cd modules/core && cargo test --features onnx-tests
+      run: cd modules/core && docker build -t rust-onnx-runtime . && docker run --rm rust-onnx-runtime cargo test --features onnx-tests
