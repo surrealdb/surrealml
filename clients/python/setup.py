@@ -175,18 +175,4 @@ setup(
         "surrealml.model_templates.torch",
         "surrealml.model_templates.tensorflow",
     ],
-    # package_data={
-    #     "surrealml": [
-    #         "libc_wrapper.so", 
-    #         "libc_wrapper.dylib", 
-    #         "libc_wrapper.dll",
-    #         "onnxruntime/*"
-    #     ]
-    # },
-    # include_package_data=True,
-    # zip_safe=False,
 )
-
-# # cleanup after install
-# if BUILD_FLAG is True:
-#     os.remove(BINARY_DIST)
