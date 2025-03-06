@@ -1,0 +1,166 @@
+name: Release to Github
+
+on:
+  workflow_dispatch:  # Allows manual triggering of the workflow
+    inputs:
+      type:
+        description: 'Type of release (major/minor/patch)'
+        required: true
+        default: 'minor'
+      dry_run:
+        description: 'Dry run (true/false)'  # Allows a test run without making actual changes
+        required: true
+        default: true
+      # skip_tests:
+      #   description: 'Skip tests (true/false)'  # Allows skipping tests if needed
+      #   required: true
+      #   default: false
+
+env:
+  CARGO_TERM_COLOR: always  # Ensures cargo outputs colored logs
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform:
+          - os: ubuntu-latest
+            linux-override: false
+          - os: macos-13
+            linux-override: false
+          - os: macos-14
+            linux-override: false
+          - os: windows-latest
+            linux-override: false
+          - os: ubuntu-latest  # Extra Ubuntu build for ARM support
+            linux-override: true
+    runs-on: ${{ matrix.platform.os }}
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3  # Fetches the repository
+
+      - name: Ensure Cargo Directories Exist for Cache Restore
+        run: |
+          mkdir -p ~/.cargo/registry ~/.cargo/index target
+        shell: bash  # Prevents cache failures due to missing directories
+
+      - name: Cache Cargo Registry, Index, Build
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/index
+            target
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+          restore-keys: |
+            cargo-build-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/Cargo.toml') }}
+            cargo-build-${{ runner.os }}-${{ runner.arch }}-
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable  # Installs stable Rust toolchain
+
+      - name: Build project
+        run: cargo build --verbose  # Builds the Rust project
+
+  prepare-release:
+    needs: [build]  # Runs only after build job completes
+    runs-on: ubuntu-latest  # Ensures consistent release process
+    outputs:
+      rr_cargo_version: ${{ steps.get-version.outputs.VERSION }}
+      workflow_git_tag: ${{ steps.get-version.outputs.WORKFLOW_GIT_TAG }}
+    steps:
+      - name: Checkout repository with full history
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Required for versioning
+          token: ${{ secrets.RELEASE_TOKEN }}  # Uses a token with release permissions
+
+      - name: Install Rust Target for Linux Arm if needed
+        shell: bash
+        run: |
+          if [ "${{ matrix.platform.linux-override }}" = "true" ]; then
+            rustup target add aarch64-unknown-linux-gnu
+          fi
+
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/index
+            target
+          key: ${{ runner.os }}-${{ runner.arch }}-cargo-${{ hashFiles('**/Cargo.toml') }}
+
+      - name: Install cargo-release
+        run: |
+          if ! command -v cargo-release &> /dev/null; then
+            cargo install cargo-release
+          fi
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+
+      - name: Update Cargo.toml version and push to GitHub
+        run: |
+          if [ "${{ github.event.inputs.dry_run }}" = "false" ]; then
+            cargo release --verbose --execute --no-confirm ${{ github.event.inputs.type }} --no-publish --no-verify
+          else
+            cargo release --verbose ${{ github.event.inputs.type }} --no-publish --no-verify
+          fi
+
+      - name: Extract Version from Cargo.toml
+        id: get-version
+        run: |
+          VERSION=$(grep '^version = ' Cargo.toml | sed -E 's/version = "(.*)"/\1/')
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "WORKFLOW_GIT_TAG=v$VERSION" >> "$GITHUB_OUTPUT"
+
+  release:
+    needs: [prepare-release]
+    if: ${{ github.event.inputs.dry_run == 'false' }}  # Only run if not a dry run
+    strategy:
+      matrix:
+        platform:
+          - os: ubuntu-latest
+            linux-override: false
+          - os: macos-13
+            linux-override: false
+          - os: macos-14
+            linux-override: false
+          - os: windows-latest
+            linux-override: false
+          - os: ubuntu-latest
+            linux-override: true
+    runs-on: ${{ matrix.platform.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Build release binary
+        run: |
+          if [[ "${{ matrix.platform.linux-override }}" == "true" ]]; then
+            rustup target add aarch64-unknown-linux-gnu
+            cargo build -p c-wrapper --release --target aarch64-unknown-linux-gnu --verbose
+          else
+            cargo build -p c-wrapper --release --verbose
+          fi
+
+      - name: Archive binary
+        uses: ksm2/archive-action@v1
+        with:
+          name: "surrealml-${{ needs.prepare-release.outputs.rr_cargo_version }}"
+          format: "tar.gz"
+          include: "{libc_wrapper.so, libc_wrapper.dll,libc_wrapper.dylib,README.md}"
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "surrealml-${{ needs.prepare-release.outputs.rr_cargo_version }}.tar.gz"
+          allowUpdates: true
+          generateReleaseNotes: true
+          token: ${{ secrets.RELEASE_TOKEN }}
+          tag: ${{ needs.prepare-release.outputs.workflow_git_tag }}
