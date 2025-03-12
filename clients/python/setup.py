@@ -37,7 +37,8 @@ ONNXRUNTIME_DIR = DIR_PATH.joinpath("surrealml").joinpath("onnxruntime")
 
 # get information about the system
 ONNX_VERSION = "1.20.0"
-DYNAMIC_LIB_VERSION = "1.0.0"
+PYTHON_PACKAGE_VERSION = "1.20.0"
+DYNAMIC_LIB_VERSION = "1.7"
 OS_NAME = sys.platform
 ARCH = platform.machine().lower()
 SYSTEM = platform.system().lower()  # 'linux', 'darwin' (macOS), 'windows'
@@ -59,6 +60,7 @@ ONNX_LIB_DIR = os.path.join(ROOT_DEP_DIR, "onnxruntime", ONNX_VERSION)
 DYNAMIC_LIB_DIR = os.path.join(ROOT_DEP_DIR, "core_ml_lib", DYNAMIC_LIB_VERSION)
 ONNX_DOWNLOAD_CACHE = os.path.join(ONNX_LIB_DIR, "download_cache.tgz")
 DYNAMIC_LIB_DIST = DIR_PATH.joinpath(DYNAMIC_LIB_DIR).joinpath(get_c_lib_name())
+DYNAMIC_LIB_DOWNLOAD_CACHE = os.path.join(DYNAMIC_LIB_DIR, "download_cache.tgz")
 
 # create the directories if they don't exist
 os.makedirs(ONNX_LIB_DIR, exist_ok=True)
@@ -90,6 +92,28 @@ def get_onnxruntime_url():
     raise Exception(f"Unsupported platform or architecture: {OS_NAME}")
 
 
+def get_lib_url():
+    if OS_NAME.startswith("linux"):
+        if ARCH == "x86_64":
+            return f"https://github.com/maxwellflitton/test-deploy/releases/download/v{DYNAMIC_LIB_VERSION}/surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-unknown-linux-gnu.tar.gz", f"surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+        elif ARCH in ("arm64", "aarch64"):
+            return f"https://github.com/maxwellflitton/test-deploy/releases/download/v{DYNAMIC_LIB_VERSION}/surrealml-v{DYNAMIC_LIB_VERSION}-arm64-unknown-linux-gnu.tar.gz", f"surrealml-v{DYNAMIC_LIB_VERSION}-arm64-unknown-linux-gnu.tar.gz"
+
+    elif OS_NAME == "darwin":
+        if ARCH == "x86_64":
+            return f"https://github.com/maxwellflitton/test-deploy/releases/download/v{DYNAMIC_LIB_VERSION}/surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-apple-darwin.tar.gz", f"surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-apple-darwin.tar.gz"
+        elif ARCH == "arm64":
+            return f"https://github.com/maxwellflitton/test-deploy/releases/download/v{DYNAMIC_LIB_VERSION}/surrealml-v{DYNAMIC_LIB_VERSION}-arm64-apple-darwin.tar.gz", f"surrealml-v{DYNAMIC_LIB_VERSION}-arm64-apple-darwin.tar.gz"
+
+    elif OS_NAME == "win32":
+        if ARCH == "x86_64":
+            return f"https://github.com/maxwellflitton/test-deploy/releases/download/v{DYNAMIC_LIB_VERSION}/surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-pc-windows-msvc.tar.gz", f"surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-pc-windows-msvc.tar.gz"
+        elif ARCH == "arm64":
+            pass
+
+    raise Exception(f"Unsupported platform or architecture: {OS_NAME}")
+
+
 def download_and_extract_onnxruntime():
     url, extracted_dir = get_onnxruntime_url()
 
@@ -108,6 +132,24 @@ def download_and_extract_onnxruntime():
             zip_ref.extractall(ONNX_LIB_DIR)
 
     return extracted_dir
+
+def download_and_extract_c_lib():
+    url, extracted_dir = get_lib_url()
+    if not os.path.exists(DYNAMIC_LIB_DOWNLOAD_CACHE):
+        print(f"Downloading surrealML lib from {url}")
+        urllib.request.urlretrieve(url, DYNAMIC_LIB_DOWNLOAD_CACHE)
+    else:
+        print(f"the {DYNAMIC_LIB_DOWNLOAD_CACHE} already exists so not downloading surrealML lib")
+
+    if DYNAMIC_LIB_DOWNLOAD_CACHE.endswith(".tgz"):
+        with tarfile.open(DYNAMIC_LIB_DOWNLOAD_CACHE, "r:gz") as tar:
+            tar.extractall(path=DYNAMIC_LIB_DIR)
+    elif DYNAMIC_LIB_DOWNLOAD_CACHE.endswith(".zip"):
+        with zipfile.ZipFile(DYNAMIC_LIB_DOWNLOAD_CACHE, "r") as zip_file:
+            zip_file.extractall(path=DYNAMIC_LIB_DIR)
+    return extracted_dir
+
+
 
 onnx_lib_dist = Path(ONNX_LIB_DIR).joinpath(ONNX_LIB_NAME)
 
@@ -132,7 +174,14 @@ if DYNAMIC_LIB_DIST.exists() is False and os.environ.get("LOCAL_BUILD") == "TRUE
     BUILD_FLAG = True
 
 else:
-    print("downloading the core ML lib")
+    if os.path.exists(DYNAMIC_LIB_DIST) is False:
+        print("downloading the core ML lib")
+        lib_path = download_and_extract_c_lib()
+        os.remove(DYNAMIC_LIB_DOWNLOAD_CACHE)
+        # lib_path = Path(DYNAMIC_LIB_DIST).joinpath(lib_path).joinpath(get_c_lib_name())
+        # shutil.copyfile(lib_path, DYNAMIC_LIB_DIST)
+        # DYNAMIC_LIB_DIST
+        # DYNAMIC_LIB_DOWNLOAD_CACHE
 
 # ===================================== run the setup for the python package =============================================
 

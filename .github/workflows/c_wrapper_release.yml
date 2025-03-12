@@ -3,18 +3,9 @@ name: Release to Github
 on:
   workflow_dispatch:  # Allows manual triggering of the workflow
     inputs:
-      type:
-        description: 'Type of release (major/minor/patch)'
+      version:
+        description: 'Release version (e.g., 1.2.3)'
         required: true
-        default: 'minor'
-      dry_run:
-        description: 'Dry run (true/false)'  # Allows a test run without making actual changes
-        required: true
-        default: true
-      # skip_tests:
-      #   description: 'Skip tests (true/false)'  # Allows skipping tests if needed
-      #   required: true
-      #   default: false
 
 env:
   CARGO_TERM_COLOR: always  # Ensures cargo outputs colored logs
@@ -104,24 +95,16 @@ jobs:
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
 
-      - name: Update Cargo.toml version and push to GitHub
-        run: |
-          if [ "${{ github.event.inputs.dry_run }}" = "false" ]; then
-            cargo release --verbose --execute --no-confirm ${{ github.event.inputs.type }} --no-publish --no-verify
-          else
-            cargo release --verbose ${{ github.event.inputs.type }} --no-publish --no-verify
-          fi
-
       - name: Extract Version from Cargo.toml
         id: get-version
         run: |
-          VERSION=$(grep '^version = ' Cargo.toml | sed -E 's/version = "(.*)"/\1/')
+          # VERSION=$(grep '^version = ' Cargo.toml | sed -E 's/version = "(.*)"/\1/')
+          VERSION=${{ github.event.inputs.version }}
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
           echo "WORKFLOW_GIT_TAG=v$VERSION" >> "$GITHUB_OUTPUT"
 
   release:
     needs: [prepare-release]
-    if: ${{ github.event.inputs.dry_run == 'false' }}  # Only run if not a dry run
     strategy:
       matrix:
         platform:
@@ -140,7 +123,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Install cross-compilation dependencies
+        if: matrix.platform.linux-override == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu libc6-dev-arm64-cross
+      
+      - name: Build release binary for ARM64
+        if: matrix.platform.linux-override == 'true'
+        run: |
+          rustup target add aarch64-unknown-linux-gnu
+          cargo build --target aarch64-unknown-linux-gnu --release --verbose
+        env:
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
+
       - name: Build release binary
+        shell: bash  # Forces the step to use Bash
+        if: matrix.platform.linux-override == 'false'
         run: |
           if [[ "${{ matrix.platform.linux-override }}" == "true" ]]; then
             rustup target add aarch64-unknown-linux-gnu
@@ -149,6 +148,26 @@ jobs:
             cargo build -p c-wrapper --release --verbose
           fi
 
+      - name: Copy release binary to root
+        shell: bash
+        run: |
+          if [[ -f "target/release/libc_wrapper.so" ]]; then
+            cp target/release/libc_wrapper.so .
+          elif [[ -f "target/release/libc_wrapper.dll" ]]; then
+            cp target/release/libc_wrapper.dll .
+          elif [[ -f "target/release/libc_wrapper.dylib" ]]; then
+            cp target/release/libc_wrapper.dylib .
+          elif [[ -f "target/aarch64-unknown-linux-gnu/release/libc_wrapper.so" ]]; then
+            cp target/aarch64-unknown-linux-gnu/release/libc_wrapper.so .
+          elif [[ -f "target/x86_64-unknown-linux-gnu/release/libc_wrapper.so" ]]; then
+            cp target/x86_64-unknown-linux-gnu/release/libc_wrapper.so .
+          elif [[ -f "target/release/libc_wrapper.dll" ]]; then
+            cp target/release/libc_wrapper.dll .
+          else
+            echo "No binary to copy for this OS."
+          fi    
+
+
       - name: Archive binary
         uses: ksm2/archive-action@v1
         with:
@@ -156,11 +175,56 @@ jobs:
           format: "tar.gz"
           include: "{libc_wrapper.so, libc_wrapper.dll,libc_wrapper.dylib,README.md}"
 
-      - name: Create GitHub Release
+      - name: Get Build Info
+        id: build-info
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          VERSION: ${{ github.event.inputs.version }}
+        run: |
+          OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+          if [ "${{ matrix.platform.linux-override }}" = "true" ]; then
+            TARGET="arm64-unknown-linux-gnu"
+            ARCH="arm64"
+          else
+            ARCH=$(uname -m)
+            TARGET=""
+              case "$OS" in
+              linux) TARGET="$ARCH-unknown-linux-gnu" ;;
+              darwin) TARGET="$ARCH-apple-darwin" ;;
+              msys*|cygwin*|mingw*) TARGET="$ARCH-pc-windows-msvc" ;;
+            esac
+          fi
+
+          # VERSION=$(grep '^version = ' ./modules/c-wrapper/Cargo.toml | sed -E 's/version = "(.*)"/\1/')
+          FILENAME="surrealml-v${INPUT_VERSION}-${TARGET}"
+          echo "OS=$OS" >> "$GITHUB_ENV"
+          echo "ARCH=$ARCH" >> "$GITHUB_ENV"
+          echo "TARGET=$TARGET" >> "$GITHUB_ENV"
+          echo "FILENAME=$FILENAME" >> "$GITHUB_ENV"          
+
+      - name: Compress tar.gz
+        uses: ksm2/archive-action@v1
+        with:
+          name: "${{ env.FILENAME }}"
+          format: "tar.gz"
+          include: "{libc_wrapper.so, libc_wrapper.dll,libc_wrapper.dylib,README.md}"
+
+      - name: Compress zip
+        uses: ksm2/archive-action@v1
+        with:
+          name: "${{ env.FILENAME }}"
+          format: "zip"
+          include: "{libc_wrapper.so, libc_wrapper.dll,libc_wrapper.dylib,README.md}"
+
+      - name: Create or Update Release
+        env:
+          VERSION: ${{ needs.prepare-release.outputs.rr_cargo_version }}
+          WORKFLOW_GIT_TAG: ${{ needs.prepare-release.outputs.workflow_git_tag}}
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "surrealml-${{ needs.prepare-release.outputs.rr_cargo_version }}.tar.gz"
-          allowUpdates: true
-          generateReleaseNotes: true
+          artifacts: "${{ env.FILENAME }}.tar.gz,${{ env.FILENAME }}.zip"
+          allowUpdates: 'true'
+          generateReleaseNotes: 'true'
           token: ${{ secrets.RELEASE_TOKEN }}
-          tag: ${{ needs.prepare-release.outputs.workflow_git_tag }}
+          tag: ${{ env.WORKFLOW_GIT_TAG }}
