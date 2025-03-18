@@ -122,58 +122,92 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-
-      - name: Install cross-compilation dependencies
-        if: matrix.platform.linux-override == 'true'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-aarch64-linux-gnu libc6-dev-arm64-cross
       
       - name: Build release binary for ARM64
-        if: matrix.platform.linux-override == 'true'
+        shell: bash  # Forces the step to use Bash
+        # if: matrix.platform.linux-override == 'true'
         run: |
-          rustup target add aarch64-unknown-linux-gnu
-          cargo build --target aarch64-unknown-linux-gnu --release --verbose
+          if [[ "${{ matrix.platform.linux-override }}" == "true" ]]; then
+            sudo apt-get update
+            sudo apt-get install -y \
+              gcc-aarch64-linux-gnu \
+              libc6-dev-arm64-cross \
+              build-essential \
+              gcc-aarch64-linux-gnu \
+              g++-aarch64-linux-gnu
+            sudo apt-get install -y gcc-aarch64-linux-gnu libc6-dev-arm64-cross
+            rustup target add aarch64-unknown-linux-gnu
+            cargo build -p c-wrapper --release --target aarch64-unknown-linux-gnu --verbose
+          else
+            echo "bypassing build"
+            # cargo build -p c-wrapper --release --verbose
+          fi
         env:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
 
       - name: Build release binary
         shell: bash  # Forces the step to use Bash
-        if: matrix.platform.linux-override == 'false'
+        # if: matrix.platform.linux-override == 'false'
         run: |
           if [[ "${{ matrix.platform.linux-override }}" == "true" ]]; then
-            rustup target add aarch64-unknown-linux-gnu
-            cargo build -p c-wrapper --release --target aarch64-unknown-linux-gnu --verbose
+            echo "bypassing build"
+            # rustup target add aarch64-unknown-linux-gnu
+            # cargo build -p c-wrapper --release --target aarch64-unknown-linux-gnu --verbose
           else
             cargo build -p c-wrapper --release --verbose
           fi
+          ls
 
       - name: Copy release binary to root
         shell: bash
         run: |
+          ls target/release
           if [[ -f "target/release/libc_wrapper.so" ]]; then
             cp target/release/libc_wrapper.so .
-          elif [[ -f "target/release/libc_wrapper.dll" ]]; then
-            cp target/release/libc_wrapper.dll .
+          elif [[ -f "target/release/c_wrapper.dll" ]]; then
+            cp target/release/c_wrapper.dll .
           elif [[ -f "target/release/libc_wrapper.dylib" ]]; then
             cp target/release/libc_wrapper.dylib .
           elif [[ -f "target/aarch64-unknown-linux-gnu/release/libc_wrapper.so" ]]; then
             cp target/aarch64-unknown-linux-gnu/release/libc_wrapper.so .
           elif [[ -f "target/x86_64-unknown-linux-gnu/release/libc_wrapper.so" ]]; then
             cp target/x86_64-unknown-linux-gnu/release/libc_wrapper.so .
-          elif [[ -f "target/release/libc_wrapper.dll" ]]; then
-            cp target/release/libc_wrapper.dll .
           else
             echo "No binary to copy for this OS."
           fi    
 
+      # - name: Copy release binary to root
+      #   shell: bash
+      #   run: |
+      #     ls
+      #     cd target && ls && cd release && ls
+      #     if [[ "${{ matrix.platform.linux-override }}" = "true" ]]; then
+      #       cp target/aarch64-unknown-linux-gnu/release/libc_wrapper.so .
+      #     else
+      #       case "${{ runner.os }}" in
+      #         Linux)
+      #           cp target/release/libc_wrapper.so .
+      #           ;;
+      #         macOS)
+      #           cp target/release/libc_wrapper.dylib .
+      #           ;;
+      #         Windows)
+      #           cp target/release/libc_wrapper.dll .
+      #           ;;
+      #         *)
+      #           echo "Unsupported OS for copying binary"
+      #           cd target && ls && cd release && ls
+      #           exit 1
+      #           ;;
+      #       esac
+      #     fi
 
       - name: Archive binary
         uses: ksm2/archive-action@v1
         with:
           name: "surrealml-${{ needs.prepare-release.outputs.rr_cargo_version }}"
           format: "tar.gz"
-          include: "{libc_wrapper.so, libc_wrapper.dll,libc_wrapper.dylib,README.md}"
+          include: "{libc_wrapper.so, c_wrapper.dll,libc_wrapper.dylib,README.md}"
 
       - name: Get Build Info
         id: build-info
@@ -208,14 +242,14 @@ jobs:
         with:
           name: "${{ env.FILENAME }}"
           format: "tar.gz"
-          include: "{libc_wrapper.so, libc_wrapper.dll,libc_wrapper.dylib,README.md}"
+          include: "{libc_wrapper.so,c_wrapper.dll,libc_wrapper.dylib,README.md}"
 
       - name: Compress zip
         uses: ksm2/archive-action@v1
         with:
           name: "${{ env.FILENAME }}"
           format: "zip"
-          include: "{libc_wrapper.so, libc_wrapper.dll,libc_wrapper.dylib,README.md}"
+          include: "{libc_wrapper.so,c_wrapper.dll,libc_wrapper.dylib,README.md}"
 
       - name: Create or Update Release
         env:

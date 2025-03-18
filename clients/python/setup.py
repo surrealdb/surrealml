@@ -38,7 +38,7 @@ ONNXRUNTIME_DIR = DIR_PATH.joinpath("surrealml").joinpath("onnxruntime")
 # get information about the system
 ONNX_VERSION = "1.20.0"
 PYTHON_PACKAGE_VERSION = "1.20.0"
-DYNAMIC_LIB_VERSION = "1.7"
+DYNAMIC_LIB_VERSION = "0.1.0"
 OS_NAME = sys.platform
 ARCH = platform.machine().lower()
 SYSTEM = platform.system().lower()  # 'linux', 'darwin' (macOS), 'windows'
