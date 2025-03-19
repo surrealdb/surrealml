@@ -18,6 +18,11 @@ env:
 
 jobs:
   build:
+    permissions:
+      contents: write    # Allows creating tags, commits, and pushing code if needed
+      deployments: write    # Allows creating and updating GitHub releases
+      actions: write     # Allows uploading workflow artifacts and interacting with workflow artifacts
+      packages: write
     strategy:
       matrix:
         platform:
@@ -62,6 +67,11 @@ jobs:
         run: cargo build --verbose  # Builds the Rust project
 
   prepare-release:
+    permissions:
+      contents: write    # Allows creating tags, commits, and pushing code if needed
+      deployments: write    # Allows creating and updating GitHub releases
+      actions: write     # Allows uploading workflow artifacts and interacting with workflow artifacts
+      packages: write
     needs: [build]  # Runs only after build job completes
     runs-on: ubuntu-latest  # Ensures consistent release process
     outputs:
@@ -110,6 +120,11 @@ jobs:
           echo "WORKFLOW_GIT_TAG=v$VERSION" >> "$GITHUB_OUTPUT"
 
   release:
+    permissions:
+      contents: write    # Allows creating tags, commits, and pushing code if needed
+      deployments: write    # Allows creating and updating GitHub releases
+      actions: write     # Allows uploading workflow artifacts and interacting with workflow artifacts
+      packages: write
     needs: [prepare-release]
     strategy:
       matrix:
