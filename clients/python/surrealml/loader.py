@@ -10,7 +10,7 @@ from surrealml.c_structs import EmptyReturn, StringReturn, Vecf32Return, FileInf
 
 
 ONNX_VERSION = "1.20.0"
-DYNAMIC_LIB_VERSION = "1.0.0"
+DYNAMIC_LIB_VERSION = "0.1.0"
 
 
 class Singleton(type):
