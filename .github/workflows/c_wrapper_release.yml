@@ -82,7 +82,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Required for versioning
-          token: ${{ secrets.RELEASE_TOKEN }}  # Uses a token with release permissions
+          token: ${{ secrets.RELEASER_TOKEN }}  # Uses a token with release permissions
 
       - name: Install Rust Target for Linux Arm if needed
         shell: bash
@@ -281,5 +281,5 @@ jobs:
           artifacts: "${{ env.FILENAME }}.tar.gz,${{ env.FILENAME }}.zip"
           allowUpdates: 'true'
           generateReleaseNotes: 'true'
-          token: ${{ secrets.RELEASE_TOKEN }}
+          token: ${{ secrets.RELEASER_TOKEN }}
           tag: ${{ env.WORKFLOW_GIT_TAG }}
