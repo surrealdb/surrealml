@@ -37,7 +37,7 @@ ONNXRUNTIME_DIR = DIR_PATH.joinpath("surrealml").joinpath("onnxruntime")
 
 # get information about the system
 ONNX_VERSION = "1.20.0"
-PYTHON_PACKAGE_VERSION = "1.20.0"
+PYTHON_PACKAGE_VERSION = "0.1.0"
 DYNAMIC_LIB_VERSION = "0.1.0"
 OS_NAME = sys.platform
 ARCH = platform.machine().lower()
@@ -95,19 +95,19 @@ def get_onnxruntime_url():
 def get_lib_url():
     if OS_NAME.startswith("linux"):
         if ARCH == "x86_64":
-            return f"https://github.com/maxwellflitton/test-deploy/releases/download/v{DYNAMIC_LIB_VERSION}/surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-unknown-linux-gnu.tar.gz", f"surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
+            return f"https://github.com/surrealdb/surrealml/releases/download/v{DYNAMIC_LIB_VERSION}/surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-unknown-linux-gnu.tar.gz", f"surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
         elif ARCH in ("arm64", "aarch64"):
-            return f"https://github.com/maxwellflitton/test-deploy/releases/download/v{DYNAMIC_LIB_VERSION}/surrealml-v{DYNAMIC_LIB_VERSION}-arm64-unknown-linux-gnu.tar.gz", f"surrealml-v{DYNAMIC_LIB_VERSION}-arm64-unknown-linux-gnu.tar.gz"
+            return f"https://github.com/surrealdb/surrealml/releases/download/v{DYNAMIC_LIB_VERSION}/surrealml-v{DYNAMIC_LIB_VERSION}-arm64-unknown-linux-gnu.tar.gz", f"surrealml-v{DYNAMIC_LIB_VERSION}-arm64-unknown-linux-gnu.tar.gz"
 
     elif OS_NAME == "darwin":
         if ARCH == "x86_64":
-            return f"https://github.com/maxwellflitton/test-deploy/releases/download/v{DYNAMIC_LIB_VERSION}/surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-apple-darwin.tar.gz", f"surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-apple-darwin.tar.gz"
+            return f"https://github.com/surrealdb/surrealml/releases/download/v{DYNAMIC_LIB_VERSION}/surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-apple-darwin.tar.gz", f"surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-apple-darwin.tar.gz"
         elif ARCH == "arm64":
-            return f"https://github.com/maxwellflitton/test-deploy/releases/download/v{DYNAMIC_LIB_VERSION}/surrealml-v{DYNAMIC_LIB_VERSION}-arm64-apple-darwin.tar.gz", f"surrealml-v{DYNAMIC_LIB_VERSION}-arm64-apple-darwin.tar.gz"
+            return f"https://github.com/surrealdb/surrealml/releases/download/v{DYNAMIC_LIB_VERSION}/surrealml-v{DYNAMIC_LIB_VERSION}-arm64-apple-darwin.tar.gz", f"surrealml-v{DYNAMIC_LIB_VERSION}-arm64-apple-darwin.tar.gz"
 
     elif OS_NAME == "win32":
         if ARCH == "x86_64":
-            return f"https://github.com/maxwellflitton/test-deploy/releases/download/v{DYNAMIC_LIB_VERSION}/surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-pc-windows-msvc.tar.gz", f"surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-pc-windows-msvc.tar.gz"
+            return f"https://github.com/surrealdb/surrealml/releases/download/v{DYNAMIC_LIB_VERSION}/surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-pc-windows-msvc.tar.gz", f"surrealml-v{DYNAMIC_LIB_VERSION}-x86_64-pc-windows-msvc.tar.gz"
         elif ARCH == "arm64":
             pass
 
@@ -187,7 +187,7 @@ else:
 
 setup(
     name="surrealml",
-    version="0.1.0",
+    version=PYTHON_PACKAGE_VERSION,
     description="A machine learning package for interfacing with various frameworks.",
     author="Maxwell Flitton",
     author_email="maxwellflitton@gmail.com",
