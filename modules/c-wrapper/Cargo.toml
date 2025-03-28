@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-surrealml-core = { path = "../core", features = ["dynamic"] }
+surrealml-core = { version = "0.1.4", path = "../core", features = ["dynamic"] }
 uuid = { version = "1.11.1", features = ["v4"] }
 ndarray = "0.16.1"
 
