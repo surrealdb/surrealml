@@ -2,10 +2,10 @@ name: Release core to crates
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Release version (e.g., 1.2.3)'
-        required: true
+    # inputs:
+    #   version:
+    #     description: 'Release version (e.g., 1.2.3)'
+    #     required: true
 
 permissions:
   contents: write
@@ -32,7 +32,8 @@ jobs:
       - name: Update Cargo.toml version
         run: |
           cd modules/core
-          cargo set-version ${{ inputs.version }}
+          cargo install cargo-version-upgrade
+          cargo-version-upgrade patch
         shell: bash
 
       - name: Commit and Tag Version
