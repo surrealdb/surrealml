@@ -2,6 +2,8 @@
 name = "c-wrapper"
 version = "0.1.0"
 edition = "2021"
+description = "A C wrapper for the surrealml-core"
+license-file = "LICENSE"
 
 [dependencies]
 surrealml-core = { version = "0.1.4", path = "../core", features = ["dynamic"] }
