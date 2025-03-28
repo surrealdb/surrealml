@@ -2,7 +2,8 @@
 name = "data-access-layer"
 version = "0.1.0"
 edition = "2021"
-
+description = "A data access pipeline"
+license-file = "LICENSE"
 
 [lib]
 name = "data_access_layer"
