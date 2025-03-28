@@ -34,7 +34,6 @@ jobs:
           cd modules/core
           cargo install cargo-version-upgrade
           cargo-version-upgrade patch
-          cargo set-version ${{ inputs.version }}
         shell: bash
 
       - name: Commit and Tag Version
