@@ -173,10 +173,12 @@ impl <'a>ModelComputation<'a> {
 mod tests {
 
     use super::*;
+    use crate::execution::session::set_environment;
 
     #[cfg(feature = "sklearn-tests")]
     #[test]
     fn test_raw_compute_linear_sklearn() {
+        set_environment().unwrap();
         let mut file = SurMlFile::from_file("./model_stash/sklearn/surml/linear.surml").unwrap();
         let model_computation = ModelComputation {
             surml_file: &mut file,
@@ -196,6 +198,7 @@ mod tests {
     #[cfg(feature = "sklearn-tests")]
     #[test]
     fn test_buffered_compute_linear_sklearn() {
+        set_environment().unwrap();
         let mut file = SurMlFile::from_file("./model_stash/sklearn/surml/linear.surml").unwrap();
         let model_computation = ModelComputation {
             surml_file: &mut file,
@@ -212,6 +215,7 @@ mod tests {
     #[cfg(feature = "onnx-tests")]
     #[test]
     fn test_raw_compute_linear_onnx() {
+        set_environment().unwrap();
         let mut file = SurMlFile::from_file("./model_stash/onnx/surml/linear.surml").unwrap();
         let model_computation = ModelComputation {
             surml_file: &mut file,
@@ -231,6 +235,7 @@ mod tests {
     #[cfg(feature = "onnx-tests")]
     #[test]
     fn test_buffered_compute_linear_onnx() {
+        set_environment().unwrap();
         let mut file = SurMlFile::from_file("./model_stash/onnx/surml/linear.surml").unwrap();
         let model_computation = ModelComputation {
             surml_file: &mut file,
@@ -247,6 +252,7 @@ mod tests {
     #[cfg(feature = "torch-tests")]
     #[test]
     fn test_raw_compute_linear_torch() {
+        set_environment().unwrap();
         let mut file = SurMlFile::from_file("./model_stash/torch/surml/linear.surml").unwrap();
         let model_computation = ModelComputation {
             surml_file: &mut file,
@@ -265,6 +271,7 @@ mod tests {
     #[cfg(feature = "torch-tests")]
     #[test]
     fn test_buffered_compute_linear_torch() {
+        set_environment().unwrap();
         let mut file = SurMlFile::from_file("./model_stash/torch/surml/linear.surml").unwrap();
         let model_computation = ModelComputation {
             surml_file: &mut file,
@@ -281,6 +288,7 @@ mod tests {
     #[cfg(feature = "tensorflow-tests")]
     #[test]
     fn test_raw_compute_linear_tensorflow() {
+        set_environment().unwrap();
         let mut file = SurMlFile::from_file("./model_stash/tensorflow/surml/linear.surml").unwrap();
         let model_computation = ModelComputation {
             surml_file: &mut file,
@@ -299,6 +307,7 @@ mod tests {
     #[cfg(feature = "tensorflow-tests")]
     #[test]
     fn test_buffered_compute_linear_tensorflow() {
+        set_environment().unwrap();
         let mut file = SurMlFile::from_file("./model_stash/tensorflow/surml/linear.surml").unwrap();
         let model_computation = ModelComputation {
             surml_file: &mut file,

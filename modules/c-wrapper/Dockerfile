@@ -39,7 +39,7 @@ RUN apt-get update && apt-get install -y python3 python3-pip
 # Clean and build the Rust project
 # RUN cd c-wrapper/scripts && bash prep_tests.sh
 # RUN cd c-wrapper && cargo build --verbose > build_log.txt 2>&1
-RUN cd c-wrapper && cargo build && bash scripts/copy_over_lib.sh
+RUN cd c-wrapper && cargo build --target-dir target && bash scripts/copy_over_lib_docker.sh
 
 # RUN rm /onnxruntime
 

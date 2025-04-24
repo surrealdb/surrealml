@@ -11,7 +11,7 @@ license-file = "LICENSE"
 [features]
 axum-feature = ["axum"]
 actix-feature = ["actix-web"]
-default = []
+default = ["dynamic"]
 # below are the features for testing different engines
 sklearn-tests = []
 onnx-tests = []
@@ -29,9 +29,11 @@ bytes = "1.5.0"
 futures-util = "0.3.28"
 futures-core = "0.3.28"
 thiserror = "2.0.9"
+onnx-embedding = "0.1.1"
 serde = { version = "1.0.197", features = ["derive"] }
 axum = { version = "0.7.4", optional = true }
 actix-web = { version = "4.5.1", optional = true }
+tempfile = "3.19.1"
 
 
 [dev-dependencies]
