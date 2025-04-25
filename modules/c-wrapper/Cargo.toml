@@ -2,6 +2,8 @@
 name = "c-wrapper"
 version = "0.1.1"
 edition = "2021"
+description = "A Rust wrapper crate providing C bindings for SurrealML."
+license-file = "LICENSE"
 
 [dependencies]
 surrealml-core = { version = "0.1.4", path = "../core", features = ["dynamic"] }
