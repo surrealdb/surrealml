@@ -1,5 +1,8 @@
 //! Defines the session module for the execution module.
 use ort::session::Session;
+use tempfile::NamedTempFile;
+use std::path::PathBuf;
+use std::io::Write;
 use crate::errors::error::{SurrealError, SurrealErrorStatus};
 use crate::safe_eject;
 use onnx_embedding::embed_onnx;
@@ -45,7 +48,6 @@ pub fn get_session(model_bytes: Vec<u8>) -> Result<Session, SurrealError> {
         .commit_from_memory(&model_bytes), SurrealErrorStatus::Unknown);
     Ok(session)
 }
-
 
 // #[cfg(feature = "dynamic")]
 // pub static ORT_EMBEDDED_ENV: LazyLock<Arc<Mutex<Arc<Environment>>>> = LazyLock::new(|| {
@@ -109,7 +111,9 @@ pub fn set_environment() -> Result<(), SurrealError> {
     let outcome: EnvironmentBuilder = ort::init_from(onnx_lib_path.to_str().unwrap());
     match outcome.commit() {
         Ok(_env) => {
-            // ORT_ENV.lock().unwrap().replace(env);
+               // TODO => might look into wrapping the session in a lock but for now it seems to be
+               // working in tests. Below is what the lock can look like:
+               //  pub static ORT_ENV: LazyLock<Arc<Mutex<Option<Arc<Environment>>>>> = LazyLock::new(|| Arc::new(Mutex::new(None)));
         },
         Err(e) => {
             return Err(SurrealError::new(e.to_string(), SurrealErrorStatus::Unknown));

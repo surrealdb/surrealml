@@ -1,5 +1,5 @@
 use surrealml_core::execution::session::set_environment;
-use std::ffi::{c_float, CStr, CString, c_int, c_char};
+use std::ffi::CString;
 use crate::utils::EmptyReturn;
 
 
