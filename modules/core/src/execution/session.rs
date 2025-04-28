@@ -6,9 +6,6 @@ use std::io::Write;
 use crate::errors::error::{SurrealError, SurrealErrorStatus};
 use crate::safe_eject;
 use onnx_embedding::embed_onnx;
-use std::io::Write;
-use std::path::PathBuf;
-use tempfile::NamedTempFile;
 
 #[cfg(feature = "dynamic")]
 use once_cell::sync::Lazy;
