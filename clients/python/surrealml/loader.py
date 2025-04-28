@@ -133,10 +133,10 @@ class LibLoader(metaclass=Singleton):
         # link the onnx runtime
         root_dep_dir = os.path.expanduser("~/surrealml_deps")
         onnx_lib_dir = os.path.join(root_dep_dir, "onnxruntime", ONNX_VERSION, get_onnx_lib_name())
-        self.lib.link_onnx.argtypes = [ctypes.c_char_p]
+        self.lib.link_onnx.argtypes = []
         self.lib.link_onnx.restype = EmptyReturn
         c_string = str(onnx_lib_dir).encode('utf-8')
-        load_info = self.lib.link_onnx(c_string)
+        load_info = self.lib.link_onnx()
         if load_info.error_message:
             raise OSError(f"Failed to load onnxruntime: {load_info.error_message.decode('utf-8')}")
 

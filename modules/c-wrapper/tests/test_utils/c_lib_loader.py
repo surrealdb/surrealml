@@ -46,10 +46,10 @@ def load_library(lib_name: str = "libc_wrapper") -> ctypes.CDLL:
         raise FileNotFoundError(f"Shared library not found at: {lib_path}")
     
     loaded_lib = ctypes.CDLL(str(lib_path))
-    loaded_lib.link_onnx.argtypes = [ctypes.c_char_p]
+    loaded_lib.link_onnx.argtypes = []
     loaded_lib.link_onnx.restype = EmptyReturn
     c_string = str(onnx_path).encode('utf-8')
-    load_info = loaded_lib.link_onnx(c_string)
+    load_info = loaded_lib.link_onnx()
     if load_info.error_message:
         raise OSError(f"Failed to load onnxruntime: {load_info.error_message.decode('utf-8')}")
 
