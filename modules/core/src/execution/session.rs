@@ -1,19 +1,17 @@
 //! Defines the session module for the execution module.
 use ort::session::Session;
-use tempfile::NamedTempFile;
 use std::path::PathBuf;
-use std::io::Write;
 use crate::errors::error::{SurrealError, SurrealErrorStatus};
 use crate::safe_eject;
-
-#[cfg(feature = "dynamic")]
 use onnx_embedding::embed_onnx;
 
 #[cfg(feature = "dynamic")]
 use ort::environment::EnvironmentBuilder;
+use tempfile::TempDir;
 
-#[cfg(feature = "dynamic")]
-pub static ONNX_BYTES: &'static [u8] = embed_onnx!("1.20.0");
+use tempfile::tempdir;
+use std::io::Cursor;
+use zip::ZipArchive;
 
 
 /// Creates a session for a model.
@@ -40,24 +38,69 @@ pub fn get_session(model_bytes: Vec<u8>) -> Result<Session, SurrealError> {
     Ok(session)
 }
 
-/// Unpacks the embedded libonnxruntime and loads it into ort.
+
+/// Unzips bytes into a temp directory.
+/// 
+/// # Arguments
+/// - zip_bytes: the bytes to be unzipped into a temp directory
+fn unzip_to_temp_dir(zip_bytes: &[u8]) -> std::io::Result<(PathBuf, TempDir)> {
+    // 1. Create a temp dir
+    let temp_dir = tempdir()?;
+    let temp_path = temp_dir.path().to_path_buf(); // clone path before move
+
+    // 2. Open a ZipArchive from the embedded bytes
+    let reader = Cursor::new(zip_bytes);
+    let mut archive = ZipArchive::new(reader)?;
+
+    // 3. Extract files
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i)?;
+        let outpath = temp_path.join(file.mangled_name());
+
+        if (*file.name()).ends_with('/') {
+            // It's a directory
+            std::fs::create_dir_all(&outpath)?;
+        } else {
+            // It's a file
+            if let Some(parent) = outpath.parent() {
+                std::fs::create_dir_all(parent)?;
+            }
+            let mut outfile = std::fs::File::create(&outpath)?;
+            std::io::copy(&mut file, &mut outfile)?;
+        }
+    }
+
+    // 4. IMPORTANT: TempDir will be deleted when dropped
+    // You need to keep the TempDir alive if you want to use the path
+    // -> So you must return both the TempDir and the PathBuf!
+    Ok((temp_path, temp_dir))
+}
+
+
 #[cfg(feature = "dynamic")]
 pub fn set_environment() -> Result<(), SurrealError> {
-    // Generate the ort environment from the dynamically pulled onnx runtime bytes
-    let mut temp_file = NamedTempFile::new().map_err(|e| {
-        SurrealError::new(e.to_string(), SurrealErrorStatus::Unknown)
-    })?;
-    temp_file.write_all(ONNX_BYTES).map_err(|e| {
-        SurrealError::new(e.to_string(), SurrealErrorStatus::Unknown)
-    })?;
-    let path: PathBuf = temp_file.path().to_path_buf();
-    let path_str = match path.to_str() {
-        Some(unwrapped_string) => unwrapped_string,
-        None => return Err(SurrealError::new("cannot convert ONNX temp file to string".to_string(), SurrealErrorStatus::Unknown))
-    };
-    let environment: EnvironmentBuilder = ort::init_from(path_str);
 
-    match environment.commit() {
+    #[cfg(doc)]
+    const ONNX_BYTES: &[u8] = &[];
+
+    #[cfg(not(doc))]
+    const ONNX_BYTES: &[u8] = embed_onnx!("1.20.0");
+
+    let (extracted_lib_dir, _temp_dir) = match unzip_to_temp_dir(ONNX_BYTES) {
+        Ok(package) => package,
+        Err(e) => return Err(SurrealError::new(e.to_string(), SurrealErrorStatus::Unknown))
+    };
+
+    let onnx_lib_path = if cfg!(target_os = "windows") {
+        extracted_lib_dir.join("onnxruntime.dll")
+    } else if cfg!(target_os = "macos") {
+        extracted_lib_dir.join("libonnxruntime.dylib")
+    } else {
+        extracted_lib_dir.join("libonnxruntime.so")
+    };
+
+    let outcome: EnvironmentBuilder = ort::init_from(onnx_lib_path.to_str().unwrap());
+    match outcome.commit() {
         Ok(_env) => {
             // TODO => might look into wrapping the session in a lock but for now it seems to be
             // working in tests. Below is what the lock can look like:
