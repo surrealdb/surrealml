@@ -39,6 +39,10 @@ pub fn get_session(model_bytes: Vec<u8>) -> Result<Session, SurrealError> {
 }
 
 
+/// Unzips bytes into a temp directory.
+/// 
+/// # Arguments
+/// - zip_bytes: the bytes to be unzipped into a temp directory
 fn unzip_to_temp_dir(zip_bytes: &[u8]) -> std::io::Result<(PathBuf, TempDir)> {
     // 1. Create a temp dir
     let temp_dir = tempdir()?;
@@ -98,9 +102,9 @@ pub fn set_environment() -> Result<(), SurrealError> {
     let outcome: EnvironmentBuilder = ort::init_from(onnx_lib_path.to_str().unwrap());
     match outcome.commit() {
         Ok(_env) => {
-               // TODO => might look into wrapping the session in a lock but for now it seems to be
-               // working in tests. Below is what the lock can look like:
-               //  pub static ORT_ENV: LazyLock<Arc<Mutex<Option<Arc<Environment>>>>> = LazyLock::new(|| Arc::new(Mutex::new(None)));
+            // TODO => might look into wrapping the session in a lock but for now it seems to be
+            // working in tests. Below is what the lock can look like:
+            //  pub static ORT_ENV: LazyLock<Arc<Mutex<Option<Arc<Environment>>>>> = LazyLock::new(|| Arc::new(Mutex::new(None)));
         },
         Err(e) => {
             return Err(SurrealError::new(e.to_string(), SurrealErrorStatus::Unknown));
