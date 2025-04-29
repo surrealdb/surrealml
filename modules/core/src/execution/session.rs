@@ -82,7 +82,7 @@ pub fn set_environment() -> Result<(), SurrealError> {
     #[cfg(not(doc))]
     const ONNX_BYTES: &[u8] = embed_onnx!("1.20.0");
 
-    let (extracted_lib_dir, _temp_dir) = match unzip_to_temp_dir(onnx_bytes) {
+    let (extracted_lib_dir, _temp_dir) = match unzip_to_temp_dir(ONNX_BYTES) {
         Ok(package) => package,
         Err(e) => return Err(SurrealError::new(e.to_string(), SurrealErrorStatus::Unknown))
     };
