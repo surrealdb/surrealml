@@ -30,6 +30,7 @@ def load_library(lib_name: str = "libc_wrapper") -> ctypes.CDLL:
         raise FileNotFoundError(f"Shared library not found at: {lib_path}")
     
     loaded_lib = ctypes.CDLL(str(lib_path))
+    # loaded_lib.link_onnx.argtypes = []
     loaded_lib.link_onnx.restype = EmptyReturn
     load_info = loaded_lib.link_onnx()
     if load_info.error_message:
