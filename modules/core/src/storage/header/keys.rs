@@ -2,14 +2,13 @@
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 
-use crate::safe_eject_internal;
 use crate::errors::error::{SurrealError, SurrealErrorStatus};
-
+use crate::safe_eject_internal;
 
 /// Defines the key bindings for input data.
-/// 
+///
 /// # Fields
-/// * `store` - A vector of strings that represent the column names. The order of this store is the same as the order 
+/// * `store` - A vector of strings that represent the column names. The order of this store is the same as the order
 ///   in which the columns are expected in the input data.
 /// * `reference` - A hashmap that maps the column names to their index in the `self.store` field.
 #[derive(Debug, PartialEq)]
@@ -18,11 +17,9 @@ pub struct KeyBindings {
     pub reference: HashMap<String, usize>,
 }
 
-
 impl KeyBindings {
-
     /// Creates a new key bindings with no columns.
-    /// 
+    ///
     /// # Returns
     /// A new key bindings with no columns.
     pub fn fresh() -> Self {
@@ -34,7 +31,7 @@ impl KeyBindings {
 
     /// Adds a column name to the `self.store` field. It must be noted that the order in which the columns are added is
     /// the order in which they will be expected in the input data.
-    /// 
+    ///
     /// # Arguments
     /// * `column_name` - The name of the column to be added.
     pub fn add_column(&mut self, column_name: String) {
@@ -44,15 +41,15 @@ impl KeyBindings {
     }
 
     /// Constructs the key bindings from a string.
-    /// 
+    ///
     /// # Arguments
     /// * `data` - The string to be converted into key bindings.
-    /// 
+    ///
     /// # Returns
     /// The key bindings constructed from the string.
     pub fn from_string(data: String) -> Self {
         if data.is_empty() {
-            return KeyBindings::fresh()
+            return KeyBindings::fresh();
         }
         let mut store = Vec::new();
         let mut reference = HashMap::new();
@@ -63,17 +60,14 @@ impl KeyBindings {
             store.push(line.to_string());
             reference.insert(line.to_string(), count);
         }
-        KeyBindings {
-            store,
-            reference,
-        }
+        KeyBindings { store, reference }
     }
 
     /// Constructs the key bindings from bytes.
-    /// 
+    ///
     /// # Arguments
     /// * `data` - The bytes to be converted into key bindings.
-    /// 
+    ///
     /// # Returns
     /// The key bindings constructed from the bytes.
     pub fn from_bytes(data: &[u8]) -> Result<Self, SurrealError> {
@@ -82,7 +76,7 @@ impl KeyBindings {
     }
 
     /// Converts the key bindings to bytes.
-    /// 
+    ///
     /// # Returns
     /// The key bindings as bytes.
     pub fn to_bytes(&self) -> Vec<u8> {
@@ -95,7 +89,6 @@ impl Display for KeyBindings {
         write!(f, "{}", self.store.join("=>"))
     }
 }
-
 
 #[cfg(test)]
 pub mod tests {
@@ -111,7 +104,14 @@ pub mod tests {
     }
 
     fn generate_struct() -> KeyBindings {
-        let store = vec!["a".to_string(), "b".to_string(), "c".to_string(), "d".to_string(), "e".to_string(), "f".to_string()];
+        let store = vec![
+            "a".to_string(),
+            "b".to_string(),
+            "c".to_string(),
+            "d".to_string(),
+            "e".to_string(),
+            "f".to_string(),
+        ];
         let mut reference = HashMap::new();
         reference.insert("a".to_string(), 0);
         reference.insert("b".to_string(), 1);
@@ -119,10 +119,7 @@ pub mod tests {
         reference.insert("d".to_string(), 3);
         reference.insert("e".to_string(), 4);
         reference.insert("f".to_string(), 5);
-        KeyBindings {
-            store,
-            reference,
-        }
+        KeyBindings { store, reference }
     }
 
     #[test]
@@ -201,5 +198,4 @@ pub mod tests {
         assert_eq!(bindings.store[1], "b");
         assert_eq!(bindings.reference["b"], 1);
     }
-
 }

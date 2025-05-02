@@ -2,9 +2,8 @@
 
 use std::fmt::Display;
 
-
 /// InputDims is a struct that holds the dimensions of the input tensors for the model.
-/// 
+///
 /// # Fields
 /// * `dims` - The dimensions of the input tensors.
 #[derive(Debug, PartialEq)]
@@ -12,24 +11,20 @@ pub struct InputDims {
     pub dims: [i32; 2],
 }
 
-
 impl InputDims {
-
     /// Creates a new `InputDims` struct with all zeros.
-    /// 
+    ///
     /// # Returns
     /// A new `InputDims` struct with all zeros.
     pub fn fresh() -> Self {
-        InputDims {
-            dims: [0, 0],
-        }
+        InputDims { dims: [0, 0] }
     }
 
     /// Creates a new `InputDims` struct from a string.
-    /// 
+    ///
     /// # Arguments
     /// * `data` - The dimensions as a string.
-    /// 
+    ///
     /// # Returns
     /// A new `InputDims` struct.
     pub fn from_string(data: String) -> InputDims {
@@ -52,7 +47,6 @@ impl Display for InputDims {
         write!(f, "{},{}", self.dims[0], self.dims[1])
     }
 }
-
 
 #[cfg(test)]
 pub mod tests {
@@ -78,5 +72,4 @@ pub mod tests {
         let input_dims = InputDims::from_string("1,2".to_string());
         assert_eq!(input_dims.to_string(), "1,2".to_string());
     }
-
 }

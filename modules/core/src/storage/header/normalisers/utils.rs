@@ -1,14 +1,10 @@
 //! Utility functions for normalisers to reduce code duplication in areas that cannot be easily defined in a struct.
-use regex::{Regex, Captures};
-use crate::{
-    safe_eject_option,
-    safe_eject_internal,
-};
 use crate::errors::error::{SurrealError, SurrealErrorStatus};
-
+use crate::{safe_eject_internal, safe_eject_option};
+use regex::{Captures, Regex};
 
 /// Extracts the label from a normaliser string.
-/// 
+///
 /// # Arguments
 /// * `data` - A string containing the normaliser data.
 pub fn extract_label(data: &str) -> Result<String, SurrealError> {
@@ -17,12 +13,11 @@ pub fn extract_label(data: &str) -> Result<String, SurrealError> {
     Ok(safe_eject_option!(captures.get(1)).as_str().to_string())
 }
 
-
 /// Extracts two numbers from a string with brackets where the numbers are in the brackets seperated by comma.
-/// 
+///
 /// # Arguments
 /// * `data` - A string containing the normaliser data.
-/// 
+///
 /// # Returns
 /// [number1, number2] from `"(number1, number2)"`
 pub fn extract_two_numbers(data: &str) -> Result<[f32; 2], SurrealError> {
@@ -37,7 +32,6 @@ pub fn extract_two_numbers(data: &str) -> Result<[f32; 2], SurrealError> {
     buffer[1] = safe_eject_internal!(num_two_str.parse::<f32>());
     Ok(buffer)
 }
-
 
 #[cfg(test)]
 mod tests {

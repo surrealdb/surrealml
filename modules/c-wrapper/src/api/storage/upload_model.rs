@@ -73,7 +73,10 @@ pub extern "C" fn upload_model(
     let req = match (username, password) {
         (Some(username), Some(password)) => {
             empty_return_safe_eject!(part_req
-                .header(AUTHORIZATION, format!("Basic {}", encode(format!("{username}:{password}"))))
+                .header(
+                    AUTHORIZATION,
+                    format!("Basic {}", encode(format!("{username}:{password}")))
+                )
                 .body(body))
         }
         _ => empty_return_safe_eject!(part_req.body(body)),

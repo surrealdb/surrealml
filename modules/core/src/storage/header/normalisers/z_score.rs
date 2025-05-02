@@ -1,9 +1,8 @@
 //! The functionality and parameters around a z-score normaliser.
 use super::traits::Normaliser;
 
-
 /// A z-score normaliser.
-/// 
+///
 /// # Fields
 /// * `mean` - The mean of the normaliser.
 /// * `std_dev` - The standard deviation of the normaliser.
@@ -13,37 +12,33 @@ pub struct ZScore {
     pub std_dev: f32,
 }
 
-
 impl Normaliser for ZScore {
-
     /// Normalises a value.
-    /// 
+    ///
     /// # Arguments
     /// * `input` - The value to normalise.
-    /// 
+    ///
     /// # Returns
     /// The normalised value.
-    fn normalise(&self, input: f32)-> f32 {
+    fn normalise(&self, input: f32) -> f32 {
         (input - self.mean) / self.std_dev
     }
 
     /// Applies the inverse of the value for the normaliser.
-    /// 
+    ///
     /// # Arguments
     /// * `input` - The value to inverse normalise.
-    /// 
+    ///
     /// # Returns
     /// The inverse normalised value.
-    fn inverse_normalise(&self, input: f32)-> f32 {
+    fn inverse_normalise(&self, input: f32) -> f32 {
         (input * self.std_dev) + self.mean
     }
 
     fn key() -> String {
         "z_score".to_string()
     }
-
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -61,5 +56,4 @@ mod tests {
         let actual = normaliser.normalise(input);
         assert_eq!(expected, actual);
     }
-
 }

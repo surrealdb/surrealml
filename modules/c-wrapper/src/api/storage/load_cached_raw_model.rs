@@ -13,14 +13,12 @@ use crate::state::{generate_unique_id, STATE};
 use crate::utils::StringReturn;
 use crate::{process_string_for_string_return, string_return_safe_eject};
 
-
-
-/// Loads a ONNX model from a file wrapping it in a SurMlFile struct 
+/// Loads a ONNX model from a file wrapping it in a SurMlFile struct
 /// which is stored in memory and referenced by a unique ID.
-/// 
+///
 /// # Arguments
 /// * `file_path` - The path to the file to load.
-/// 
+///
 /// # Returns
 /// A unique identifier for the loaded model.
 #[no_mangle]

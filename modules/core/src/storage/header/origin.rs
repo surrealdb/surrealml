@@ -5,14 +5,12 @@ use crate::errors::error::{SurrealError, SurrealErrorStatus};
 
 use super::string_value::StringValue;
 
-
 const LOCAL: &str = "local";
 const SURREAL_DB: &str = "surreal_db";
 const NONE: &str = "";
 
-
 /// Defines the types of origin that are supported.
-/// 
+///
 /// # Fields
 /// * `Local` - The model was created locally.
 /// * `SurrealDb` - The model was created in the surreal database.
@@ -25,9 +23,8 @@ pub enum OriginValue {
 }
 
 impl OriginValue {
-
     /// Creates a new `OriginValue` with no value.
-    /// 
+    ///
     /// # Returns
     /// A new `OriginValue` with no value.
     pub fn fresh() -> Self {
@@ -35,10 +32,10 @@ impl OriginValue {
     }
 
     /// Create a `OriginValue` from a string.
-    /// 
+    ///
     /// # Arguments
     /// * `origin` - The origin as a string.
-    /// 
+    ///
     /// # Returns
     /// A new `OriginValue`.
     pub fn from_string(origin: String) -> Result<Self, SurrealError> {
@@ -46,7 +43,10 @@ impl OriginValue {
             LOCAL => Ok(OriginValue::Local(StringValue::from_string(origin))),
             SURREAL_DB => Ok(OriginValue::SurrealDb(StringValue::from_string(origin))),
             NONE => Ok(OriginValue::None(StringValue::from_string(origin))),
-            _ => Err(SurrealError::new(format!("invalid origin: {}", origin), SurrealErrorStatus::BadRequest))
+            _ => Err(SurrealError::new(
+                format!("invalid origin: {}", origin),
+                SurrealErrorStatus::BadRequest,
+            )),
         }
     }
 }
@@ -61,9 +61,8 @@ impl Display for OriginValue {
     }
 }
 
-
 /// Defines the origin of the model in the file header.
-/// 
+///
 /// # Fields
 /// * `origin` - The origin of the model.
 /// * `author` - The author of the model.
@@ -73,11 +72,9 @@ pub struct Origin {
     pub author: StringValue,
 }
 
-
 impl Origin {
-
     /// Creates a new origin with no values.
-    /// 
+    ///
     /// # Returns
     /// A new origin with no values.
     pub fn fresh() -> Self {
@@ -88,7 +85,7 @@ impl Origin {
     }
 
     /// Adds an author to the origin struct.
-    /// 
+    ///
     /// # Arguments
     /// * `origin` - The origin to be added.
     pub fn add_author(&mut self, author: String) {
@@ -96,7 +93,7 @@ impl Origin {
     }
 
     /// Adds an origin to the origin struct.
-    /// 
+    ///
     /// # Arguments
     pub fn add_origin(&mut self, origin: String) -> Result<(), SurrealError> {
         self.origin = OriginValue::from_string(origin)?;
@@ -104,10 +101,10 @@ impl Origin {
     }
 
     /// Creates a new origin from a string.
-    /// 
+    ///
     /// # Arguments
     /// * `origin` - The origin as a string.
-    /// 
+    ///
     /// # Returns
     /// A new origin.
     pub fn from_string(origin: String) -> Result<Self, SurrealError> {
@@ -122,7 +119,6 @@ impl Origin {
             author: StringValue::from_string(author),
         })
     }
-
 }
 
 impl Display for Origin {
@@ -134,7 +130,6 @@ impl Display for Origin {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
 
@@ -143,10 +138,13 @@ mod tests {
     #[test]
     fn test_fresh() {
         let origin = Origin::fresh();
-        assert_eq!(origin, Origin {
-            origin: OriginValue::fresh(),
-            author: StringValue::fresh(),
-        });
+        assert_eq!(
+            origin,
+            Origin {
+                origin: OriginValue::fresh(),
+                author: StringValue::fresh(),
+            }
+        );
     }
 
     #[test]
@@ -164,15 +162,17 @@ mod tests {
     #[test]
     fn test_from_string() {
         let origin = Origin::from_string("author=>local".to_string()).unwrap();
-        assert_eq!(origin, Origin {
-            origin: OriginValue::from_string("local".to_string()).unwrap(),
-            author: StringValue::from_string("author".to_string()),
-        });
+        assert_eq!(
+            origin,
+            Origin {
+                origin: OriginValue::from_string("local".to_string()).unwrap(),
+                author: StringValue::from_string("author".to_string()),
+            }
+        );
 
         let origin = Origin::from_string("=>local".to_string()).unwrap();
 
         assert_eq!(None, origin.author.value);
         assert_eq!("local".to_string(), origin.origin.to_string());
     }
-
 }

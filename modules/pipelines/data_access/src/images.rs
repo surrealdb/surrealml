@@ -1,13 +1,12 @@
 //! # Image Buffer
 //! In this module we are reading the image to a buffer and calculate the RGB indexes for each pixel.
-use image::io::Reader as ImageReader;
-use image::{ImageBuffer, Rgb, DynamicImage};
 use crate::tags::SurgeryStep;
+use image::io::Reader as ImageReader;
+use image::{DynamicImage, ImageBuffer, Rgb};
 use std::io::{self, Write};
 
-
 /// Represents the indexes of the red, green and blue components of a pixel.
-/// 
+///
 /// # Fields
 /// * `red` - The index of the red component in relation to the (x, y) coordinates of the pixel.
 /// * `green` - The index of the green component in relation to the (x, y) coordinates of the pixel.
@@ -19,15 +18,14 @@ struct RgbIndexes {
     blue: usize,
 }
 
-
 /// Calculates the RGB indexes for a given pixel in relation to the (x, y) coordinates of the pixel.
-/// 
+///
 /// # Arguments
 /// * `x` - The x coordinate of the pixel.
 /// * `y` - The y coordinate of the pixel.
 /// * `total_width` - The total width of the image frame.
 /// * `total_height` - The total height of the image frame.
-/// 
+///
 /// # Returns
 /// A RgbIndexes struct containing the indexes of the red, green and blue components of the pixel.
 fn calculate_rgb_index(x: usize, y: usize, total_width: usize, total_height: usize) -> RgbIndexes {
@@ -38,15 +36,14 @@ fn calculate_rgb_index(x: usize, y: usize, total_width: usize, total_height: usi
     }
 }
 
-
 /// Reads an RGB image from a file and returns the raw data in 1D form that can be mapped as a 3D
 /// array by using the `calculate_rgb_index` function.
-/// 
+///
 /// # Arguments
 /// * `path` - The path to the image file.
 /// * `height` - The total height of the image.
 /// * `width` - The total width of the image.
-/// 
+///
 /// # Returns
 /// A 1D array containing the raw RGB data of the image (flatterned).
 pub fn read_rgb_image(path: String, height: usize, width: usize) -> Vec<u8> {
@@ -55,7 +52,11 @@ pub fn read_rgb_image(path: String, height: usize, width: usize) -> Vec<u8> {
     let depth: usize = 3;
 
     let img: DynamicImage = ImageReader::open(path).unwrap().decode().unwrap();
-    let resized_img: DynamicImage = img.resize_exact(width as u32, height as u32, image::imageops::FilterType::Nearest);
+    let resized_img: DynamicImage = img.resize_exact(
+        width as u32,
+        height as u32,
+        image::imageops::FilterType::Nearest,
+    );
 
     // Convert to RGB and flatten to array if necessary
     let rgb_img: ImageBuffer<Rgb<u8>, Vec<u8>> = resized_img.to_rgb8();
@@ -76,9 +77,8 @@ pub fn read_rgb_image(path: String, height: usize, width: usize) -> Vec<u8> {
     raw_data
 }
 
-
 /// Writes a frame to the standard output.
-/// 
+///
 /// # Arguments
 /// * `data` - The raw data of the frame.
 /// * `tag` - The tag associated with the frame.
@@ -87,10 +87,14 @@ pub fn write_frame_to_std_out(data: Vec<u8>, tag: SurgeryStep) {
     let mut handle = stdout.lock();
 
     // Write the tag as a 2-byte integer
-    handle.write_all(&(tag.to_u8() as u16).to_le_bytes()).unwrap();
+    handle
+        .write_all(&(tag.to_u8() as u16).to_le_bytes())
+        .unwrap();
 
     // Write the len as a 4-byte integer
-    handle.write_all(&(data.len() as u32).to_le_bytes()).unwrap();
+    handle
+        .write_all(&(data.len() as u32).to_le_bytes())
+        .unwrap();
 
     // Write each byte in data as a 2-byte integer
     for byte in data {
@@ -99,7 +103,6 @@ pub fn write_frame_to_std_out(data: Vec<u8>, tag: SurgeryStep) {
 
     handle.flush().unwrap();
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -119,7 +122,6 @@ mod tests {
 
     #[test]
     fn test_calculate_rgb_index() {
-
         // This will give x y chunks of 50 and an entire rgb image of 150
         let total_height = 5;
         let total_width = 10;
@@ -174,4 +176,4 @@ mod tests {
         assert_eq!(&data.data[index.green], &133);
         assert_eq!(&data.data[index.blue], &115);
     }
-}   
+}

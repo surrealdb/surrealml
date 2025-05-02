@@ -2,9 +2,8 @@
 
 use std::fmt::Display;
 
-
 /// Defines the type of engine being used to run the model.
-/// 
+///
 /// # Fields
 /// * `Native` - The native engine which will be native rust and linfa.
 /// * `PyTorch` - The PyTorch engine which will be PyTorch and tch-rs.
@@ -13,14 +12,12 @@ use std::fmt::Display;
 pub enum Engine {
     Native,
     PyTorch,
-    Undefined
+    Undefined,
 }
 
-
 impl Engine {
-
     /// Creates a new `Engine` struct with the undefined engine.
-    /// 
+    ///
     /// # Returns
     /// A new `Engine` struct with the undefined engine.
     pub fn fresh() -> Self {
@@ -28,10 +25,10 @@ impl Engine {
     }
 
     /// Creates a new `Engine` struct from a string.
-    /// 
+    ///
     /// # Arguments
     /// * `engine` - The engine as a string.
-    /// 
+    ///
     /// # Returns
     /// A new `Engine` struct.
     pub fn from_string(engine: String) -> Self {
