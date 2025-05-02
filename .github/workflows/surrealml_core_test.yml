@@ -1,8 +1,12 @@
 name: Run SkLearn Tests
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
-    types: [opened, reopened, synchronize]
+    branches:
+      - main
 
 jobs:
   test_core:

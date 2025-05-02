@@ -1,8 +1,12 @@
 name: Run C-wrapper unit tests
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
-    types: [opened, reopened, synchronize]
+    branches:
+      - main
 
 jobs:
   test_core:
