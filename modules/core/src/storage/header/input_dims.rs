@@ -1,5 +1,7 @@
 //! InputDims is a struct that holds the dimensions of the input tensors for the model.
 
+use std::fmt::Display;
+
 
 /// InputDims is a struct that holds the dimensions of the input tensors for the model.
 /// 
@@ -31,7 +33,7 @@ impl InputDims {
     /// # Returns
     /// A new `InputDims` struct.
     pub fn from_string(data: String) -> InputDims {
-        if data == "".to_string() {
+        if data.is_empty() {
             return InputDims::fresh();
         }
         let dims: Vec<&str> = data.split(",").collect();
@@ -40,16 +42,14 @@ impl InputDims {
             dims: [dims[0], dims[1]],
         }
     }
+}
 
-    /// Translates the struct to a string.
-    /// 
-    /// # Returns
-    /// * `String` - The struct as a string.
-    pub fn to_string(&self) -> String {
+impl Display for InputDims {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.dims[0] == 0 && self.dims[1] == 0 {
-            return "".to_string();
+            return write!(f, "");
         }
-        format!("{},{}", self.dims[0], self.dims[1])
+        write!(f, "{},{}", self.dims[0], self.dims[1])
     }
 }
 

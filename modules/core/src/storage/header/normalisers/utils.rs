@@ -11,7 +11,7 @@ use crate::errors::error::{SurrealError, SurrealErrorStatus};
 /// 
 /// # Arguments
 /// * `data` - A string containing the normaliser data.
-pub fn extract_label(data: &String) -> Result<String, SurrealError> {
+pub fn extract_label(data: &str) -> Result<String, SurrealError> {
     let re: Regex = safe_eject_internal!(Regex::new(r"^(.*?)\("));
     let captures: Captures = safe_eject_option!(re.captures(data));
     Ok(safe_eject_option!(captures.get(1)).as_str().to_string())
@@ -25,7 +25,7 @@ pub fn extract_label(data: &String) -> Result<String, SurrealError> {
 /// 
 /// # Returns
 /// [number1, number2] from `"(number1, number2)"`
-pub fn extract_two_numbers(data: &String) -> Result<[f32; 2], SurrealError> {
+pub fn extract_two_numbers(data: &str) -> Result<[f32; 2], SurrealError> {
     let re: Regex = safe_eject_internal!(Regex::new(r"[-+]?\d+(\.\d+)?"));
     let mut numbers = re.find_iter(data);
     let mut buffer: [f32; 2] = [0.0, 0.0];

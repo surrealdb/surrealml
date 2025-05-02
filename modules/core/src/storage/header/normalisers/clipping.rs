@@ -24,7 +24,7 @@ impl Normaliser for Clipping {
     /// # Returns
     /// The normalised value.
     fn normalise(&self, input: f32)-> f32 {
-        let normalised = match (self.min, self.max) {
+        match (self.min, self.max) {
             (Some(min), Some(max)) => {
                 if input < min {
                     min
@@ -51,8 +51,7 @@ impl Normaliser for Clipping {
             (None, None) => {
                 input
             },
-        };
-        normalised
+        }
     }
 
     fn key() -> String {

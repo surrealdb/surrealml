@@ -120,7 +120,7 @@ pub extern "C" fn buffered_compute(
             }
         }
     };
-    let mut file = match state.get_mut(&file_id) {
+    let surml_file = match state.get_mut(&file_id) {
         Some(file) => file,
         None => {
             {
@@ -135,7 +135,7 @@ pub extern "C" fn buffered_compute(
         }
     };
     let compute_unit = ModelComputation {
-        surml_file: &mut file
+        surml_file
     };
     match compute_unit.buffered_compute(&mut input_map) {
         Ok(mut output) => {

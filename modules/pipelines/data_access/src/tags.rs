@@ -29,6 +29,7 @@ pub enum SurgeryStep {
 
 
 /// Converts a u8 to a SurgeryStep.
+#[expect(clippy::fallible_impl_from)]
 impl From<u8> for SurgeryStep {
     fn from(step: u8) -> Self {
         match step {
@@ -93,7 +94,7 @@ pub fn read_tags(path: &str) -> Result<String, std::io::Error> {
     let mut file = File::open(path)?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
-    return Ok(contents)
+    Ok(contents)
 }
 
 

@@ -1,5 +1,7 @@
 //! Defines a generic string value for the header.
 
+use std::fmt::Display;
+
 
 /// Defines a generic string value for the header.
 /// 
@@ -40,18 +42,15 @@ impl StringValue {
             },
         }
     }
+}
 
-    /// Converts the string value to a string.
-    /// 
-    /// # Returns
-    /// The string value as a string.
-    pub fn to_string(&self) -> String {
+impl Display for StringValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self.value {
-            Some(value) => value.to_string(),
-            None => String::from(""),
+            Some(value) => write!(f, "{}", value),
+            None => write!(f, ""),
         }
     }
-
 }
 
 

@@ -1,4 +1,6 @@
 //! Defines the struct housing data around the outputs of the model.
+use std::fmt::Display;
+
 use super::normalisers::wrapper::NormaliserType;
 use crate::{
     safe_eject_option,
@@ -52,30 +54,6 @@ impl Output {
         self.normaliser = Some(normaliser);
     }
 
-    /// Converts the output struct to a string.
-    /// 
-    /// # Returns
-    /// * `String` - The output struct as a string.
-    pub fn to_string(&self) -> String {
-
-        if &self.name == &None && &self.normaliser == &None {
-            return "".to_string();
-        }
-
-        let name = match &self.name {
-            Some(name) => name.clone(),
-            None => "none".to_string(),
-        };
-        let mut buffer = vec![
-            name.clone(),
-        ];
-        match &self.normaliser {
-            Some(normaliser) => buffer.push(normaliser.to_string()),
-            None => buffer.push("none".to_string()),
-        }
-        buffer.join("=>")
-    }
-
     /// Converts a string to an instance of the Output struct.
     /// 
     /// # Arguments
@@ -84,7 +62,7 @@ impl Output {
     /// # Returns
     /// * `Output` - The string as an instance of the Output struct.
     pub fn from_string(data: String) -> Result<Self, SurrealError> {
-        if data.contains("=>") == false {
+        if !data.contains("=>") {
             return Ok(Output::fresh())
         }
         let mut buffer = data.split("=>");
@@ -100,10 +78,35 @@ impl Output {
             "none" => None,
             _ => Some(NormaliserType::from_string(data).unwrap().0),
         };
-        return Ok(Output {
+        Ok(Output {
             name,
             normaliser
         })
+    }
+}
+
+impl Display for Output {
+    /// Converts the Output struct to a string.
+    /// 
+    /// # Returns
+    /// A string representation of the Output struct.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.name.is_none() && self.normaliser.is_none() {
+            return write!(f, "")
+        }
+
+        let name = match &self.name {
+            Some(name) => name.clone(),
+            None => "none".to_string(),
+        };
+        let mut buffer = vec![
+            name.clone(),
+        ];
+        match &self.normaliser {
+            Some(normaliser) => buffer.push(normaliser.to_string()),
+            None => buffer.push("none".to_string()),
+        }
+        write!(f, "{}", buffer.join("=>"))
     }
 }
 

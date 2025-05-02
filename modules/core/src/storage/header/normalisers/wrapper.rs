@@ -1,4 +1,6 @@
 //! Defines the constructing and storing of normalisers.
+use std::fmt::Display;
+
 use super::linear_scaling;
 use super::clipping;
 use super::log_scale;
@@ -106,36 +108,6 @@ impl NormaliserType {
         Ok((normaliser, column_name))
     }
 
-    /// Converts a normaliser to a string.
-    /// 
-    /// # Returns
-    /// A string containing the normaliser data.
-    pub fn to_string(&self) -> String {
-        let normaliser_string = match self {
-            NormaliserType::LinearScaling(linear_scaling) => {
-                let min = linear_scaling.min;
-                let max = linear_scaling.max;
-                format!("linear_scaling({},{})", min, max)
-            },
-            NormaliserType::Clipping(clipping) => {
-                let min = clipping.min.unwrap();
-                let max = clipping.max.unwrap();
-                format!("clipping({},{})", min, max)
-            },
-            NormaliserType::LogScaling(log_scaling) => {
-                let base = log_scaling.base;
-                let min = log_scaling.min;
-                format!("log_scaling({},{})", base, min)
-            },
-            NormaliserType::ZScore(z_score) => {
-                let mean = z_score.mean;
-                let std_dev = z_score.std_dev;
-                format!("z_score({},{})", mean, std_dev)
-            },
-        };
-        normaliser_string
-    }
-
     /// Normalises a value.
     /// 
     /// # Arguments
@@ -168,6 +140,17 @@ impl NormaliserType {
         }
     }
 
+}
+
+impl Display for NormaliserType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            NormaliserType::LinearScaling(linear_scaling) => write!(f, "linear_scaling({},{})", linear_scaling.min, linear_scaling.max),
+            NormaliserType::Clipping(clipping) => write!(f, "clipping({},{})", clipping.min.unwrap(), clipping.max.unwrap()),
+            NormaliserType::LogScaling(log_scaling) => write!(f, "log_scaling({},{})", log_scaling.base, log_scaling.min),
+            NormaliserType::ZScore(z_score) => write!(f, "z_score({},{})", z_score.mean, z_score.std_dev),
+        }
+    }
 }
 
 

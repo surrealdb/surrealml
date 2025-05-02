@@ -19,7 +19,7 @@ pub struct ModelComputation<'a> {
 }
 
 
-impl <'a>ModelComputation<'a> {
+impl ModelComputation<'_> {
 
     /// Creates a Tensor that can be used as input to the loaded model from a hashmap of keys and values.
     /// 
@@ -117,7 +117,8 @@ impl <'a>ModelComputation<'a> {
                 }
             }
         };
-        return Ok(buffer)
+
+        Ok(buffer)
     }
 
     /// Checks the header applying normalisers if present and then performs a raw computation on the loaded model. Will
@@ -134,19 +135,16 @@ impl <'a>ModelComputation<'a> {
     pub fn buffered_compute(&self, input_values: &mut HashMap<String, f32>) -> Result<Vec<f32>, SurrealError> {
         // applying normalisers if present
         for (key, value) in &mut *input_values {
-            let value_ref = value.clone();
-            match self.surml_file.header.get_normaliser(&key.to_string())? {
-                Some(normaliser) => {
-                    *value = normaliser.normalise(value_ref);
-                },
-                None => {}
+            let value_ref = *value;
+            if let Some(normaliser) = self.surml_file.header.get_normaliser(&key.to_string())? {
+                *value = normaliser.normalise(value_ref);
             }
         }
         let tensor = self.input_tensor_from_key_bindings(input_values.clone())?;
         let output = self.raw_compute(tensor, None)?;
         
         // if no normaliser is present, return the output
-        if self.surml_file.header.output.normaliser == None {
+        if self.surml_file.header.output.normaliser.is_none() {
             return Ok(output)
         }
 
@@ -163,7 +161,8 @@ impl <'a>ModelComputation<'a> {
         for value in output {
             buffer.push(output_normaliser.inverse_normalise(value));
         }
-        return Ok(buffer)
+
+        Ok(buffer)
     }
 
 }

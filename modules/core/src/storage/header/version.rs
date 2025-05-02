@@ -1,4 +1,6 @@
 //! Defines the process of managing the version of the `surml` file in the file.
+use std::fmt::Display;
+
 use crate::{
     safe_eject_option,
     safe_eject,
@@ -37,17 +39,6 @@ impl Version {
         }
     }
 
-    /// Translates the struct to a string.
-    /// 
-    /// # Returns
-    /// * `String` - The struct as a string.
-    pub fn to_string(&self) -> String {
-        if self.one == 0 && self.two == 0 && self.three == 0 {
-            return "".to_string();
-        }
-        format!("{}.{}.{}", self.one, self.two, self.three)
-    }
-
     /// Creates a new `Version` struct from a string.
     /// 
     /// # Arguments
@@ -56,7 +47,7 @@ impl Version {
     /// # Returns
     /// A new `Version` struct.
     pub fn from_string(version: String) -> Result<Self, SurrealError> {
-        if version == "".to_string() {
+        if version.is_empty() {
             return Ok(Version::fresh())
         }
         let mut split = version.split(".");
@@ -81,6 +72,16 @@ impl Version {
                 self.two = 0;
                 self.one += 1;
             }
+        }
+    }
+}
+
+impl Display for Version {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.one == 0 && self.two == 0 && self.three == 0 {
+            write!(f, "")
+        } else {
+            write!(f, "{}.{}.{}", self.one, self.two, self.three)
         }
     }
 }

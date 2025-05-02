@@ -32,8 +32,8 @@ struct RgbIndexes {
 /// A RgbIndexes struct containing the indexes of the red, green and blue components of the pixel.
 fn calculate_rgb_index(x: usize, y: usize, total_width: usize, total_height: usize) -> RgbIndexes {
     RgbIndexes {
-        red: 0 * total_height * total_width + y * total_width + x,
-        green: 1 * total_height * total_width + y * total_width + x,
+        red: y * total_width + x,
+        green: total_height * total_width + y * total_width + x,
         blue: 2 * total_height * total_width + y * total_width + x,
     }
 }

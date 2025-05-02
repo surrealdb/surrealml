@@ -60,7 +60,7 @@ pub extern "C" fn raw_compute(file_id_ptr: *const c_char, data_ptr: *const c_flo
         }
     };
     
-    let mut file = match state.get_mut(&file_id) {
+    let surml_file = match state.get_mut(&file_id) {
         Some(file) => file,
         None => {
             {
@@ -78,7 +78,7 @@ pub extern "C" fn raw_compute(file_id_ptr: *const c_char, data_ptr: *const c_flo
     let slice = unsafe { std::slice::from_raw_parts(data_ptr, length) };
     let tensor = ndarray::arr1(slice).into_dyn();
     let compute_unit = ModelComputation {
-        surml_file: &mut file
+        surml_file
     };
 
     // perform the computation

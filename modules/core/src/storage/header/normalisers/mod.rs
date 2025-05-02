@@ -1,5 +1,6 @@
 //! Defines the loading and saving functionality of normalisers.
 use std::collections::HashMap;
+use std::fmt::Display;
 
 pub mod traits;
 pub mod utils;
@@ -52,7 +53,7 @@ impl NormaliserMap {
     pub fn add_normaliser(&mut self, normaliser: NormaliserType, column_name: String, keys_reference: &KeyBindings) -> Result<(), SurrealError> {
         let counter = self.store.len();
         let column_input_index = safe_eject_option!(keys_reference.reference.get(column_name.as_str()));
-        self.reference.insert(column_input_index.clone() as usize, counter as usize);
+        self.reference.insert(*column_input_index, counter);
         self.store.push(normaliser);
         self.store_ref.push(column_name);
         Ok(())
@@ -102,22 +103,20 @@ impl NormaliserMap {
     /// # Returns
     /// A `NormaliserMap` containing the normalisers.
     pub fn from_string(data: String, keys_reference: &KeyBindings) -> Result<Self, SurrealError> {
-        if data.len() == 0 {
+        if data.is_empty() {
             return Ok(NormaliserMap::fresh())
         }
         let normalisers_data = data.split("//");
-        let mut counter = 0;
         let mut reference = HashMap::new();
         let mut store = Vec::new();
         let mut store_ref = Vec::new();
 
-        for normaliser_data in normalisers_data {
+        for (counter, normaliser_data) in normalisers_data.enumerate() {
             let (normaliser, column_name) = NormaliserType::from_string(normaliser_data.to_string())?;
             let column_input_index = safe_eject_option!(keys_reference.reference.get(column_name.as_str()));
-            reference.insert(column_input_index.clone() as usize, counter as usize);
+            reference.insert(*column_input_index, counter);
             store.push(normaliser);
             store_ref.push(column_name);
-            counter += 1;
         }
 
         Ok(NormaliserMap {
@@ -126,12 +125,10 @@ impl NormaliserMap {
             store_ref
         })
     }
+}
 
-    /// Converts the `NormaliserMap` to a string.
-    /// 
-    /// # Returns
-    /// A string containing the normaliser data.
-    pub fn to_string(&self) -> String {
+impl Display for NormaliserMap {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut buffer = Vec::new();
 
         for index in 0..self.store.len() {
@@ -139,10 +136,9 @@ impl NormaliserMap {
             buffer.push(format!("{}=>{}", self.store_ref[index], normaliser_string));
         }
 
-        buffer.join("//")
+        write!(f, "{}", buffer.join("//"))
     }
 }
-
 
 #[cfg(test)]
 pub mod tests {

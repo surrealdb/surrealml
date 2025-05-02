@@ -106,8 +106,7 @@ impl Header {
     /// * `column_name` - The name of the column to which the normaliser will be applied.
     /// * `normaliser` - The normaliser to be applied to the column.
     pub fn add_normaliser(&mut self, column_name: String, normaliser: NormaliserType) -> Result<(), SurrealError> {
-        let _ =  self.normalisers.add_normaliser(normaliser, column_name, &self.keys)?;
-        Ok(())
+        self.normalisers.add_normaliser(normaliser, column_name, &self.keys)
     }
 
     /// Gets the normaliser for a given column name.
@@ -173,15 +172,15 @@ impl Header {
 
         let buffer = string_data.split(Self::delimiter()).collect::<Vec<&str>>();
 
-        let keys: KeyBindings = KeyBindings::from_string(buffer.get(1).unwrap_or(&"").to_string());
-        let normalisers = NormaliserMap::from_string(buffer.get(2).unwrap_or(&"").to_string(), &keys)?;
-        let output = Output::from_string(buffer.get(3).unwrap_or(&"").to_string())?;
-        let name = StringValue::from_string(buffer.get(4).unwrap_or(&"").to_string());
-        let version = Version::from_string(buffer.get(5).unwrap_or(&"").to_string())?;
-        let description = StringValue::from_string(buffer.get(6).unwrap_or(&"").to_string());
-        let engine = Engine::from_string(buffer.get(7).unwrap_or(&"").to_string());
-        let origin = Origin::from_string(buffer.get(8).unwrap_or(&"").to_string())?;
-        let input_dims = InputDims::from_string(buffer.get(9).unwrap_or(&"").to_string());
+        let keys: KeyBindings = KeyBindings::from_string((*buffer.get(1).unwrap_or(&"")).to_string());
+        let normalisers = NormaliserMap::from_string((*buffer.get(2).unwrap_or(&"")).to_string(), &keys)?;
+        let output = Output::from_string((*buffer.get(3).unwrap_or(&"")).to_string())?;
+        let name = StringValue::from_string((*buffer.get(4).unwrap_or(&"")).to_string());
+        let version = Version::from_string((*buffer.get(5).unwrap_or(&"")).to_string())?;
+        let description = StringValue::from_string((*buffer.get(6).unwrap_or(&"")).to_string());
+        let engine = Engine::from_string((*buffer.get(7).unwrap_or(&"")).to_string());
+        let origin = Origin::from_string((*buffer.get(8).unwrap_or(&"")).to_string())?;
+        let input_dims = InputDims::from_string((*buffer.get(9).unwrap_or(&"")).to_string());
         Ok(Header {keys, normalisers, output, name, version, description, engine, origin, input_dims})
     }
 

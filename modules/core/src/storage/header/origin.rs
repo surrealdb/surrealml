@@ -1,4 +1,6 @@
 //! Defines the origin of the model in the file.
+use std::fmt::Display;
+
 use crate::errors::error::{SurrealError, SurrealErrorStatus};
 
 use super::string_value::StringValue;
@@ -47,19 +49,16 @@ impl OriginValue {
             _ => Err(SurrealError::new(format!("invalid origin: {}", origin), SurrealErrorStatus::BadRequest))
         }
     }
+}
 
-    /// Converts the `OriginValue` to a string.
-    /// 
-    /// # Returns
-    /// The `OriginValue` as a string.
-    pub fn to_string(&self) -> String {
+impl Display for OriginValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            OriginValue::Local(string_value) => string_value.to_string(),
-            OriginValue::SurrealDb(string_value) => string_value.to_string(),
-            OriginValue::None(string_value) => string_value.to_string(),
+            OriginValue::Local(string_value) => write!(f, "{}", string_value),
+            OriginValue::SurrealDb(string_value) => write!(f, "{}", string_value),
+            OriginValue::None(string_value) => write!(f, "{}", string_value),
         }
     }
-
 }
 
 
@@ -104,17 +103,6 @@ impl Origin {
         Ok(())
     }
 
-    /// Converts an origin to a string.
-    /// 
-    /// # Returns
-    /// The origin as a string.
-    pub fn to_string(&self) -> String {
-        if self.author.value.is_none() && self.origin == OriginValue::None(StringValue::fresh()) {
-            return String::from("")
-        }
-        format!("{}=>{}", self.author.to_string(), self.origin.to_string())
-    }
-
     /// Creates a new origin from a string.
     /// 
     /// # Arguments
@@ -123,7 +111,7 @@ impl Origin {
     /// # Returns
     /// A new origin.
     pub fn from_string(origin: String) -> Result<Self, SurrealError> {
-        if origin == "".to_string() {
+        if origin.is_empty() {
             return Ok(Origin::fresh());
         }
         let mut split = origin.split("=>");
@@ -135,6 +123,15 @@ impl Origin {
         })
     }
 
+}
+
+impl Display for Origin {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.author.value.is_none() && self.origin == OriginValue::None(StringValue::fresh()) {
+            return write!(f, "");
+        }
+        write!(f, "{}=>{}", self.author, self.origin)
+    }
 }
 
 

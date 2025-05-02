@@ -1,5 +1,6 @@
 //! Defines the key bindings for input data.
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter};
 
 use crate::safe_eject_internal;
 use crate::errors::error::{SurrealError, SurrealErrorStatus};
@@ -9,7 +10,7 @@ use crate::errors::error::{SurrealError, SurrealErrorStatus};
 /// 
 /// # Fields
 /// * `store` - A vector of strings that represent the column names. The order of this store is the same as the order 
-///             in which the columns are expected in the input data.
+///   in which the columns are expected in the input data.
 /// * `reference` - A hashmap that maps the column names to their index in the `self.store` field.
 #[derive(Debug, PartialEq)]
 pub struct KeyBindings {
@@ -50,32 +51,22 @@ impl KeyBindings {
     /// # Returns
     /// The key bindings constructed from the string.
     pub fn from_string(data: String) -> Self {
-        if data.len() == 0 {
+        if data.is_empty() {
             return KeyBindings::fresh()
         }
         let mut store = Vec::new();
         let mut reference = HashMap::new();
 
         let lines = data.split("=>");
-        let mut count = 0;
 
-        for line in lines {
+        for (count, line) in lines.enumerate() {
             store.push(line.to_string());
             reference.insert(line.to_string(), count);
-            count += 1;
         }
         KeyBindings {
             store,
             reference,
         }
-    }
-
-    /// converts the key bindings to a string.
-    /// 
-    /// # Returns
-    /// The key bindings as a string.
-    pub fn to_string(&self) -> String {
-        self.store.join("=>")
     }
 
     /// Constructs the key bindings from bytes.
@@ -97,9 +88,12 @@ impl KeyBindings {
     pub fn to_bytes(&self) -> Vec<u8> {
         self.to_string().into_bytes()
     }
+}
 
-
-
+impl Display for KeyBindings {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.store.join("=>"))
+    }
 }
 
 
