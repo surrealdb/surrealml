@@ -1,0 +1,83 @@
+name: Run C-wrapper unit tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  format:
+    name: Check format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Setup cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Check format
+        run: cargo fmt --all -- --check
+
+  clippy:
+    name: Check clippy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Setup cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Run clippy
+        run: cargo clippy --workspace --all-targets --tests --benches --bins -- -D warnings
+
+  test:
+    name: Run unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Setup cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Run unit tests
+        run: cargo test
+
+  test_core:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        test_type: [onnx-tests, sklearn-tests, tensorflow-tests, torch-tests]
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Run Core Unit Tests
+      run: docker build -t rust-onnx-runtime . && docker run --rm rust-onnx-runtime cargo test -p surrealml-core --features ${{ matrix.test_type }}

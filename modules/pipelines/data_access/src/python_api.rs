@@ -5,7 +5,6 @@ use crate::images::read_rgb_image as read_rgb_image_rust;
 
 use pyo3::prelude::*;
 
-
 #[pyfunction]
 pub fn read_rgb_image(path: String, width: usize, height: usize) -> PyResult<Vec<u8>> {
     let data = read_rgb_image_rust(path, width, height);
