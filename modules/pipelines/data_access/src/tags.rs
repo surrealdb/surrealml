@@ -133,7 +133,7 @@ mod tests {
     fn test_read_tags() {
         let tags = read_tags("./data_stash/cleaned_labels/VID68_processed.json").unwrap();
         let data = parse_surgery_steps(tags);
-        assert_eq!(SurgeryStep::ClippingAndCutting, data.get("968").unwrap()[0]);
+        assert_eq!(SurgeryStep::ClippingAndCutting, data["968"][0]);
     }
 
     #[test]

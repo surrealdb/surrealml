@@ -247,19 +247,18 @@ mod tests {
             Header::delimiter(),
             output,
             Header::delimiter(),
-            "test model name".to_string(),
+            "test model name",
             Header::delimiter(),
-            "0.0.1".to_string(),
+            "0.0.1",
             Header::delimiter(),
-            "test description".to_string(),
+            "test description",
             Header::delimiter(),
-            Engine::PyTorch.to_string(),
+            Engine::PyTorch,
             Header::delimiter(),
             Origin::from_string("author=>local".to_string())
-                .unwrap()
-                .to_string(),
+                .unwrap(),
             Header::delimiter(),
-            InputDims::from_string("1,2".to_string()).to_string(),
+            InputDims::from_string("1,2".to_string()),
             Header::delimiter(),
         )
     }

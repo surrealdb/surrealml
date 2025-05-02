@@ -186,8 +186,7 @@ mod tests {
     pub fn generate_string() -> String {
         let normaliser =
             NormaliserType::LinearScaling(linear_scaling::LinearScaling { min: 0.0, max: 1.0 });
-        let column_name = "column_name".to_string();
-        format!("{}=>{}", column_name, normaliser.to_string())
+        format!("column_name=>{normaliser}")
     }
 
     #[test]

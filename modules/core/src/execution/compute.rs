@@ -209,7 +209,12 @@ impl ModelComputation<'_> {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, any(
+    feature = "onnx-tests",
+    feature = "sklearn-tests",
+    feature = "torch-tests",
+    feature = "tensorflow-tests"
+)))]
 mod tests {
 
     use super::*;

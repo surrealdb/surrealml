@@ -204,7 +204,7 @@ mod tests {
     fn test_empty_buffer() {
         let bytes = vec![0u8; 0];
         match SurMlFile::from_bytes(bytes) {
-            Ok(_) => assert!(false),
+            Ok(_) => panic!("Calling from_bytes with an empty buffer should return an error"),
             Err(error) => {
                 assert_eq!(error.status, SurrealErrorStatus::BadRequest);
                 assert_eq!(error.to_string(), "Not enough bytes to read");

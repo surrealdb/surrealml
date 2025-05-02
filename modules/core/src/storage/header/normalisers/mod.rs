@@ -180,10 +180,10 @@ pub mod tests {
         assert_eq!(normaliser_map.reference.len(), 4);
         assert_eq!(normaliser_map.store.len(), 4);
 
-        assert_eq!(normaliser_map.reference.get(&0).unwrap(), &0);
-        assert_eq!(normaliser_map.reference.get(&1).unwrap(), &1);
-        assert_eq!(normaliser_map.reference.get(&2).unwrap(), &2);
-        assert_eq!(normaliser_map.reference.get(&4).unwrap(), &3);
+        assert_eq!(normaliser_map.reference[&0], 0);
+        assert_eq!(normaliser_map.reference[&1], 1);
+        assert_eq!(normaliser_map.reference[&2], 2);
+        assert_eq!(normaliser_map.reference[&4], 3);
     }
 
     #[test]
@@ -215,11 +215,11 @@ pub mod tests {
         assert_eq!(normaliser_map.reference.len(), 5);
         assert_eq!(normaliser_map.store.len(), 5);
 
-        assert_eq!(normaliser_map.reference.get(&0).unwrap(), &0);
-        assert_eq!(normaliser_map.reference.get(&1).unwrap(), &1);
-        assert_eq!(normaliser_map.reference.get(&2).unwrap(), &2);
-        assert_eq!(normaliser_map.reference.get(&4).unwrap(), &3);
-        assert_eq!(normaliser_map.reference.get(&3).unwrap(), &4);
+        assert_eq!(normaliser_map.reference[&0], 0);
+        assert_eq!(normaliser_map.reference[&1], 1);
+        assert_eq!(normaliser_map.reference[&2], 2);
+        assert_eq!(normaliser_map.reference[&4], 3);
+        assert_eq!(normaliser_map.reference[&3], 4);
 
         assert_eq!(normaliser_map.store_ref[0], "a");
         assert_eq!(normaliser_map.store_ref[1], "b");

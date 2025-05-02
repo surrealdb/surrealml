@@ -124,7 +124,7 @@ pub mod tests {
         let output = Output::from_string(data).unwrap();
 
         assert_eq!(output.name.unwrap(), "test");
-        assert_eq!(output.normaliser.is_some(), true);
+        assert!(output.normaliser.is_some());
         assert_eq!(
             output.normaliser.unwrap().to_string(),
             "linear_scaling(0,1)"
@@ -137,7 +137,7 @@ pub mod tests {
         let output = Output::from_string(data).unwrap();
 
         assert_eq!(output.name.unwrap(), "test");
-        assert_eq!(output.normaliser.is_none(), true);
+        assert!(output.normaliser.is_none());
     }
 
     #[test]
@@ -145,8 +145,8 @@ pub mod tests {
         let data = "none=>none".to_string();
         let output = Output::from_string(data).unwrap();
 
-        assert_eq!(output.name.is_none(), true);
-        assert_eq!(output.normaliser.is_none(), true);
+        assert!(output.name.is_none());
+        assert!(output.normaliser.is_none());
     }
 
     #[test]
@@ -154,8 +154,8 @@ pub mod tests {
         let data = "".to_string();
         let output = Output::from_string(data).unwrap();
 
-        assert_eq!(output.name.is_none(), true);
-        assert_eq!(output.normaliser.is_none(), true);
+        assert!(output.name.is_none());
+        assert!(output.normaliser.is_none());
     }
 
     #[test]
