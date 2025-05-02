@@ -66,3 +66,18 @@ jobs:
 
       - name: Run unit tests
         run: cargo test
+
+  test_core:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        test_type: [onnx-tests, sklearn-tests, tensorflow-tests, torch-tests]
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Run Core Unit Tests
+      run: docker build -t rust-onnx-runtime . && docker run --rm rust-onnx-runtime cargo test -p surrealml-core --features ${{ matrix.test_type }}
