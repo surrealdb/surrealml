@@ -7,7 +7,6 @@ members = [
     "modules/pipelines/data_access"
 ]
 
-
 [workspace.lints.clippy]
 
 # Checks for usage of `#[allow]` attribute and suggests replacing it with `#[expect]`.

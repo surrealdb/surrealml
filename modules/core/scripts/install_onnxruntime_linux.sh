@@ -60,7 +60,7 @@ fi
 # Step 6: Clean and Rebuild Project
 echo "Cleaning and rebuilding project..."
 cargo clean
-cargo test --features tensorflow-tests
+cargo test -p surrealml-core --features tensorflow-tests
 
 if [ $? -eq 0 ]; then
     echo "ONNX Runtime updated successfully, and tests passed."
