@@ -9,7 +9,6 @@ import os
 from surrealml.c_structs import EmptyReturn, StringReturn, Vecf32Return, FileInfo, VecU8Return
 
 
-ONNX_VERSION = "1.20.0"
 DYNAMIC_LIB_VERSION = "0.1.0"
 
 
@@ -35,27 +34,33 @@ def load_library(lib_name: str = "libc_wrapper") -> ctypes.CDLL:
     Returns:
         ctypes.CDLL: The loaded shared library.
     """
-    root_dep_dir = os.path.expanduser("~/surrealml_deps")
-    dynamic_lib_dir = os.path.join(root_dep_dir, "core_ml_lib", DYNAMIC_LIB_VERSION)
-
     system_name = platform.system()
 
-    if system_name == "Windows":
-        lib_path = dynamic_lib_dir.join(f"{lib_name}.dll")
-        lib_path = Path(dynamic_lib_dir) / f"{lib_name}.dll"
-    elif system_name == "Darwin":  # macOS
-        lib_path = dynamic_lib_dir.join(f"{lib_name}.dylib")
-        lib_path = Path(dynamic_lib_dir) / f"{lib_name}.dylib"
-    elif system_name == "Linux":
-        lib_path = dynamic_lib_dir.join(f"{lib_name}.so")
-        lib_path = Path(dynamic_lib_dir) / f"{lib_name}.so"
-    else:
-        raise OSError(f"Unsupported operating system: {system_name}")
+    suffix = {"Linux": ".so", "Darwin": ".dylib", "Windows": ".dll"}.get(system_name)
+    if suffix is None:
+        raise OSError(f"Unsupported OS: {system_name}")
 
-    if not Path(lib_path).exists():
-        raise FileNotFoundError(f"Shared library not found at: {lib_path}")
+    lib_file = f"{lib_name}{suffix}"
 
-    return ctypes.CDLL(str(lib_path))
+    # Path inside installed wheel
+    pkg_lib_path  = Path(__file__).with_name(lib_file)
+    print(pkg_lib_path)
+
+    # Path inside local cache
+    cache_root_dir = os.path.expanduser("~/surrealml_deps")
+    cache_lib_dir  = Path(cache_root_dir) / "core_ml_lib" / DYNAMIC_LIB_VERSION
+    cache_lib_path = cache_lib_dir / lib_file
+
+    pkg_lib_dir = Path(__file__).parent
+
+    for candidate in (pkg_lib_path, cache_lib_path):
+        if candidate.exists():
+            print(f"candidate chosen - {candidate}")
+            return ctypes.CDLL(str(candidate))
+
+    raise FileNotFoundError(
+        f"Shared library not found; looked in {pkg_lib_path} and {cache_lib_path}"
+    )
 
 
 def get_onnx_lib_name() -> str:
@@ -131,14 +136,7 @@ class LibLoader(metaclass=Singleton):
         self.lib.free_file_info.argtypes = [FileInfo]
 
         # link the onnx runtime
-        root_dep_dir = os.path.expanduser("~/surrealml_deps")
-        onnx_lib_dir = os.path.join(root_dep_dir, "onnxruntime", ONNX_VERSION, get_onnx_lib_name())
-        self.lib.link_onnx.argtypes = []
         self.lib.link_onnx.restype = EmptyReturn
-        c_string = str(onnx_lib_dir).encode('utf-8')
         load_info = self.lib.link_onnx()
         if load_info.error_message:
             raise OSError(f"Failed to load onnxruntime: {load_info.error_message.decode('utf-8')}")
-
-
-

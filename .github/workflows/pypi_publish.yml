@@ -1,0 +1,87 @@
+name: Publish to PyPI
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Enter the version to be published (x.y.z)'
+        required: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TWINE_USERNAME: "__token__"
+      TWINE_PASSWORD: ${{ secrets.RELEASER_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Git
+        run: |
+          git config --local user.name "GitHub Actions"
+          git config --local user.email "actions@github.com"
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Bump version in config.json
+        run: |
+          cd clients/python
+          python3 scripts/update_version.py ${{ github.event.inputs.version }}
+
+      - name: Commit version change (if any)
+        run: |
+         if git diff --quiet; then
+            echo "✅ No changes detected, skipping commit."
+          else
+            echo "🔄 Changes detected, committing bump…"
+            git add clients/python/config.json
+            git commit -m "chore: Update version to ${{ github.event.inputs.version }}"
+            git push origin HEAD:main
+          fi
+
+      - name: Install dependencies
+        run: |
+          cd clients/python
+          python3 -m pip install --upgrade pip setuptools wheel twine
+          # python3 -m pip install --upgrade pip setuptools wheel
+          # python3 -m pip install .[dev]
+
+      - name: Build sdist and wheels
+        run: |
+          cd clients/python
+
+          # python3 -m pip install --upgrade pip setuptools wheel
+          # python3 -m pip install .[dev]
+          python3 -m pip install --upgrade pip setuptools wheel twine
+        
+          # Define: OS_NAME : ARCH : wheel-plat-tag
+          variants=(
+            "linux:x86_64:manylinux2014_x86_64"
+            "linux:arm64:manylinux2014_aarch64"
+            "darwin:x86_64:macosx_10_9_x86_64"
+            "darwin:arm64:macosx_11_0_arm64"
+            "win32:x86_64:win_amd64"
+          )
+
+          for v in "${variants[@]}"; do
+            IFS=":" read tgt_os tgt_arch plat_tag <<< "$v"
+            echo "→ Building wheel for OS=$tgt_os ARCH=$tgt_arch PLAT=$plat_tag"
+            export TARGET_OS="$tgt_os"
+            export TARGET_ARCH="$tgt_arch"
+
+            # Build exactly one wheel with the right plat-tag
+            python3 setup.py bdist_wheel --plat-name="$plat_tag"
+          done
+
+          # Finally build the sdist
+          python3 setup.py sdist
+          
+          # Upload to PyPI
+          python3 -m twine upload dist/*
