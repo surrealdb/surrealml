@@ -35,3 +35,4 @@ clients/python/surrealml.egg-info
 clients/python/surrealml/__pycache__
 modules/c-wrapper/build-context/
 clients/javascript/node_modules/
+clients/python/surrealml/config.json

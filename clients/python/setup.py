@@ -13,15 +13,24 @@ from setuptools import setup
 
 # ===================================== Define the paths for the install =================================================
 
-def get_c_lib_name() -> str:
-    system = platform.system()
-    if system == "Linux":
+# get the c lib name based on the system
+def get_c_lib_name(system: str) -> str:
+    if system.lower() == "linux":
         return "libc_wrapper.so"
-    elif system == "Darwin":  # macOS
+    elif system.lower() == "darwin":
         return "libc_wrapper.dylib"
-    elif system == "Windows":
-        return "libc_wrapper.dll"
+    elif system.lower() in ("windows", "win32"):
+        return "c_wrapper.dll"
     raise ValueError(f"Unsupported system: {system}")
+
+# Allow CI to override target platform for downloads:
+OVERRIDE_OS = os.environ.get("TARGET_OS")
+OVERRIDE_ARCH = os.environ.get("TARGET_ARCH")
+
+# save vars about the system
+OS_NAME = (OVERRIDE_OS or sys.platform).lower()
+ARCH = (OVERRIDE_ARCH or platform.machine()).lower()
+SYSTEM = (OVERRIDE_OS or platform.system()).lower()
 
 # define the paths to the C wrapper and root
 DIR_PATH = Path(__file__).parent
@@ -30,35 +39,39 @@ ROOT_PATH = DIR_PATH.joinpath("..").joinpath("..")
 # path to where the c-wrapper code for the surrealML core is
 C_PATH = ROOT_PATH.joinpath("modules").joinpath("c-wrapper")
 # path to where the binary is if it's in c-wrapper
-BINARY_PATH = C_PATH.joinpath("target").joinpath("release").joinpath(get_c_lib_name())
+BINARY_PATH = C_PATH.joinpath("target").joinpath("release").joinpath(get_c_lib_name(SYSTEM))
 # path to where the binary is if it's in the root
-ROOT_BINARY_PATH = ROOT_PATH.joinpath("target").joinpath("release").joinpath(get_c_lib_name())
+ROOT_BINARY_PATH = ROOT_PATH.joinpath("target").joinpath("release").joinpath(SYSTEM)
 # path to where the c-wrapper is stored if held in the surrealML python package
-BINARY_DIST = DIR_PATH.joinpath("surrealml").joinpath(get_c_lib_name())
+BINARY_DIST = DIR_PATH.joinpath("surrealml").joinpath(get_c_lib_name(SYSTEM))
+
+# ===================================== Version Control =======================================
+
+# copy config.json to the surrealml directory if it doesn't exist
+CONFIG_JSON_SRC  = DIR_PATH / "config.json"
+CONFIG_JSON_DEST = DIR_PATH / "surrealml" / "config.json"
+if not CONFIG_JSON_DEST.exists():    
+    shutil.copyfile(CONFIG_JSON_SRC, CONFIG_JSON_DEST)
 
 # get the python package version
 CONFIG_JSON_PATH = Path(__file__).parent.joinpath("config.json")
 
-def read_version():
+def read_config() -> (str, str):
     try:
         with open(CONFIG_JSON_PATH, "r") as json_data:
             config = json.load(json_data)
-            return config["version"]
+            return (config["dynamic_lib_version"], config["python_package_version"])
     except Exception as e:
         print(f"Error loading version from '{CONFIG_JSON_PATH}': {e}", file=sys.stderr)
         sys.exit(1)
 
-# Allow CI to override target platform for downloads:
-OVERRIDE_OS = os.environ.get("TARGET_OS")
-OVERRIDE_ARCH = os.environ.get("TARGET_ARCH")
+# read the version from the config.json file
+PYTHON_PACKAGE_VERSION = read_config()[1]
+DYNAMIC_LIB_VERSION = read_config()[0]
 
-# save vars about the system
-PYTHON_PACKAGE_VERSION = read_version()
-DYNAMIC_LIB_VERSION = "0.1.2"
-OS_NAME = OVERRIDE_OS or sys.platform  
-ARCH = (OVERRIDE_ARCH or platform.machine()).lower()
-SYSTEM = platform.system().lower()  # 'linux', 'darwin' (macOS), 'windows'
+# ===================================== Necessary Path Extraction =======================================
 
+# Store the root surrealml_deps cache directory
 ROOT_DEP_DIR = os.path.expanduser("~/surrealml_deps")
 
 # Ensure the base directory exists
@@ -66,12 +79,13 @@ os.makedirs(ROOT_DEP_DIR, exist_ok=True)
 
 # Paths for versioned libraries
 DYNAMIC_LIB_DIR = os.path.join(ROOT_DEP_DIR, "core_ml_lib", DYNAMIC_LIB_VERSION)
-DYNAMIC_LIB_DIST = DIR_PATH.joinpath(DYNAMIC_LIB_DIR).joinpath(get_c_lib_name())
+DYNAMIC_LIB_DIST = DIR_PATH.joinpath(DYNAMIC_LIB_DIR).joinpath(get_c_lib_name(SYSTEM))
 DYNAMIC_LIB_DOWNLOAD_CACHE = os.path.join(DYNAMIC_LIB_DIR, "download_cache.tgz")
 
 # create the directories if they don't exist
 os.makedirs(DYNAMIC_LIB_DIR, exist_ok=True)
 
+# ===================================== Lib Extraction =======================================
 
 def get_lib_url():
     if OS_NAME.startswith("linux"):
@@ -96,6 +110,13 @@ def get_lib_url():
 
 
 def download_and_extract_c_lib():
+    # remove any old artifacts
+    for child in Path(DYNAMIC_LIB_DIR).iterdir():
+        if child.is_dir():
+            shutil.rmtree(child)
+        else:
+            child.unlink()
+
     url, extracted_dir = get_lib_url()
     if not os.path.exists(DYNAMIC_LIB_DOWNLOAD_CACHE):
         print(f"Downloading surrealML lib from {url}")
@@ -122,7 +143,6 @@ BUILD_FLAG = False
 if DYNAMIC_LIB_DIST.exists() is False and os.environ.get("LOCAL_BUILD") == "TRUE":
     print("building core ML lib locally")
     subprocess.Popen("cargo build --release", cwd=str(C_PATH), shell=True).wait()
-    ARCH = (OVERRIDE_ARCH or platform.machine()).lower()
     
     if BINARY_PATH.exists():
         shutil.copyfile(BINARY_PATH, DYNAMIC_LIB_DIST)
@@ -132,26 +152,28 @@ if DYNAMIC_LIB_DIST.exists() is False and os.environ.get("LOCAL_BUILD") == "TRUE
     BUILD_FLAG = True
 
 else:
-    if os.path.exists(DYNAMIC_LIB_DIST) is False:
-        print("downloading the core ML lib")
-        lib_path = download_and_extract_c_lib()
-        os.remove(DYNAMIC_LIB_DOWNLOAD_CACHE)
-        # lib_path = Path(DYNAMIC_LIB_DIST).joinpath(lib_path).joinpath(get_c_lib_name())
-        # shutil.copyfile(lib_path, DYNAMIC_LIB_DIST)
-        # DYNAMIC_LIB_DIST
-        # DYNAMIC_LIB_DOWNLOAD_CACHE
+    print("downloading the core ML lib")
+    lib_path = download_and_extract_c_lib()
+    os.remove(DYNAMIC_LIB_DOWNLOAD_CACHE)
 
-        # build path to the freshly-extracted library
-        downloaded_file = Path(DYNAMIC_LIB_DIR) / get_c_lib_name()
-        if not downloaded_file.exists():
-            raise Exception(f"Expected shared lib at {downloaded_file}, but none was found")
+    # build path to the freshly-extracted library
+    downloaded_file = Path(DYNAMIC_LIB_DIR) / get_c_lib_name(SYSTEM)
+    if not downloaded_file.exists():
+        raise Exception(f"Expected shared lib at {downloaded_file}, but none was found")
 
-        # copy it into the package so package_data will include it
-        BINARY_DIST.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(downloaded_file, BINARY_DIST)
+    # copy it into the package so package_data will include it
+    BINARY_DIST.parent.mkdir(parents=True, exist_ok=True)
 
-
-# ===================================== run the setup for the python package =============================================
+    # cleanup existing clibs
+    for old in BINARY_DIST.parent.iterdir():
+        if old.suffix.lower() in (".so", ".dylib", ".dll"):
+            try:
+                old.unlink()
+            except OSError:
+                pass
+    
+    # copy the new clib into the package
+    shutil.copyfile(downloaded_file, BINARY_DIST)
 
 setup(
     name="surrealml",
@@ -188,10 +210,9 @@ setup(
     },
     include_package_data=True,   
     zip_safe=False,
-    package_data={"surrealml": ["*.so", "*.dylib", "*.dll"]},   
-    data_files=[
-        ("", ["config.json"]),      
-    ],
+    package_data={
+        "surrealml": ["*.so", "*.dylib", "*.dll", "config.json"]
+    },   
     packages=[
         "surrealml",
         "surrealml.engine",

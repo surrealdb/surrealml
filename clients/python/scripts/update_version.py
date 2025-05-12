@@ -2,13 +2,15 @@
 import json
 import sys
 import argparse
-from pathlib import Path
 import re
+from pathlib import Path
 
 
+# ─── Constants ──────────────────────────────────────────────────────────────
 SEMVER_RE = re.compile(r'^\d+\.\d+\.\d+$')
-config_json_path = Path(__file__).parent.parent.joinpath("config.json")
+CONFIG_JSON_PATH = Path(__file__).parent.parent / "config.json"
 
+# ─── Helpers ────────────────────────────────────────────────────────────────
 def semver_type(value: str) -> str:
     if not SEMVER_RE.match(value):
         raise argparse.ArgumentTypeError(
@@ -17,31 +19,40 @@ def semver_type(value: str) -> str:
     return value
 
 def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("new_version",  type=semver_type)
-    args = parser.parse_args()
-    return args.new_version
+    p = argparse.ArgumentParser(
+        description="Bump package version (and optionally dynamic-lib version) "
+                    "inside config.json")
+    p.add_argument("new_version",            type=semver_type,
+                   help="new python_package_version (X.Y.Z)")
+    p.add_argument("dynamic_lib_version",    type=semver_type, nargs='?',
+                   help="optional: new dynamic_lib_version (X.Y.Z)")
+    return p.parse_args()
 
-def load_config():
-    try: 
-        with open(config_json_path, "r") as json_data:
-            config = json.load(json_data)
-            return config
-    except Exception as e:
-        print(f"Error loading file from '{config_json_path}': {e}", file=sys.stderr)
-        sys.exit(1)
-
-def write_config(new_config: dict):
+def load_config() -> dict:
     try:
-        with open(config_json_path, "w") as json_data:
-            json.dump(new_config, json_data, indent=4)
-            json_data.write("\n")
+        with CONFIG_JSON_PATH.open('r', encoding='utf-8') as f:
+            return json.load(f)
     except Exception as e:
-        print(f"Error writing file to '{config_json_path}': {e}", file=sys.stderr)
+        print(f"Error reading '{CONFIG_JSON_PATH}': {e}", file=sys.stderr)
         sys.exit(1)
 
+def write_config(cfg: dict) -> None:
+    try:
+        with CONFIG_JSON_PATH.open('w', encoding='utf-8') as f:
+            json.dump(cfg, f, indent=4)
+            f.write('\n')
+    except Exception as e:
+        print(f"Error writing '{CONFIG_JSON_PATH}': {e}", file=sys.stderr)
+        sys.exit(1)
+
+# ─── Main ───────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    new_version = parse_args()
-    config = load_config()
-    config["version"] = new_version
-    write_config(config)
+    args   = parse_args()
+    cfg    = load_config()
+
+    cfg["python_package_version"] = args.new_version
+    if args.dynamic_lib_version is not None:
+        cfg["dynamic_lib_version"] = args.dynamic_lib_version
+
+    write_config(cfg)
+    print("✅  config.json updated")
