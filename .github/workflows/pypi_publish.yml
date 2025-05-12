@@ -3,9 +3,12 @@ name: Publish to PyPI
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Enter the version to be published (x.y.z)'
+      python_package_version:
+        description: 'New Python package version (x.y.z)'
         required: true
+      dynamic_lib_version:
+        description: 'Optional: new bundled SurrealML dynamic-lib version (x.y.z)'
+        required: false
 
 jobs:
   build-and-publish:
@@ -30,10 +33,19 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Bump version in config.json
+      - name: Bump versions in config.json
         run: |
+          set -euo pipefail
+          args="${{ env.PY_PKG_VERSION }}"
+          if [ -n "${{ env.DYNAMIC_LIB_VERSION }}" ]; then
+            args="$args ${{ env.DYNAMIC_LIB_VERSION }}"
+          fi
+
           cd clients/python
-          python3 scripts/update_version.py ${{ github.event.inputs.version }}
+          python3 scripts/update_version.py $args
+        env:
+          PY_PKG_VERSION:      ${{ github.event.inputs.python_package_version }}
+          DYNAMIC_LIB_VERSION: ${{ github.event.inputs.dynamic_lib_version }}
 
       # - name: Commit version change (if any)
       #   run: |
@@ -70,18 +82,23 @@ jobs:
             "win32:x86_64:win_amd64"
           )
 
+          # Build each wheel, then clean up its C‐lib
           for v in "${variants[@]}"; do
-            IFS=":" read tgt_os tgt_arch plat_tag <<< "$v"
-            echo "→ Building wheel for OS=$tgt_os ARCH=$tgt_arch PLAT=$plat_tag"
-            export TARGET_OS="$tgt_os"
-            export TARGET_ARCH="$tgt_arch"
+              IFS=":" read tgt_os tgt_arch plat_tag <<< "$v"
+              echo "→ Building wheel for OS=$tgt_os ARCH=$tgt_arch PLAT=$plat_tag"
+              export TARGET_OS="$tgt_os"
+              export TARGET_ARCH="$tgt_arch"
 
-            # Build exactly one wheel with the right plat-tag
-            python3 setup.py bdist_wheel --plat-name="$plat_tag"
+              # clean both source _and_ build output
+              rm -rf build/
+              python3 setup.py clean --all
+
+              # produce exactly one wheel for this platform
+              python3 setup.py bdist_wheel --plat-name="$plat_tag"
           done
 
-          # Finally build the sdist
-          python3 setup.py sdist
+          # Comment out sdist for now
+          # python3 setup.py sdist
           
           # Upload to PyPI
           python3 -m twine upload dist/*
