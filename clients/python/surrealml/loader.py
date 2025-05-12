@@ -9,7 +9,7 @@ import os
 from surrealml.c_structs import EmptyReturn, StringReturn, Vecf32Return, FileInfo, VecU8Return
 
 
-DYNAMIC_LIB_VERSION = "0.1.0"
+DYNAMIC_LIB_VERSION = "0.1.2"
 
 
 class Singleton(type):
@@ -43,15 +43,13 @@ def load_library(lib_name: str = "libc_wrapper") -> ctypes.CDLL:
     lib_file = f"{lib_name}{suffix}"
 
     # Path inside installed wheel
-    pkg_lib_path  = Path(__file__).with_name(lib_file)
+    pkg_lib_path  = Path(__file__).parent.with_name(lib_file)
     print(pkg_lib_path)
 
     # Path inside local cache
     cache_root_dir = os.path.expanduser("~/surrealml_deps")
     cache_lib_dir  = Path(cache_root_dir) / "core_ml_lib" / DYNAMIC_LIB_VERSION
     cache_lib_path = cache_lib_dir / lib_file
-
-    pkg_lib_dir = Path(__file__).parent
 
     for candidate in (pkg_lib_path, cache_lib_path):
         if candidate.exists():
