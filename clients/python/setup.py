@@ -54,7 +54,7 @@ OVERRIDE_ARCH = os.environ.get("TARGET_ARCH")
 
 # save vars about the system
 PYTHON_PACKAGE_VERSION = read_version()
-DYNAMIC_LIB_VERSION = "0.1.0"
+DYNAMIC_LIB_VERSION = "0.1.2"
 OS_NAME = OVERRIDE_OS or sys.platform  
 ARCH = (OVERRIDE_ARCH or platform.machine()).lower()
 SYSTEM = platform.system().lower()  # 'linux', 'darwin' (macOS), 'windows'
