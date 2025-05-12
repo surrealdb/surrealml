@@ -7,9 +7,9 @@ from pathlib import Path
 import os
 
 from surrealml.c_structs import EmptyReturn, StringReturn, Vecf32Return, FileInfo, VecU8Return
+from surrealml.utils import read_dynamic_lib_version
 
-
-DYNAMIC_LIB_VERSION = "0.1.0"
+DYNAMIC_LIB_VERSION = read_dynamic_lib_version()
 
 
 class Singleton(type):
