@@ -159,7 +159,7 @@ setup(
     description="A machine learning package for interfacing with various frameworks.",
     author="Maxwell Flitton",
     author_email="maxwellflitton@gmail.com",
-    url="https://github.com/surrealdb/surrealml"
+    url="https://github.com/surrealdb/surrealml",
     license="MIT",
     classifiers=[
         "Programming Language :: Python :: 3",
