@@ -14,7 +14,7 @@ jobs:
       contents: write
     env:
       TWINE_USERNAME: "__token__"
-      TWINE_PASSWORD: ${{ secrets.RELEASER_TOKEN }}
+      TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
     steps:
       - name: Checkout repository
@@ -35,16 +35,16 @@ jobs:
           cd clients/python
           python3 scripts/update_version.py ${{ github.event.inputs.version }}
 
-      - name: Commit version change (if any)
-        run: |
-         if git diff --quiet; then
-            echo "✅ No changes detected, skipping commit."
-          else
-            echo "🔄 Changes detected, committing bump…"
-            git add clients/python/config.json
-            git commit -m "chore: Update version to ${{ github.event.inputs.version }}"
-            git push origin HEAD:main
-          fi
+      # - name: Commit version change (if any)
+      #   run: |
+      #    if git diff --quiet; then
+      #       echo "✅ No changes detected, skipping commit."
+      #     else
+      #       echo "🔄 Changes detected, committing bump…"
+      #       git add clients/python/config.json
+      #       git commit -m "chore: Update version to ${{ github.event.inputs.version }}"
+      #       git push origin HEAD:main
+      #     fi
 
       - name: Install dependencies
         run: |
