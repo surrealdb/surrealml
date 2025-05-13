@@ -40,3 +40,6 @@ path = "src/lib.rs"
 
 # [build-dependencies]
 # ort = { version = "1.16.2", default-features = true }
+
+[lints]
+workspace = true

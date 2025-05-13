@@ -1,8 +1,9 @@
 //! InputDims is a struct that holds the dimensions of the input tensors for the model.
 
+use std::fmt::Display;
 
 /// InputDims is a struct that holds the dimensions of the input tensors for the model.
-/// 
+///
 /// # Fields
 /// * `dims` - The dimensions of the input tensors.
 #[derive(Debug, PartialEq)]
@@ -10,28 +11,24 @@ pub struct InputDims {
     pub dims: [i32; 2],
 }
 
-
 impl InputDims {
-
     /// Creates a new `InputDims` struct with all zeros.
-    /// 
+    ///
     /// # Returns
     /// A new `InputDims` struct with all zeros.
     pub fn fresh() -> Self {
-        InputDims {
-            dims: [0, 0],
-        }
+        InputDims { dims: [0, 0] }
     }
 
     /// Creates a new `InputDims` struct from a string.
-    /// 
+    ///
     /// # Arguments
     /// * `data` - The dimensions as a string.
-    /// 
+    ///
     /// # Returns
     /// A new `InputDims` struct.
     pub fn from_string(data: String) -> InputDims {
-        if data == "".to_string() {
+        if data.is_empty() {
             return InputDims::fresh();
         }
         let dims: Vec<&str> = data.split(",").collect();
@@ -40,19 +37,16 @@ impl InputDims {
             dims: [dims[0], dims[1]],
         }
     }
-
-    /// Translates the struct to a string.
-    /// 
-    /// # Returns
-    /// * `String` - The struct as a string.
-    pub fn to_string(&self) -> String {
-        if self.dims[0] == 0 && self.dims[1] == 0 {
-            return "".to_string();
-        }
-        format!("{},{}", self.dims[0], self.dims[1])
-    }
 }
 
+impl Display for InputDims {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.dims[0] == 0 && self.dims[1] == 0 {
+            return write!(f, "");
+        }
+        write!(f, "{},{}", self.dims[0], self.dims[1])
+    }
+}
 
 #[cfg(test)]
 pub mod tests {
@@ -78,5 +72,4 @@ pub mod tests {
         let input_dims = InputDims::from_string("1,2".to_string());
         assert_eq!(input_dims.to_string(), "1,2".to_string());
     }
-
 }

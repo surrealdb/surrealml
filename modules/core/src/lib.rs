@@ -4,7 +4,7 @@
 //! This crate is just the Rust implementation of the Surml API. It is advised that you just use this crate directly if you are running
 //! a Rust server. It must be noted that the version of ONNX needs to be the same as the client when using this crate. For this current
 //! version of Surml, the ONNX version is `1.16.0`.
-//! 
+//!
 //! ## Compilation config
 //! If nothing is configured the crate will compiled the ONNX runtime into the binary. This is the default behaviour. However, if you
 //! want to use an ONNX runtime that is installed on your system, you can set the environment variable `ONNXRUNTIME_LIB_PATH` before
@@ -87,11 +87,10 @@
 //! // None input can be a tuple of dimensions of the input data
 //! let output = compute_unit.raw_compute(data, None).unwrap();
 //! ```
-pub mod storage;
-pub mod execution;
 pub mod errors;
+pub mod execution;
+pub mod storage;
 pub use ndarray;
-
 
 /// Returns the version of the ONNX runtime that is used.
 pub fn onnx_runtime() -> &'static str {
