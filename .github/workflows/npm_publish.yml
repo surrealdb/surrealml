@@ -1,0 +1,74 @@
+name: Publish to npm
+
+on:
+  workflow_dispatch:
+    inputs:
+      node_package_version:
+        description: "New npm package version (x.y.z)"
+        required: true
+      dynamic_lib_version:
+        description: "Optional: bundled SurrealML dynamic-lib version (x.y.z)"
+        required: false
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        
+    env:
+      # need to have a node auth token
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure Git
+        run: |
+          git config --local user.name  "GitHub Actions"
+          git config --local user.email "actions@github.com"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies without running postinstall
+        run: |
+          cd clients/typescript
+          npm install tsx --no-save --ignore-scripts
+          
+      - name: Update config.json
+        run: |
+          cd clients/typescript
+          npx tsx --tsconfig tsconfig.scripts.json scripts/update_version.ts \
+            "${{ github.event.inputs.node_package_version }}" \
+            "${{ github.event.inputs.dynamic_lib_version }}"
+
+      - name: Sync package.json
+        run: |
+          cd clients/typescript
+          npx tsx --tsconfig tsconfig.scripts.json scripts/update_npm_version.ts
+
+      - name: Commit version bump
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit."
+          else
+            git add clients/typescript/package.json clients/typescript/config.json
+            git commit -m "chore: release v${{ github.event.inputs.node_package_version }}"
+            git push origin HEAD:main --tags
+          fi
+
+      - name: Build project
+        run: |
+          cd clients/typescript
+          npm run build
+
+      - name: Publish to npm
+        run: |
+          cd clients/typescript
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
