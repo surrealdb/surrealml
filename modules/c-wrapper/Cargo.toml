@@ -14,13 +14,13 @@ ndarray = "0.16.1"
 tokio = { version = "1.43.0", features = ["full"] }
 hyper = { version = "0.14.27", features = ["full"] }
 base64 = "0.13"
-zip = "2.6.1"
+zip = "3.0.0"
 
 [lib]
 crate-type = ["cdylib"]
 
 [build-dependencies]
-reqwest = { version = "0.12.12", features = ["blocking", "json"] }
-tar = "0.4"       # For extracting tar files
-flate2 = "1.0"    # For handling gzip
-zip = "2.2.2"
+# reqwest = { version = "0.12.12", features = ["blocking", "json"] }
+# tar = "0.4"       # For extracting tar files
+# flate2 = "1.0"    # For handling gzip
+# zip = "2.2.2"
