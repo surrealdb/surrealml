@@ -1,6 +1,6 @@
 [package]
 name = "c-wrapper"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 description = "A Rust wrapper crate providing C bindings for SurrealML."
 license-file = "LICENSE"
@@ -14,7 +14,7 @@ ndarray = "0.16.1"
 tokio = { version = "1.43.0", features = ["full"] }
 hyper = { version = "0.14.27", features = ["full"] }
 base64 = "0.13"
-zip = "3.0.0"
+zip = "4.0.0"
 
 [lib]
 crate-type = ["cdylib"]
@@ -23,4 +23,4 @@ crate-type = ["cdylib"]
 reqwest = { version = "0.12.12", features = ["blocking", "json"] }
 tar = "0.4"       # For extracting tar files
 flate2 = "1.0"    # For handling gzip
-zip = "3.0.0"
+zip = "4.0.0"
