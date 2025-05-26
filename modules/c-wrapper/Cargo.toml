@@ -6,7 +6,7 @@ description = "A Rust wrapper crate providing C bindings for SurrealML."
 license-file = "LICENSE"
 
 [dependencies]
-surrealml-core = { version = "0.1.4", path = "../core", features = ["dynamic"] }
+surrealml-core = { path = "../core", features = ["dynamic"] }
 uuid = { version = "1.11.1", features = ["v4"] }
 ndarray = "0.16.1"
 
@@ -23,4 +23,3 @@ crate-type = ["cdylib"]
 reqwest = { version = "0.12.12", features = ["blocking", "json"] }
 tar = "0.4"       # For extracting tar files
 flate2 = "1.0"    # For handling gzip
-zip = "4.0.0"
