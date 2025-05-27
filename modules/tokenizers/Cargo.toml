@@ -1,0 +1,21 @@
+[package]
+name = "surrealml-tokenizers"
+version = "0.1.0"
+edition = "2024"
+description = "An interface for loading tokenizers"
+license = "LICENSE"
+
+[dependencies]
+tokenizers  = "0.21.1"
+hf-hub = { version = "0.4.1" }
+serde = { version = "1.0", features = ["derive"] }
+thiserror = "2.0.9"
+
+[lib]
+name = "surrealml_transformers"
+path = "src/lib.rs"
+
+[features]
+default = []
+tokio = ["hf-hub/tokio"]
+integration-net = []
