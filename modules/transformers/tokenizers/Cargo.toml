@@ -6,16 +6,15 @@ description = "An interface for loading tokenizers"
 license = "LICENSE"
 
 [dependencies]
-tokenizers  = "0.21.1"
-hf-hub = { version = "0.4.1" }
+tokenizers  = { version = "0.21.1", default-features = false, features = ["unstable_wasm"] }
+hf-hub = { version = "0.4.1", optional = true, features = ["tokio"] }
 serde = { version = "1.0", features = ["derive"] }
 thiserror = "2.0.9"
 
 [lib]
-name = "surrealml_transformers"
+name = "surrealml_tokenizers"
 path = "src/lib.rs"
 
 [features]
 default = []
-tokio = ["hf-hub/tokio"]
-integration-net = []
+http-access = ["hf-hub"]   

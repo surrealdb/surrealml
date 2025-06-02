@@ -1,8 +1,8 @@
 //! High‑level helpers for **tokenizer** loading & (de‑)coding.
 use tokenizers::Tokenizer;
-use std::path::PathBuf; // retained for potential extension
 use crate::error::{SurrealError, SurrealErrorStatus};
 use crate::preset_tokenizers::PresetTokenizers;
+#[cfg(feature = "http-access")]
 use crate::fetch_tokenizer::{fetch_tokenizer, load_tokenizer_from_file};
 
 
@@ -20,10 +20,22 @@ pub fn load_tokenizer(model: String, hf_token: Option<String>) -> Result<Tokeniz
         return preset.retrieve_tokenizer();
     }
 
-    let tokenizer_path = fetch_tokenizer(&model, hf_token.as_deref())?;
-    load_tokenizer_from_file(&tokenizer_path)
-}
+    // Gated depending on the 'http-access' feature flag.
+    #[cfg(feature = "http-access")]
+    {
+        let tokenizer_path = fetch_tokenizer(&model, hf_token.as_deref())?;
+        return load_tokenizer_from_file(&tokenizer_path);
+    }
 
+    return Err(
+        SurrealError::new(
+            "Tokenizer not found locally, and remote access is disabled. \
+            Please enable the 'http-access' feature to fetch tokenizers from \
+            Hugging Face.".to_string(),
+            SurrealErrorStatus::NotFound,
+        ),
+    );
+}
 
 /// Encode `text` into a vector of token‑IDs.
 ///
@@ -69,6 +81,7 @@ pub fn decode(tokenizer: &Tokenizer, ids: &[u32]) -> Result<String, SurrealError
 mod tests {
     use super::{load_tokenizer, decode, encode};
     use crate::preset_tokenizers::PresetTokenizers;
+    use crate::error::SurrealErrorStatus;
 
     // Returns a tokenizer we can reuse in multiple test cases.
     fn gpt2_tok() -> tokenizers::Tokenizer {
@@ -88,6 +101,13 @@ mod tests {
             !ids.is_empty(),
             "expected non-empty token id vector from encode()"
         );
+    }
+
+    #[cfg(not(feature = "http-access"))]
+    #[test]
+    fn load_tokenizer_without_http_access_returns_not_found() {
+        let err = super::load_tokenizer("not_a_real_model".to_owned(), None).unwrap_err();
+        assert_eq!(err.status, SurrealErrorStatus::NotFound);
     }
 
     // Success path tests

@@ -74,7 +74,6 @@ mod tests {
     use std::env;
     
     // Real network integration test guarded by a Cargo feature.
-    #[cfg(feature = "integration-net")]
     mod integration {
         use super::*;
 

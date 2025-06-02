@@ -10,18 +10,7 @@ process it. A tokenizer defines that mapping (encode) and its reverse (decode),
 and different models use different rules.
 
 
-## What this crate does
-
-* **Loads** a tokenizer by name:
-  * *Preset* → compiled into the binary (`include_str!`).
-  * Anything else → lazily pulled from the HF Hub and cached.
-* **Encodes / decodes** text to `Vec<u32>` and back.
-* Provides a **Bash helper script** to download and vendor a set of public tokenizers.
-* Clean **error handling** with `thiserror`.
-* **Feature-gated** integration tests that can hit the real network.
-
-
-## Installation 🔧
+## Installation
 
 Add to *Cargo.toml*:
 
@@ -38,15 +27,10 @@ The library is re-exported under `surrealml_transformers` (see `[lib]` in
 
 | Feature            | What it does                                                                           |
 |--------------------|----------------------------------------------------------------------------------------|
-| `tokio`            | Enables **async** downloads via `hf-hub/tokio`.                                        |
-| `integration-net`  | Allows `cargo test` to hit the real HF Hub (useful for CI or smoke tests).             |
+| `http-access`      | Enables tokenizer downloads via `hf-hub/tokio`.                                        |
 
-Enable a feature:
-
-```toml
-surrealml-tokenizers = { version = "0.1", features = ["tokio"] }
-```
-
+**Note** - when `http-access` is enabled and used with the `cargo test` command, we run a full integration test 
+where we pull remotely from hf-hub.
 
 ## Quick start
 
@@ -118,16 +102,16 @@ What it does:
 | Command                                             | What runs                                              |
 |-----------------------------------------------------|--------------------------------------------------------|
 | `cargo test`                                        | All **unit & offline** tests (only presets).           |
-| `cargo test --features integration-net`             | Adds an **integration** test that fetches `gpt2` live. |
+| `cargo test --features http-access`                 | Adds an **integration** test that fetches `gpt2` live. |
 
 
 ## Public API summary 
 
-| Function / enum                                | Use-case                                                                    |
-|------------------------------------------------|-----------------------------------------------------------------------------|
-| `load_tokenizer(model, hf_token)`              | Load preset or remote tokenizer, returning `tokenizers::Tokenizer`.         |
-| `encode(&tokenizer, text)`                     | Convert `&str` → `Vec<u32>` token IDs.                                      |
-| `decode(&tokenizer, ids)`                      | Convert token IDs back to `String`.                                         |
+| Function / enum                                | Use-case                                                                                        |
+|------------------------------------------------|-------------------------------------------------------------------------------------------------|
+| `load_tokenizer(model, hf_token)`              | Load preset or remote tokenizer (if `http-access` enabled), returning `tokenizers::Tokenizer`.  |
+| `encode(&tokenizer, text)`                     | Convert `&str` → `Vec<u32>` token IDs.                                                          |
+| `decode(&tokenizer, ids)`                      | Convert token IDs back to `String`.                                                             |
 
 
 ## Future improvements
@@ -136,8 +120,6 @@ What it does:
 * Lazy global `Api` instance – share a single `hf_hub::Api` across calls.
 * Trait-based hugging face hub fetcher – make network access swappable for easy mocking in tests.
 * Add error macros to reduce repetitiveness.
-* Add smoke test.
-* Add WASM wrapper to enable this library to be called in WASM.
 
 
 ## License 
