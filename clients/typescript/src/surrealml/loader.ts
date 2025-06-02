@@ -106,22 +106,6 @@ export class LibLoader {
 			['char *', 'float *', 'size_t', 'char **', 'int']
 		);
 
-		// this.lib.free_string_return = this.lib.func(
-		// 	'free_string_return', 'void', [StringReturn]
-		// );
-		// this.lib.free_empty_return = this.lib.func(
-		// 	'free_empty_return', 'void', [EmptyReturn]
-		// );
-		// this.lib.free_vec_u8 = this.lib.func(
-		// 	'free_vec_u8', 'void', [VecU8Return]
-		// );
-		// this.lib.free_vecf32_return = this.lib.func(
-		// 	'free_vecf32_return', 'void', [Vecf32Return]
-		// );
-		// this.lib.free_file_info = this.lib.func(
-		// 	'free_file_info', 'void', [FileInfo]
-		// );
-
 		this.lib.link_onnx = this.lib.func('link_onnx', EmptyReturn, []);
 		const info = this.lib.link_onnx();
 		if (info.is_error === 1) {
