@@ -1,6 +1,6 @@
 [package]
 name = "surrealml-core"
-version = "0.1.6"
+version = "0.2.0"
 edition = "2021"
 description = "The core machine learning library for SurrealML that enables SurrealDB to store and load ML models"
 license-file = "LICENSE"
@@ -26,9 +26,10 @@ bytes = "1.10.1"
 futures-util = "0.3.31"
 futures-core = "0.3.31"
 thiserror = "2.0.12"
-onnx-embedding = "0.1.1"
+onnx-embedding = "0.1.5"
 serde = { version = "1.0.219", features = ["derive"] }
 tempfile = "3.19.1"
+zip = "4.0.0"
 
 [dev-dependencies]
 tokio = { version = "1.44.2", features = ["full"] }
@@ -36,6 +37,3 @@ tokio = { version = "1.44.2", features = ["full"] }
 [lib]
 name = "surrealml_core"
 path = "src/lib.rs"
-
-# [build-dependencies]
-# ort = { version = "1.16.2", default-features = true }
