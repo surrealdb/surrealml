@@ -24,10 +24,13 @@ mkdir -p "$TARGET_DIR"
 
 # 3) List of public models
 models=(
-  "gpt2"
-  "distilgpt2"
-  "EleutherAI/gpt-neo-125M"
-  "bert-base-uncased"
+  "mistralai/Mixtral-8x7B-v0.1"
+  "mistralai/Mistral-7B-v0.1"
+  "amazon/MistralLite"
+  "google/gemma-7b"
+  "google/gemma-2b"
+  "google/gemma-3-4b-it"
+  "tiiuae/falcon-7b"
 )
 
 # 4) Download each with your token

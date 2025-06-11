@@ -1,9 +1,8 @@
 //! Utilities for **remote** tokenizer access.
+use crate::error::{SurrealError, SurrealErrorStatus};
 use hf_hub::api::sync::ApiBuilder;
 use std::path::PathBuf;
 use tokenizers::Tokenizer;
-use crate::error::{SurrealError, SurrealErrorStatus};
-
 
 /// Download `tokenizer.json` for a given model from the Hugging Face Hub.
 ///
@@ -36,18 +35,15 @@ pub fn fetch_tokenizer(model_id: &str, hf_token: Option<&str>) -> Result<PathBuf
         })?;
 
     let repo = api.model(model_id.to_string());
-    let tokenizer_path = repo
-        .get("tokenizer.json")
-        .map_err(|_| {
-            SurrealError::new(
-                "tokenizer.json not found in repository".to_string(),
-                SurrealErrorStatus::NotFound,
-            )
-        })?;
+    let tokenizer_path = repo.get("tokenizer.json").map_err(|_| {
+        SurrealError::new(
+            "tokenizer.json not found in repository".to_string(),
+            SurrealErrorStatus::NotFound,
+        )
+    })?;
 
     Ok(tokenizer_path)
 }
-
 
 /// Load and deserialize a tokenizer from a local *tokenizer.json* file.
 ///
@@ -67,12 +63,11 @@ pub fn load_tokenizer_from_file(path: &PathBuf) -> Result<Tokenizer, SurrealErro
     })
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::env;
-    
+
     // Real network integration test guarded by a Cargo feature.
     mod integration {
         use super::*;
@@ -85,10 +80,8 @@ mod tests {
             let tok = load_tokenizer_from_file(&path).unwrap();
 
             // Check encoding
-            let enc  = tok.encode("hello", true).unwrap();
+            let enc = tok.encode("hello", true).unwrap();
             assert!(!enc.get_ids().is_empty());
         }
     }
 }
-
-

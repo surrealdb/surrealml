@@ -56,13 +56,18 @@ fn main() -> anyhow::Result<()> {
 
 ## Built-in vs remote tokenizers 
 
-**Built in tokenizers**
-| Preset enum              | `model` string to pass     | Embedded file                                        |
-|--------------------------|----------------------------|------------------------------------------------------|
-| `Gpt2`                   | `gpt2`                     | `tokenizers/gpt2-tokenizer.json`                     |
-| `DistilGpt2`             | `distilgpt2`               | `tokenizers/distilgpt2-tokenizer.json`               |
-| `GptNeo125M`             | `EleutherAI/gpt-neo-125M`  | `tokenizers/EleutherAI-gpt-neo-125M-tokenizer.json`  |
-| `BertBaseUncased`        | `bert-base-uncased`        | `tokenizers/bert-base-uncased-tokenizer.json`        |
+**Built-in tokenizers**
+
+| Preset enum       | `model` string to pass         | Embedded file                                           |
+|-------------------|--------------------------------|---------------------------------------------------------|
+| `Mixtral8x7Bv01`  | `mistralai/Mixtral-8x7B-v0.1`  | `tokenizers/mistralai-Mixtral-8x7B-v0.1-tokenizer.json` |
+| `Mistral7Bv01`    | `mistralai/Mistral-7B-v0.1`    | `tokenizers/mistralai-Mistral-7B-v0.1-tokenizer.json`   |
+| `MistralLite`     | `amazon/MistralLite`           | `tokenizers/amazon-MistralLite-tokenizer.json`          |
+| `Gemma7B`         | `google/gemma-7b`              | `tokenizers/google-gemma-7b-tokenizer.json`             |
+| `Gemma2B`         | `google/gemma-2b`              | `tokenizers/google-gemma-2b-tokenizer.json`             |
+| `Gemma3_4BIt`     | `google/gemma-3-4b-it`         | `tokenizers/google-gemma-3-4b-it-tokenizer.json`        |
+| `Falcon7B`        | `tiiuae/falcon-7b`             | `tokenizers/tiiuae-falcon-7b-tokenizer.json`            |
+
 
 **Remote tokenizers**
 Anything else (e.g. `"meta-llama/Meta-Llama-3-8B"`) triggers a download. So if we did the below, we'd pull the `tokenizer.json` file from hugging face and cache it in the standard HF directory `~/.cache/huggingface/hub.

@@ -1,15 +1,13 @@
 // worker/src/main.rs
 use anyhow::{bail, Context, Result};
-use wasmtime::{Engine, Module, Config, Store, Linker, TypedFunc, Memory};
+use std::{fs, path::Path};
+use tokio;
+use wasmtime::{Config, Engine, Linker, Memory, Module, Store, TypedFunc};
 use wasmtime_wasi::preview1::{add_to_linker_async, WasiP1Ctx};
 use wasmtime_wasi::WasiCtxBuilder;
-use tokio; 
-use std::{fs, path::Path};
-
 
 /// WebAssembly page size
 const WASM_PAGE: usize = 64 * 1024;
-
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -59,7 +57,8 @@ async fn main() -> Result<()> {
         let avail = (*pages * WASM_PAGE).saturating_sub(used);
         if avail < extra {
             let need = (extra - avail + WASM_PAGE - 1) / WASM_PAGE;
-            memory.grow(store, need as u64)
+            memory
+                .grow(store, need as u64)
                 .context("memory.grow failed")?;
             *pages += need;
         }
@@ -78,7 +77,8 @@ async fn main() -> Result<()> {
         let len = buf.len();
         reserve(store, memory, pages, *heap_top, len)?;
         let ptr = *heap_top as i32;
-        memory.write(store, ptr as usize, &buf)
+        memory
+            .write(store, ptr as usize, &buf)
             .context("writing C string")?;
         *heap_top += len;
         Ok(ptr)
@@ -98,11 +98,7 @@ async fn main() -> Result<()> {
         Ok(ptr)
     }
 
-    fn read_cstr(
-        store: &mut Store<WasiP1Ctx>,
-        memory: &Memory,
-        ptr: i32,
-    ) -> Result<String> {
+    fn read_cstr(store: &mut Store<WasiP1Ctx>, memory: &Memory, ptr: i32) -> Result<String> {
         let mut buf = Vec::new();
         let mut off = ptr as usize;
         loop {
@@ -126,8 +122,7 @@ async fn main() -> Result<()> {
     let free_tok: TypedFunc<(i32,), ()> =
         instance.get_typed_func(&mut store, "free_tokenizer_return")?;
 
-    let encode: TypedFunc<(i32, i32, i32), ()> =
-        instance.get_typed_func(&mut store, "encode")?;
+    let encode: TypedFunc<(i32, i32, i32), ()> = instance.get_typed_func(&mut store, "encode")?;
     let free_vec: TypedFunc<(i32,), ()> =
         instance.get_typed_func(&mut store, "free_vec_u32_return")?;
 
@@ -137,15 +132,23 @@ async fn main() -> Result<()> {
         instance.get_typed_func(&mut store, "free_string_return")?;
 
     // load_tokenizer("gpt2", NULL)
-    let model_ptr = alloc_cstr(&mut store, &memory, &mut pages, &mut heap_top, "gpt2")?;
+    let model_ptr = alloc_cstr(
+        &mut store,
+        &memory,
+        &mut pages,
+        &mut heap_top,
+        "mistralai/Mixtral-8x7B-v0.1",
+    )?;
     let sret = alloc_raw(&mut store, &memory, &mut pages, &mut heap_top, 3 * 4)?;
-    load_tok.call_async(&mut store, (sret, model_ptr, 0)).await?;
+    load_tok
+        .call_async(&mut store, (sret, model_ptr, 0))
+        .await?;
 
     // unpack the TokenizerReturn from sret
     let mut buf = [0u8; 12];
     memory.read(&mut store, sret as usize, &mut buf)?;
-    let handle  = i32::from_le_bytes(buf[0..4].try_into().unwrap());
-    let is_err  = i32::from_le_bytes(buf[4..8].try_into().unwrap());
+    let handle = i32::from_le_bytes(buf[0..4].try_into().unwrap());
+    let is_err = i32::from_le_bytes(buf[4..8].try_into().unwrap());
     let err_ptr = i32::from_le_bytes(buf[8..12].try_into().unwrap());
 
     if is_err != 0 {
@@ -156,17 +159,25 @@ async fn main() -> Result<()> {
     println!("✅ tokenizer handle = 0x{:x}", handle);
 
     // encode(handle, "hello wasm!")
-    let text_ptr = alloc_cstr(&mut store, &memory, &mut pages, &mut heap_top, "hello wasm!")?;
+    let text_ptr = alloc_cstr(
+        &mut store,
+        &memory,
+        &mut pages,
+        &mut heap_top,
+        "hello wasm!",
+    )?;
     let enc_sret = alloc_raw(&mut store, &memory, &mut pages, &mut heap_top, 5 * 4)?;
-    encode.call_async(&mut store, (enc_sret, handle, text_ptr)).await?;
+    encode
+        .call_async(&mut store, (enc_sret, handle, text_ptr))
+        .await?;
 
     // unpack the VecU32Return from enc_sret
     let mut buf = vec![0u8; 20];
     memory.read(&mut store, enc_sret as usize, &mut buf)?;
-    let data_ptr    = i32::from_le_bytes(buf[0..4].try_into().unwrap());
-    let length      = u32::from_le_bytes(buf[4..8].try_into().unwrap()) as usize;
-    let _capacity    = u32::from_le_bytes(buf[8..12].try_into().unwrap()) as usize;
-    let enc_err     = i32::from_le_bytes(buf[12..16].try_into().unwrap());
+    let data_ptr = i32::from_le_bytes(buf[0..4].try_into().unwrap());
+    let length = u32::from_le_bytes(buf[4..8].try_into().unwrap()) as usize;
+    let capacity = u32::from_le_bytes(buf[8..12].try_into().unwrap()) as usize;
+    let enc_err = i32::from_le_bytes(buf[12..16].try_into().unwrap());
     let enc_err_ptr = i32::from_le_bytes(buf[16..20].try_into().unwrap());
 
     if enc_err != 0 {
@@ -187,13 +198,15 @@ async fn main() -> Result<()> {
     // decode(handle, data_ptr, length)
     let dec_sret = alloc_raw(&mut store, &memory, &mut pages, &mut heap_top, 3 * 4)?;
     let length_i32 = i32::try_from(length).expect("length overflow when casting to i32");
-    decode.call_async(&mut store, (dec_sret, handle, data_ptr, length_i32)).await?;
+    decode
+        .call_async(&mut store, (dec_sret, handle, data_ptr, length_i32))
+        .await?;
 
     // unpack the StringReturn from dec_sret
     let mut buf = [0u8; 12];
     memory.read(&mut store, dec_sret as usize, &mut buf)?;
-    let s_ptr       = i32::from_le_bytes(buf[0..4].try_into().unwrap());
-    let dec_err     = i32::from_le_bytes(buf[4..8].try_into().unwrap());
+    let s_ptr = i32::from_le_bytes(buf[0..4].try_into().unwrap());
+    let dec_err = i32::from_le_bytes(buf[4..8].try_into().unwrap());
     let dec_err_ptr = i32::from_le_bytes(buf[8..12].try_into().unwrap());
 
     if dec_err != 0 {
@@ -208,7 +221,6 @@ async fn main() -> Result<()> {
     free_str.call_async(&mut store, (dec_sret,)).await?;
     free_vec.call_async(&mut store, (enc_sret,)).await?;
     free_tok.call_async(&mut store, (sret,)).await?;
-
 
     Ok(())
 }

@@ -1,8 +1,7 @@
 //! Defines the placeholder for the type of model engine in the header.
 
-
 /// Defines the type of engine being used to run the model.
-/// 
+///
 /// # Fields
 /// * `Native` - The native engine which will be native rust and linfa.
 /// * `PyTorch` - The PyTorch engine which will be PyTorch and tch-rs.
@@ -11,14 +10,12 @@
 pub enum Engine {
     Native,
     PyTorch,
-    Undefined
+    Undefined,
 }
 
-
 impl Engine {
-
     /// Creates a new `Engine` struct with the undefined engine.
-    /// 
+    ///
     /// # Returns
     /// A new `Engine` struct with the undefined engine.
     pub fn fresh() -> Self {
@@ -26,10 +23,10 @@ impl Engine {
     }
 
     /// Creates a new `Engine` struct from a string.
-    /// 
+    ///
     /// # Arguments
     /// * `engine` - The engine as a string.
-    /// 
+    ///
     /// # Returns
     /// A new `Engine` struct.
     pub fn from_string(engine: String) -> Self {
@@ -41,7 +38,7 @@ impl Engine {
     }
 
     /// Translates the struct to a string.
-    /// 
+    ///
     /// # Returns
     /// * `String` - The struct as a string.
     pub fn to_string(&self) -> String {
@@ -51,5 +48,4 @@ impl Engine {
             Engine::Undefined => "".to_string(),
         }
     }
-
 }

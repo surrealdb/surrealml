@@ -1,10 +1,10 @@
 //! High‑level helpers for **tokenizer** loading & (de‑)coding.
-use tokenizers::Tokenizer;
 use crate::error::{SurrealError, SurrealErrorStatus};
-use crate::preset_tokenizers::PresetTokenizers;
 #[cfg(feature = "http-access")]
 use crate::fetch_tokenizer::{fetch_tokenizer, load_tokenizer_from_file};
-
+use crate::preset_tokenizers::PresetTokenizers;
+use std::path::PathBuf; // retained for potential extension
+use tokenizers::Tokenizer;
 
 /// Load a [`Tokenizer`] by **model name**.
 ///
@@ -27,14 +27,13 @@ pub fn load_tokenizer(model: String, hf_token: Option<String>) -> Result<Tokeniz
         return load_tokenizer_from_file(&tokenizer_path);
     }
 
-    return Err(
-        SurrealError::new(
-            "Tokenizer not found locally, and remote access is disabled. \
+    return Err(SurrealError::new(
+        "Tokenizer not found locally, and remote access is disabled. \
             Please enable the 'http-access' feature to fetch tokenizers from \
-            Hugging Face.".to_string(),
-            SurrealErrorStatus::NotFound,
-        ),
-    );
+            Hugging Face."
+            .to_string(),
+        SurrealErrorStatus::NotFound,
+    ));
 }
 
 /// Encode `text` into a vector of token‑IDs.
@@ -76,24 +75,23 @@ pub fn decode(tokenizer: &Tokenizer, ids: &[u32]) -> Result<String, SurrealError
     })
 }
 
-
 #[cfg(test)]
 mod tests {
-    use super::{load_tokenizer, decode, encode};
-    use crate::preset_tokenizers::PresetTokenizers;
+    use super::{decode, encode, load_tokenizer};
     use crate::error::SurrealErrorStatus;
+    use crate::preset_tokenizers::PresetTokenizers;
 
     // Returns a tokenizer we can reuse in multiple test cases.
-    fn gpt2_tok() -> tokenizers::Tokenizer {
-        PresetTokenizers::Gpt2
+    fn mixtral_tok() -> tokenizers::Tokenizer {
+        PresetTokenizers::Mixtral8x7Bv01
             .retrieve_tokenizer()
-            .expect("embedded GPT-2 tokenizer should load")
+            .expect("embedded Mixtral8x7Bv01 tokenizer should load")
     }
 
     #[test]
     fn load_tokenizer_with_preset_name_succeeds() {
         // "gpt2" is one of the PresetTokenizers; adjust if you add/change names.
-        let tokenizer = load_tokenizer("gpt2".to_owned(), None).unwrap();
+        let tokenizer = load_tokenizer("mistralai/Mixtral-8x7B-v0.1".to_owned(), None).unwrap();
 
         // Quick sanity check - encoding a non-empty string yields at least one id.
         let ids = encode(&tokenizer, "Hello from a preset!").expect("encode failed");
@@ -113,8 +111,8 @@ mod tests {
     // Success path tests
     #[test]
     fn encode_returns_non_empty_ids() {
-        let tok = gpt2_tok();
-        let ids = encode(&tok, "hello GPT-2").expect("encode failed");
+        let tok = mixtral_tok();
+        let ids = encode(&tok, "hello again").expect("encode failed");
         assert!(
             !ids.is_empty(),
             "expected at least one token id for a non-empty string"
@@ -123,7 +121,7 @@ mod tests {
 
     #[test]
     fn encode_then_decode_round_trip() {
-        let tok = gpt2_tok();
+        let tok = mixtral_tok();
         let original = "Hello world!";
         let ids = encode(&tok, original).expect("encode failed");
         let decoded = decode(&tok, &ids).expect("decode failed");
@@ -133,4 +131,3 @@ mod tests {
         assert_eq!(original.trim(), decoded.trim());
     }
 }
-

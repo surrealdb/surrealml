@@ -1,11 +1,10 @@
 //! Custom error that can be attached to a web framework to automcatically result in a http response,
 use serde::{Deserialize, Serialize};
-use thiserror::Error;
 use std::fmt;
-
+use thiserror::Error;
 
 /// The status of the custom error.
-/// 
+///
 /// # Fields
 /// * `NotFound` - The request was not found.
 /// * `Forbidden` - You are forbidden to access.
@@ -25,40 +24,33 @@ pub enum SurrealErrorStatus {
     #[error("Conflict")]
     Conflict,
     #[error("Unauthorized")]
-    Unauthorized
+    Unauthorized,
 }
 
-
 /// The custom error that the web framework will construct into a HTTP response.
-/// 
+///
 /// # Fields
 /// * `message` - The message of the error.
 /// * `status` - The status of the error.
 #[derive(Serialize, Deserialize, Debug, Error)]
 pub struct SurrealError {
     pub message: String,
-    pub status: SurrealErrorStatus
+    pub status: SurrealErrorStatus,
 }
 
-
 impl SurrealError {
-
     /// Create a new custom error.
-    /// 
+    ///
     /// # Arguments
     /// * `message` - The message of the error.
     /// * `status` - The status of the error.
-    /// 
+    ///
     /// # Returns
     /// A new custom error.
     pub fn new(message: String, status: SurrealErrorStatus) -> Self {
-        SurrealError {
-            message,
-            status
-        }
+        SurrealError { message, status }
     }
 }
-
 
 impl fmt::Display for SurrealError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

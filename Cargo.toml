@@ -7,5 +7,6 @@ members = [
     "modules/pipelines/data_access",
     "modules/transformers/run-worker",
     "modules/transformers/tokenizers",
-    "modules/transformers/wasm-wrapper"
+    "modules/transformers/wasm-wrapper",
+    "modules/transformers/llms"
 ]

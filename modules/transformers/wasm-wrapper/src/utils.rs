@@ -1,7 +1,6 @@
-use std::ffi::CString;
+use crate::tokenizer::TokenizerHandle;
+use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_int};
-use crate::tokenizer::{TokenizerHandle};
-
 
 /// Checks that the pointer to the string is not null and converts to a Rust `String`.
 /// On error, returns early from the enclosing function with a `TokenizerReturn::error`.
@@ -13,18 +12,21 @@ use crate::tokenizer::{TokenizerHandle};
 macro_rules! process_string_for_tokenizer_return {
     ($str_ptr:expr, $var_name:expr) => {
         match $str_ptr.is_null() {
-            true => return TokenizerReturn::error(format!("Received null pointer for {}", $var_name)),
+            true => {
+                return TokenizerReturn::error(format!("Received null pointer for {}", $var_name))
+            }
             false => {
                 let c_str = unsafe { CStr::from_ptr($str_ptr) };
                 match c_str.to_str() {
                     Ok(s) => s.to_owned(),
-                    Err(_) => return TokenizerReturn::error(format!("Invalid UTF-8 for {}", $var_name)),
+                    Err(_) => {
+                        return TokenizerReturn::error(format!("Invalid UTF-8 for {}", $var_name))
+                    }
                 }
             }
         }
     };
 }
-
 
 /// Like `process_string_for_tokenizer_return!`, but yields an `Option<String>`.
 /// If `str_ptr` is null, produces `None`. If invalid UTF-8, returns an error.
@@ -41,13 +43,14 @@ macro_rules! process_opt_string_for_tokenizer_return {
                 let c_str = unsafe { CStr::from_ptr($str_ptr) };
                 match c_str.to_str() {
                     Ok(s) => Some(s.to_owned()),
-                    Err(_) => return TokenizerReturn::error(format!("Invalid UTF-8 for {}", $var_name)),
+                    Err(_) => {
+                        return TokenizerReturn::error(format!("Invalid UTF-8 for {}", $var_name))
+                    }
                 }
             }
         }
     };
 }
-
 
 /// Returned from `load_tokenizer_ffi`, wrapping either a valid handle or an error.
 #[repr(C)]
@@ -91,7 +94,6 @@ impl TokenizerReturn {
     }
 }
 
-
 /// Frees solely the error message memory associated with a `TokenizerReturn`,
 ///
 /// # Arguments
@@ -109,9 +111,8 @@ pub extern "C" fn free_tokenizer_return(tokenizer_return: TokenizerReturn) {
     }
 }
 
-
 /// Checks that the pointer to the string is not null and converts to a Rust string. Any errors are returned as a `StringReturn`.
-/// 
+///
 /// # Arguments
 /// * `str_ptr` - The pointer to the string.
 /// * `var_name` - The name of the variable being processed (for error messages).
@@ -122,10 +123,15 @@ macro_rules! process_string_for_string_return {
             true => {
                 return StringReturn {
                     is_error: 1,
-                    error_message: CString::new(format!("Received a null pointer for {}", $var_name)).unwrap().into_raw(),
-                    string: std::ptr::null_mut()
+                    error_message: CString::new(format!(
+                        "Received a null pointer for {}",
+                        $var_name
+                    ))
+                    .unwrap()
+                    .into_raw(),
+                    string: std::ptr::null_mut(),
                 };
-            },
+            }
             false => {
                 let c_str = unsafe { CStr::from_ptr($str_ptr) };
                 match c_str.to_str() {
@@ -133,8 +139,13 @@ macro_rules! process_string_for_string_return {
                     Err(_) => {
                         return StringReturn {
                             is_error: 1,
-                            error_message: CString::new(format!("Invalid UTF-8 string received for {}", $var_name)).unwrap().into_raw(),
-                            string: std::ptr::null_mut()
+                            error_message: CString::new(format!(
+                                "Invalid UTF-8 string received for {}",
+                                $var_name
+                            ))
+                            .unwrap()
+                            .into_raw(),
+                            string: std::ptr::null_mut(),
                         };
                     }
                 }
@@ -143,9 +154,8 @@ macro_rules! process_string_for_string_return {
     };
 }
 
-
 /// Returns a simple String to the caller.
-/// 
+///
 /// # Fields
 /// * `string` - The string to return.
 /// * `is_error` - A flag indicating if an error occurred (1 if error 0 if not).
@@ -154,31 +164,28 @@ macro_rules! process_string_for_string_return {
 pub struct StringReturn {
     pub string: *mut c_char,
     pub is_error: c_int,
-    pub error_message: *mut c_char
+    pub error_message: *mut c_char,
 }
 
-
 impl StringReturn {
-
     /// Returns a new `StringReturn` object with the string and no error.
-    /// 
+    ///
     /// # Arguments
     /// * `string` - The string to return.
-    /// 
+    ///
     /// # Returns
     /// A new `StringReturn` object.
     pub fn success(string: String) -> Self {
         StringReturn {
             string: CString::new(string).unwrap().into_raw(),
             is_error: 0,
-            error_message: std::ptr::null_mut()
+            error_message: std::ptr::null_mut(),
         }
     }
 }
 
-
 /// Frees the memory allocated for the `StringReturn` object.
-/// 
+///
 /// # Arguments
 /// * `string_return` - The `StringReturn` object to free.
 #[no_mangle]
@@ -192,7 +199,6 @@ pub extern "C" fn free_string_return(string_return: StringReturn) {
         unsafe { drop(CString::from_raw(string_return.error_message)) };
     }
 }
-
 
 /// Checks that the pointer to the string is not null and converts it to a Rust `&str`.  
 /// On error, returns early from the enclosing function with a `VecU32Return::error`.  
@@ -209,16 +215,17 @@ macro_rules! process_string_for_vecu32_return {
                 let c_str = unsafe { CStr::from_ptr($str_ptr) };
                 match c_str.to_str() {
                     Ok(s) => s,
-                    Err(_) => return VecU32Return::error(format!("Invalid UTF-8 for {}", $var_name)),
+                    Err(_) => {
+                        return VecU32Return::error(format!("Invalid UTF-8 for {}", $var_name))
+                    }
                 }
             }
         }
     };
 }
 
-
 /// Returns a vector of bytes to the caller.
-/// 
+///
 /// # Fields
 /// * `data` - The pointer to the data.
 /// * `length` - The length of the data.
@@ -231,17 +238,15 @@ pub struct VecU32Return {
     pub length: usize,
     pub capacity: usize, // Optional if you want to include capacity for clarity
     pub is_error: c_int,
-    pub error_message: *mut c_char
+    pub error_message: *mut c_char,
 }
 
-
 impl VecU32Return {
-
     /// Returns a new `VecU32Return` object with the data and no error.
-    /// 
+    ///
     /// # Arguments
     /// * `data` - The data to return.
-    /// 
+    ///
     /// # Returns
     /// A new `VecU32Return` object.
     pub fn success(data: Vec<u32>) -> Self {
@@ -255,7 +260,7 @@ impl VecU32Return {
             length,
             capacity,
             is_error: 0,
-            error_message: std::ptr::null_mut()
+            error_message: std::ptr::null_mut(),
         }
     }
 
@@ -271,9 +276,8 @@ impl VecU32Return {
     }
 }
 
-
 /// Frees only the string memory allocated for the `VecU32Return` object.
-/// 
+///
 /// # Arguments
 /// * `vec_u32` - The `VecU32Return` object to free.
 #[no_mangle]
@@ -283,8 +287,12 @@ pub extern "C" fn free_vec_u32_return(vec_u32_return: VecU32Return) {
     }
 
     if !vec_u32_return.data.is_null() {
-        unsafe { drop(Vec::from_raw_parts(vec_u32_return.data, vec_u32_return.length, vec_u32_return.capacity)) };
+        unsafe {
+            drop(Vec::from_raw_parts(
+                vec_u32_return.data,
+                vec_u32_return.length,
+                vec_u32_return.capacity,
+            ))
+        };
     }
 }
-
-

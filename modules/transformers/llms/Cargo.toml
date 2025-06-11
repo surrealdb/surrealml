@@ -1,0 +1,28 @@
+[package]
+name = "surrealml-llms"
+version = "0.1.0"
+edition = "2024"
+description = "An interface for loading and running models with candle transformers"
+license = "LICENSE"
+
+[dependencies]
+surrealml-tokenizers = { path = "../tokenizers", default-features = false }
+serde = { version = "1.0", features = ["derive"] }
+hf-hub = { version = "0.4.1", optional = true, features = ["tokio"] }
+thiserror = "2.0.9"
+candle-core = "0.9.1"
+candle-transformers = "0.9.1"
+candle-nn = "0.9.1"
+tempfile = "3.20.0"
+
+[lib]
+name = "surrealml_llms"
+path = "src/lib.rs"
+
+[features]
+default = []
+http-access = [
+    "hf-hub",
+    "surrealml-tokenizers/http-access",
+]
+local-gemma-test = []

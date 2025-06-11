@@ -5,9 +5,8 @@ use std::io::prelude::*;
 use serde_json::Value;
 use std::collections::HashMap;
 
-
 /// Represents the different tags that can be assigned to a video frame.
-/// 
+///
 /// # Variants
 /// * `Preparation` - The first step of the surgery, where the patient is prepared for the surgery.
 /// * `CarlotTriangleDissection` - The second step of the surgery, where the carlot triangle is dissected.
@@ -27,7 +26,6 @@ pub enum SurgeryStep {
     GallbladderExtraction,
 }
 
-
 /// Converts a u8 to a SurgeryStep.
 impl From<u8> for SurgeryStep {
     fn from(step: u8) -> Self {
@@ -44,12 +42,9 @@ impl From<u8> for SurgeryStep {
     }
 }
 
-
-
 impl SurgeryStep {
-
     /// Converts the surgery step to a u8.
-    /// 
+    ///
     /// # Returns
     /// A u8 representing the surgery step.
     pub fn to_u8(&self) -> u8 {
@@ -65,7 +60,7 @@ impl SurgeryStep {
     }
 
     /// Converts the surgery step to a binary string of 4 bytes.
-    /// 
+    ///
     /// # Returns
     /// A string containing the binary representation of the surgery step.
     pub fn to_binary_string(&self) -> String {
@@ -73,9 +68,8 @@ impl SurgeryStep {
     }
 }
 
-
 /// Merely reads the tags from a file and returns them as a string.
-/// 
+///
 /// # Note
 /// Right now we are loading all of the tags into memory. This is not very efficient
 /// if the size of the file grows but this will work for now to test things. We can
@@ -83,22 +77,21 @@ impl SurgeryStep {
 /// that we come up with our own binary format to store the tags in so that we can read
 /// chunks more efficiently and reduce the size of the file. as I think these files will
 /// grow in size quite a bit.
-/// 
+///
 /// # Arguments
 /// * `path` - The path to the file containing the tags.
-/// 
+///
 /// # Returns
 /// A string containing the tags.
 pub fn read_tags(path: &str) -> Result<String, std::io::Error> {
     let mut file = File::open(path)?;
     let mut contents = String::new();
     file.read_to_string(&mut contents)?;
-    return Ok(contents)
+    return Ok(contents);
 }
 
-
 /// Parses the tags in string format to a HashMap with surgical tags for indexes.
-/// 
+///
 /// # Note
 /// Right now we are merely loading the tags and putting them into a HashMap which is
 /// not very efficient as we need to perform hashes per insert or lookup. Instead we
@@ -106,10 +99,10 @@ pub fn read_tags(path: &str) -> Result<String, std::io::Error> {
 /// of the vector removing the need for hashing. However, for now this is fine just to
 /// get things working. If we keep the interfaces the same, we can easily change the
 /// indexing mechanism later without breaking the rest of the program.
-/// 
+///
 /// # Arguments
 /// * `data` - The string containing the tags.
-/// 
+///
 /// # Returns
 /// A HashMap with the tags for each index of the video.
 pub fn parse_surgery_steps(data: String) -> HashMap<String, Vec<SurgeryStep>> {
@@ -118,7 +111,9 @@ pub fn parse_surgery_steps(data: String) -> HashMap<String, Vec<SurgeryStep>> {
     let mut map = HashMap::new();
 
     for (key, steps) in v.as_object().expect("Expected a JSON object") {
-        let steps_list = steps.as_array().expect("Expected an array")
+        let steps_list = steps
+            .as_array()
+            .expect("Expected an array")
             .iter()
             .map(|step| SurgeryStep::from(step.as_u64().expect("Expected an integer") as u8))
             .collect();
@@ -128,7 +123,6 @@ pub fn parse_surgery_steps(data: String) -> HashMap<String, Vec<SurgeryStep>> {
 
     map
 }
-
 
 #[cfg(test)]
 mod tests {
