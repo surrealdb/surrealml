@@ -1,0 +1,8 @@
+[package]
+name = "wasm-linker"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+wasmtime = "33.0.0"
+wasmtime-wasi = { version = "33.0.0", features = ["preview1"]}

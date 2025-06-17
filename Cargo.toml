@@ -9,4 +9,4 @@ members = [
     "modules/transformers/tokenizers",
     "modules/transformers/wasm-wrapper",
     "modules/transformers/llms"
-]
+, "modules/wasm-linker"]

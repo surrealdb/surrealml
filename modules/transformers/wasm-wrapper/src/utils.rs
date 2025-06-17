@@ -1,5 +1,5 @@
 use crate::tokenizer::TokenizerHandle;
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 use std::os::raw::{c_char, c_int};
 
 /// Checks that the pointer to the string is not null and converts to a Rust `String`.

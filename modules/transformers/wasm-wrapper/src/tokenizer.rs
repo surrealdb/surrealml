@@ -4,7 +4,7 @@ use crate::{
     process_string_for_vecu32_return,
 };
 use std::ffi::{CStr, CString};
-use std::os::raw::{c_char, c_int};
+use std::os::raw::c_char;
 use std::slice;
 use surrealml_tokenizers::{
     decode as decode_surrealml, encode as encode_surrealml,
