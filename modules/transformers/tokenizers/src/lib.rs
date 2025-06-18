@@ -5,6 +5,7 @@ mod preset_tokenizers;
 mod tokenizer;
 
 pub use crate::error::SurrealError;
+pub use preset_tokenizers::PresetTokenizers;
 pub use tokenizer::{decode, encode, load_local_tokenizer};
 pub use tokenizers::Tokenizer;
 

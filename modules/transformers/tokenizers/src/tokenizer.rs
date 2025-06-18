@@ -16,7 +16,10 @@ use crate::fetch_tokenizer::{fetch_tokenizer, load_tokenizer_from_file};
 /// * `Ok(Tokenizer)` on success.
 /// * `Err(SurrealError)` when either retrieval or deserialization fails.
 #[cfg(feature = "http-access")]
-pub fn load_tokenizer_with_http(model: String, hf_token: Option<String>) -> Result<Tokenizer, SurrealError> {
+pub fn load_tokenizer_with_http(
+    model: String,
+    hf_token: Option<String>,
+) -> Result<Tokenizer, SurrealError> {
     if let Some(preset) = PresetTokenizers::from_str(&model) {
         return preset.retrieve_tokenizer();
     }

@@ -15,20 +15,9 @@
 //!
 //! ## Inside the context
 //! - standard streams => `stdin`, `stdout`, `stderr`
-//!
-
 use surrealml_tokenizers::{encode, load_local_tokenizer};
 use wasmtime::AsContextMut;
-use wasmtime::{Caller, Config, Engine, Linker, Memory, Module, Result, Store};
-use wasmtime_wasi::p2::{WasiCtx, WasiCtxBuilder};
-use wasmtime_wasi::preview1::{self, WasiP1Ctx};
-
-// maybe put in an interface via a trait so we don't need the wasmtime runtimes for the module
-
-// pass in a config
-// pass in an engine
-// create a new module
-//
+use wasmtime::{Caller, Linker, Memory};
 
 fn guest_str<'a>(mem: &'a [u8], ptr: i32, len: i32) -> &'a str {
     std::str::from_utf8(&mem[ptr as usize..(ptr + len) as usize]).unwrap()
@@ -65,26 +54,12 @@ fn tokenizer_encode_raw(
     let model = guest_str(data, model_ptr, model_len);
     let input = guest_str(data, input_ptr, input_len);
 
-    // === your real work ===
     let tokenizer_model = load_local_tokenizer(model.to_owned()).unwrap();
     let tokens = encode(&tokenizer_model, input).unwrap();
-    // ======================
-
     write_u32_slice(&mut caller, &mem, &tokens)
 }
 
-fn add(a: i32, b: i32) -> i32 {
-    a + b
-}
-
-fn call_tokenizer_encode(model: &str, input: &str) -> Vec<u32> {
-    let tokenizer_model = load_local_tokenizer(model.to_owned()).unwrap();
-    let output = encode(&tokenizer_model, input.into()).unwrap();
-    return output;
-}
-
 pub fn link_ml(linker: &mut Linker<()>) {
-    // let mixtral = load_local_tokenizer("mistralai/Mixtral-8x7B-v0.1".to_owned()).unwrap();
     linker
         .func_wrap("host", "tokenizer_encode", tokenizer_encode_raw)
         .unwrap();
@@ -94,6 +69,7 @@ pub fn link_ml(linker: &mut Linker<()>) {
 mod tests {
     use super::*;
     use bytemuck::cast_slice;
+    use surrealml_tokenizers::PresetTokenizers;
     use wasmtime::TypedFunc;
     use wasmtime::{Engine, Linker, Module, Store};
 
@@ -101,20 +77,26 @@ mod tests {
         a + b
     }
 
+    fn call_tokenizer_encode(model: &str, input: &str) -> Vec<u32> {
+        let tokenizer_model = load_local_tokenizer(model.to_owned()).unwrap();
+        let output = encode(&tokenizer_model, input.into()).unwrap();
+        return output;
+    }
+
     /// To test that the basic raw linking just works. Other tests will focus on the linking of ML modules.
     #[test]
     fn test_basic_linking() {
-        // 1 ️⃣  Engine – compiles & caches modules.
+        // 1 Engine – compiles & caches modules.
         let engine = Engine::default();
         let mut linker = Linker::new(&engine);
 
         // 2 ️⃣  Linker – link the add functio
         linker.func_wrap("host", "add", add).unwrap();
 
-        // 3 ️⃣  Store – per-instance state (no WASI needed here).
+        // 3 Store – per-instance state (no WASI needed here).
         let mut store = Store::new(&engine, ());
 
-        // 4 ️⃣  Tiny text-format Wasm that calls the host function.
+        // 4 Tiny text-format Wasm that calls the host function.
         let wat = r#"
             (module
                 (import "host" "add" (func $add (param i32 i32) (result i32)))
@@ -139,12 +121,18 @@ mod tests {
 
     #[test]
     fn test_basic_load() {
-        let outcome = call_tokenizer_encode("mistralai/Mixtral-8x7B-v0.1", "Hello from a preset!");
-        println!("{:?}", outcome);
+        let _ = call_tokenizer_encode(
+            &PresetTokenizers::Mixtral8x7Bv01.to_string(),
+            "Hello from a preset!",
+        );
+        let _ = call_tokenizer_encode(
+            &PresetTokenizers::Gemma2B.to_string(),
+            "Hello from a preset!",
+        );
     }
 
     #[test]
-    fn guest_tokens_same_as_host() -> Result<()> {
+    fn guest_tokens_same_as_host() {
         // -------- WAT with the correct string lengths --------
         let wat = r#"
         (module
@@ -169,15 +157,19 @@ mod tests {
 
         // ---------- set-up ----------
         let engine = Engine::default();
-        let module = Module::new(&engine, wat)?;
+        let module = Module::new(&engine, wat).expect("WASM module to be created");
         let mut linker = Linker::new(&engine);
         link_ml(&mut linker); // registers the wrapper
         let mut store = Store::new(&engine, ());
-        let instance = linker.instantiate(&mut store, &module)?;
+        let instance = linker
+            .instantiate(&mut store, &module)
+            .expect("WASM module to be instantiated");
 
         // ---------- call guest ----------
-        let run: TypedFunc<(), (i32, i32)> = instance.get_typed_func(&mut store, "run")?;
-        let (ptr, len) = run.call(&mut store, ())?;
+        let run: TypedFunc<(), (i32, i32)> = instance
+            .get_typed_func(&mut store, "run")
+            .expect("run function to be extracted");
+        let (ptr, len) = run.call(&mut store, ()).expect("run function to be called");
 
         // ---------- pull tokens back out ----------
         let memory: Memory = instance.get_memory(&mut store, "memory").unwrap();
@@ -185,10 +177,11 @@ mod tests {
         let guest_tokens: Vec<u32> = cast_slice::<u8, u32>(bytes).to_vec();
 
         // ---------- compute expected ----------
-        let expected =
-            call_tokenizer_encode("mistralai/Mixtral-8x7B-v0.1", "The cat sat on the mat.");
+        let expected = call_tokenizer_encode(
+            &PresetTokenizers::Mixtral8x7Bv01.to_string(),
+            "The cat sat on the mat.",
+        );
 
         assert_eq!(guest_tokens, expected);
-        Ok(())
     }
 }

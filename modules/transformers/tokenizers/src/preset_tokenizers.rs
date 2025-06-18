@@ -1,5 +1,6 @@
 //! Utilities for working with **preset** Hugging Face model identifiers.
 use crate::error::{SurrealError, SurrealErrorStatus};
+use std::fmt;
 use std::str::FromStr;
 use tokenizers::Tokenizer;
 
@@ -34,6 +35,38 @@ pub enum PresetTokenizers {
     Gemma2B,
     Gemma3_4BIt,
     Falcon7B,
+}
+
+impl TryFrom<&str> for PresetTokenizers {
+    type Error = String;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value {
+            "mistralai/Mixtral-8x7B-v0.1" => Ok(PresetTokenizers::Mixtral8x7Bv01),
+            "mistralai/Mistral-7B-v0.1" => Ok(PresetTokenizers::Mistral7Bv01),
+            "amazon/MistralLite" => Ok(PresetTokenizers::MistralLite),
+            "google/gemma-7b" => Ok(PresetTokenizers::Gemma7B),
+            "google/gemma-2b" => Ok(PresetTokenizers::Gemma2B),
+            "google/gemma-3-4b-it" => Ok(PresetTokenizers::Gemma3_4BIt),
+            "tiiuae/falcon-7b" => Ok(PresetTokenizers::Falcon7B),
+            _ => Err(format!("{} is not a preset tokenizer", value)),
+        }
+    }
+}
+
+impl fmt::Display for PresetTokenizers {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            PresetTokenizers::Mixtral8x7Bv01 => "mistralai/Mixtral-8x7B-v0.1",
+            PresetTokenizers::Mistral7Bv01 => "mistralai/Mistral-7B-v0.1",
+            PresetTokenizers::MistralLite => "amazon/MistralLite",
+            PresetTokenizers::Gemma7B => "google/gemma-7b",
+            PresetTokenizers::Gemma2B => "google/gemma-2b",
+            PresetTokenizers::Gemma3_4BIt => "google/gemma-3-4b-it",
+            PresetTokenizers::Falcon7B => "tiiuae/falcon-7b",
+        };
+        write!(f, "{s}")
+    }
 }
 
 impl PresetTokenizers {
