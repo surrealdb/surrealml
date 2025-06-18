@@ -1,0 +1,10 @@
+[package]
+name = "run-worker"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+wasmtime = "27.0.0"
+wasmtime-wasi = { version = "27.0.0", features = ["preview1"]}
+anyhow = "1.0"        

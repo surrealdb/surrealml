@@ -1,0 +1,10 @@
+[package]
+name = "wasm-linker"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+wasmtime = { workspace = true }
+wasmtime-wasi = { workspace = true }
+surrealml-tokenizers = { path = "../transformers/tokenizers" }
+bytemuck = "1.23.1"

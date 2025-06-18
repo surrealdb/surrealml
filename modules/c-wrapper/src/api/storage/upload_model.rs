@@ -5,8 +5,8 @@ use std::os::raw::c_char;
 // External crate imports
 use base64::encode;
 use hyper::{
+    header::{HeaderValue, AUTHORIZATION, CONTENT_TYPE},
     Body, Client, Method, Request, Uri,
-    header::{AUTHORIZATION, CONTENT_TYPE, HeaderValue},
 };
 use surrealml_core::storage::stream_adapter::StreamAdapter;
 
@@ -14,9 +14,8 @@ use surrealml_core::storage::stream_adapter::StreamAdapter;
 use crate::utils::EmptyReturn;
 use crate::{empty_return_safe_eject, process_string_for_empty_return};
 
-
 /// Uploads a model to a remote server.
-/// 
+///
 /// # Arguments
 /// * `file_path_ptr` - The path to the file to upload.
 /// * `url_ptr` - The URL to upload the file to.
@@ -25,7 +24,7 @@ use crate::{empty_return_safe_eject, process_string_for_empty_return};
 /// * `db_ptr` - The database to upload the file to.
 /// * `username_ptr` - The username to use for authentication.
 /// * `password_ptr` - The password to use for authentication.
-/// 
+///
 /// # Returns
 /// An empty return object indicating success or failure.
 #[no_mangle]
@@ -36,7 +35,7 @@ pub extern "C" fn upload_model(
     ns_ptr: *const c_char,
     db_ptr: *const c_char,
     username_ptr: *const c_char,
-    password_ptr: *const c_char
+    password_ptr: *const c_char,
 ) -> EmptyReturn {
     // process the inputs
     let file_path = process_string_for_empty_return!(file_path_ptr, "file path");
@@ -45,11 +44,11 @@ pub extern "C" fn upload_model(
     let db = process_string_for_empty_return!(db_ptr, "database");
     let username = match username_ptr.is_null() {
         true => None,
-        false => Some(process_string_for_empty_return!(username_ptr, "username"))
+        false => Some(process_string_for_empty_return!(username_ptr, "username")),
     };
     let password = match password_ptr.is_null() {
         true => None,
-        false => Some(process_string_for_empty_return!(password_ptr, "password"))
+        false => Some(process_string_for_empty_return!(password_ptr, "password")),
     };
 
     let client = Client::new();
@@ -62,24 +61,31 @@ pub extern "C" fn upload_model(
         .method(Method::POST)
         .uri(uri)
         .header(CONTENT_TYPE, "application/octet-stream")
-        .header("surreal-ns", empty_return_safe_eject!(HeaderValue::from_str(&ns)))
-        .header("surreal-db", empty_return_safe_eject!(HeaderValue::from_str(&db)));
+        .header(
+            "surreal-ns",
+            empty_return_safe_eject!(HeaderValue::from_str(&ns)),
+        )
+        .header(
+            "surreal-db",
+            empty_return_safe_eject!(HeaderValue::from_str(&db)),
+        );
 
     let req;
     if username.is_none() == false && password.is_none() == false {
         // unwraps are safe because we have already checked that the values are not None
         let encoded_credentials = encode(format!("{}:{}", username.unwrap(), password.unwrap()));
-        req = empty_return_safe_eject!(part_req.header(AUTHORIZATION, format!("Basic {}", encoded_credentials))
-                      .body(body));
-    }
-    else {
+        req = empty_return_safe_eject!(part_req
+            .header(AUTHORIZATION, format!("Basic {}", encoded_credentials))
+            .body(body));
+    } else {
         req = empty_return_safe_eject!(part_req.body(body));
     }
 
-    let tokio_runtime = empty_return_safe_eject!(tokio::runtime::Builder::new_current_thread().enable_io()
-                                                                                                       .enable_time()
-                                                                                                       .build());
-    tokio_runtime.block_on( async move {
+    let tokio_runtime = empty_return_safe_eject!(tokio::runtime::Builder::new_current_thread()
+        .enable_io()
+        .enable_time()
+        .build());
+    tokio_runtime.block_on(async move {
         let _response = client.request(req).await.unwrap();
     });
     EmptyReturn::success()

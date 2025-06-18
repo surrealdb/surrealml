@@ -1,0 +1,12 @@
+{
+    // Format on save
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.formatOnSaveMode": "file",
+    // Use rust-analyzer and run Clippy on save
+    "rust-analyzer.checkOnSave.command": "clippy",
+    "rust-analyzer.checkOnSave.allTargets": true,
+    "rust-analyzer.checkOnSave.extraArgs": [
+        "--workspace"
+    ]
+}
