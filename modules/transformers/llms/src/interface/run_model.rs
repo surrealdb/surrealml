@@ -1,8 +1,6 @@
 use crate::models::model_wrapper::ModelWrapper;
 use crate::utils::error::{SurrealError, SurrealErrorStatus};
-use candle_core::Tensor;
-use surrealml_tokenizers::Tokenizer;
-use surrealml_tokenizers::{encode, load_tokenizer};
+use surrealml_tokenizers::{encode, load_local_tokenizer};
 
 pub fn run_model(
     model: &mut ModelWrapper,
@@ -11,7 +9,7 @@ pub fn run_model(
 ) -> Result<String, SurrealError> {
     // Load the corresponding tokenizer for the model. For now, we assume http-access
     // isn't enabled, so we aren't passing in the `hf_token` parameter.
-    let tokenizer = load_tokenizer(model.to_string(), None).map_err(|e| {
+    let tokenizer = load_local_tokenizer(model.to_string()).map_err(|e| {
         SurrealError::new(
             format!(
                 "Failed to load tokenizer for model '{}': {}",
@@ -37,13 +35,18 @@ pub fn run_model(
 mod tests {
 
     use super::*;
-    use crate::interface::load_model::load_model;
-    use crate::models::model_spec::model_spec_trait::ModelSpec;
-    use crate::models::model_spec::models::gemma::Gemma;
-    use candle_core::DType;
-    use std::path::PathBuf;
     use std::str::FromStr;
-    use tempfile::tempdir;
+
+    #[cfg(feature = "local-gemma-test")]
+    use {
+        crate::{
+            interface::load_model::load_model,
+            models::model_spec::{model_spec_trait::ModelSpec, models::gemma::Gemma},
+        },
+        candle_core::DType,
+        std::path::PathBuf,
+        tempfile::tempdir,
+    };
 
     /// Local Gemma → `run_model` should succeed and return some text
     #[cfg(feature = "local-gemma-test")]

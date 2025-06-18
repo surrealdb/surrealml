@@ -67,10 +67,10 @@ impl ModelSpec for Falcon {
     /// This is a dummy stub that does nothing and always returns an empty string.
     fn run_model(
         &self,
-        model: &mut Self::LoadedModel,
-        input_ids: &[u32],
-        max_steps: usize,
-        tokenizer: &Tokenizer,
+        _model: &mut Self::LoadedModel,
+        _input_ids: &[u32],
+        _max_steps: usize,
+        _tokenizer: &Tokenizer,
     ) -> Result<String, SurrealError> {
         Ok(String::new())
     }

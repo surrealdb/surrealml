@@ -1,10 +1,10 @@
 //! High‑level helpers for **tokenizer** loading & (de‑)coding.
 use crate::error::{SurrealError, SurrealErrorStatus};
+use crate::preset_tokenizers::PresetTokenizers;
+use tokenizers::Tokenizer;
+
 #[cfg(feature = "http-access")]
 use crate::fetch_tokenizer::{fetch_tokenizer, load_tokenizer_from_file};
-use crate::preset_tokenizers::PresetTokenizers;
-use std::path::PathBuf; // retained for potential extension
-use tokenizers::Tokenizer;
 
 /// Load a [`Tokenizer`] by **model name**.
 ///
@@ -15,18 +15,27 @@ use tokenizers::Tokenizer;
 /// # Returns
 /// * `Ok(Tokenizer)` on success.
 /// * `Err(SurrealError)` when either retrieval or deserialization fails.
-pub fn load_tokenizer(model: String, hf_token: Option<String>) -> Result<Tokenizer, SurrealError> {
+#[cfg(feature = "http-access")]
+pub fn load_tokenizer_with_http(model: String, hf_token: Option<String>) -> Result<Tokenizer, SurrealError> {
     if let Some(preset) = PresetTokenizers::from_str(&model) {
         return preset.retrieve_tokenizer();
     }
+    let tokenizer_path = fetch_tokenizer(&model, hf_token.as_deref())?;
+    return load_tokenizer_from_file(&tokenizer_path);
+}
 
-    // Gated depending on the 'http-access' feature flag.
-    #[cfg(feature = "http-access")]
-    {
-        let tokenizer_path = fetch_tokenizer(&model, hf_token.as_deref())?;
-        return load_tokenizer_from_file(&tokenizer_path);
+/// Load a [`Tokenizer`] by **model name**.
+///
+/// # Arguments
+/// * `model` — Canonical model identifier (e.g. `"gpt2"`).
+///
+/// # Returns
+/// * `Ok(Tokenizer)` on success.
+/// * `Err(SurrealError)` when either retrieval or deserialization fails.
+pub fn load_local_tokenizer(model: String) -> Result<Tokenizer, SurrealError> {
+    if let Some(preset) = PresetTokenizers::from_str(&model) {
+        return preset.retrieve_tokenizer();
     }
-
     return Err(SurrealError::new(
         "Tokenizer not found locally, and remote access is disabled. \
             Please enable the 'http-access' feature to fetch tokenizers from \
@@ -77,8 +86,7 @@ pub fn decode(tokenizer: &Tokenizer, ids: &[u32]) -> Result<String, SurrealError
 
 #[cfg(test)]
 mod tests {
-    use super::{decode, encode, load_tokenizer};
-    use crate::error::SurrealErrorStatus;
+    use super::{decode, encode, load_local_tokenizer};
     use crate::preset_tokenizers::PresetTokenizers;
 
     // Returns a tokenizer we can reuse in multiple test cases.
@@ -91,7 +99,7 @@ mod tests {
     #[test]
     fn load_tokenizer_with_preset_name_succeeds() {
         // "gpt2" is one of the PresetTokenizers; adjust if you add/change names.
-        let tokenizer = load_tokenizer("mistralai/Mixtral-8x7B-v0.1".to_owned(), None).unwrap();
+        let tokenizer = load_local_tokenizer("mistralai/Mixtral-8x7B-v0.1".to_owned()).unwrap();
 
         // Quick sanity check - encoding a non-empty string yields at least one id.
         let ids = encode(&tokenizer, "Hello from a preset!").expect("encode failed");
@@ -104,7 +112,7 @@ mod tests {
     #[cfg(not(feature = "http-access"))]
     #[test]
     fn load_tokenizer_without_http_access_returns_not_found() {
-        let err = super::load_tokenizer("not_a_real_model".to_owned(), None).unwrap_err();
+        let err = super::load_local_tokenizer("not_a_real_model".to_owned()).unwrap_err();
         assert_eq!(err.status, SurrealErrorStatus::NotFound);
     }
 

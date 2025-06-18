@@ -170,11 +170,15 @@ pub struct StringReturn {
 impl StringReturn {
     /// Returns a new `StringReturn` object with the string and no error.
     ///
+    /// # Notes
+    /// This is allowed as dead code so we can use this outside of the program
+    ///
     /// # Arguments
     /// * `string` - The string to return.
     ///
     /// # Returns
     /// A new `StringReturn` object.
+    #[allow(dead_code)]
     pub fn success(string: String) -> Self {
         StringReturn {
             string: CString::new(string).unwrap().into_raw(),

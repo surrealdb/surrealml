@@ -29,7 +29,7 @@ pub fn fetch_tokenizer(model_id: &str, hf_token: Option<&str>) -> Result<PathBuf
         .build()
         .map_err(|_| {
             SurrealError::new(
-                "Failed to initialise Hugging Face API".to_string(),
+                "Failed to initialise Hugging Face API".to_string(),
                 SurrealErrorStatus::NotFound,
             )
         })?;
@@ -66,7 +66,6 @@ pub fn load_tokenizer_from_file(path: &PathBuf) -> Result<Tokenizer, SurrealErro
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::env;
 
     // Real network integration test guarded by a Cargo feature.
     mod integration {

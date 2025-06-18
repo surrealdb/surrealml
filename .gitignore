@@ -8,7 +8,6 @@ __pycache__/
 venv/
 .idea/
 surrealml.egg-info/
-.vscode/
 ./modules/utils/target/
 modules/core/target/
 modules/c-wrapper/target/

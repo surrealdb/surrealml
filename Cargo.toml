@@ -4,9 +4,17 @@ resolver = "2"
 members = [
     "modules/c-wrapper",
     "modules/core",
-    "modules/pipelines/data_access",
     "modules/transformers/run-worker",
     "modules/transformers/tokenizers",
     "modules/transformers/wasm-wrapper",
-    "modules/transformers/llms"
-, "modules/wasm-linker"]
+    "modules/transformers/llms",
+    "modules/wasm-linker",
+]
+
+[workspace.dependencies]
+thiserror = "2.0.12"
+serde = { version = "1.0", features = ["derive"] }
+zip = "4.1.0"
+tempfile = "3.20.0"
+wasmtime = "33.0.0"
+wasmtime-wasi = { version = "33.0.0", features = ["preview1"] }

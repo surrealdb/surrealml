@@ -1,15 +1,10 @@
 //! Utilities for loading a checkpoint into a `ModelWrapper`, either from
 //! local `.safetensors` files or (optionally) by fetching them over HTTP.
-use crate::models::model_spec::models::{
-    falcon::Falcon, gemma::Gemma, gemma2::Gemma2, gemma3::Gemma3, mistral::Mistral,
-    mixtral::Mixtral,
-};
 use crate::models::model_wrapper::ModelWrapper;
-#[cfg(feature = "http-access")]
 use crate::tensors::fetch_tensors::fetch_safetensors;
 use crate::tensors::tensor_utils::load_model_vars;
-use crate::utils::error::{SurrealError, SurrealErrorStatus};
-use candle_core::{DType, Device};
+use crate::utils::error::SurrealError;
+use candle_core::DType;
 use std::path::PathBuf;
 use std::str::FromStr;
 
@@ -48,25 +43,15 @@ pub fn load_model(
 
     match optional_paths {
         Some(paths) => {
-            let filenames = model.tensor_filenames();
             let vb = load_model_vars(&paths, dtype)?;
             model.load(vb)?;
         }
 
-        #[cfg(feature = "http-access")]
         None => {
             let filenames = model.tensor_filenames();
             let paths = fetch_safetensors(model_id, &filenames, optional_hf_token)?;
             let vb = load_model_vars(&paths, dtype)?;
             model.load(vb)?;
-        }
-
-        #[cfg(not(feature = "http-access"))]
-        None => {
-            return Err(SurrealError::new(
-                format!("HTTP access feature is disabled and no paths were provided for tensors"),
-                SurrealErrorStatus::Unknown,
-            ));
         }
     }
 
@@ -81,10 +66,16 @@ mod tests {
     //! 3) error cases.
 
     use super::*;
-    use crate::models::model_spec::model_spec_trait::ModelSpec;
+    use crate::utils::error::SurrealErrorStatus;
     use candle_core::DType;
-    use std::path::PathBuf;
     use tempfile::tempdir;
+
+    #[cfg(feature = "local-gemma-test")]
+    use crate::models::model_spec::model_spec_trait::ModelSpec;
+    #[cfg(feature = "local-gemma-test")]
+    use crate::models::model_spec::models::gemma::Gemma;
+    #[cfg(feature = "local-gemma-test")]
+    use std::path::PathBuf;
 
     /// Local paths + `local-gemma-test` → success
     #[cfg(feature = "local-gemma-test")]
@@ -109,7 +100,7 @@ mod tests {
     }
 
     /// HTTP fallback + `http-access` + `local-gemma-test` → success
-    #[cfg(all(feature = "http-access", feature = "local-gemma-test"))]
+    #[cfg(feature = "local-gemma-test")]
     #[test]
     fn load_model_via_http() {
         // Rely on fetch_safetensors to pull the same cached files
@@ -138,21 +129,5 @@ mod tests {
             Ok(_) => panic!("expected BadRequest for unknown model id"),
         };
         assert_eq!(err.status, SurrealErrorStatus::BadRequest);
-    }
-
-    /// No paths + no HTTP → Unknown error
-    #[cfg(not(feature = "http-access"))]
-    #[test]
-    fn load_model_errors_without_http_and_paths() {
-        let err = match load_model("google/gemma-7b", DType::F32, None, None) {
-            Err(e) => e,
-            Ok(_) => panic!("expected error when no HTTP and no paths"),
-        };
-        assert_eq!(err.status, SurrealErrorStatus::Unknown);
-        assert!(
-            err.message.contains("HTTP access feature is disabled"),
-            "unexpected message: {}",
-            err.message
-        );
     }
 }

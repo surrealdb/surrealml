@@ -34,7 +34,7 @@ impl<'a> ModelComputation<'a> {
     }
 
     /// Creates a vector of dimensions for the input tensor from the loaded model.
-    /// 
+    ///
     /// # Arguments
     /// * `session_ref` - A reference to the session to get the input shape
     ///
@@ -42,8 +42,17 @@ impl<'a> ModelComputation<'a> {
     /// A vector of dimensions for the input tensor to be reshaped into from the loaded model.
     fn process_input_dims(session_ref: &Session) -> Result<Vec<usize>, SurrealError> {
         let unwrapped_dims = match &session_ref.inputs[0].input_type {
-            ValueType::Tensor{ ty: _, dimensions: new_dims, dimension_symbols: _ } => new_dims,
-            _ => return Err(SurrealError { message: "input dims not found".into(), status: SurrealErrorStatus::Unknown }),
+            ValueType::Tensor {
+                ty: _,
+                dimensions: new_dims,
+                dimension_symbols: _,
+            } => new_dims,
+            _ => {
+                return Err(SurrealError {
+                    message: "input dims not found".into(),
+                    status: SurrealErrorStatus::Unknown,
+                })
+            }
         };
         let mut dims_cache = Vec::new();
         for dim in unwrapped_dims.iter() {
@@ -122,7 +131,12 @@ impl<'a> ModelComputation<'a> {
         };
         let x = match ort::inputs![tensor] {
             Ok(x) => x,
-            Err(_) => return Err(SurrealError::new("Failed to create input tensor".to_string(), SurrealErrorStatus::Unknown))
+            Err(_) => {
+                return Err(SurrealError::new(
+                    "Failed to create input tensor".to_string(),
+                    SurrealErrorStatus::Unknown,
+                ))
+            }
         };
         let outputs = safe_eject!(session.run(x), SurrealErrorStatus::Unknown);
 
@@ -202,7 +216,19 @@ impl<'a> ModelComputation<'a> {
 #[cfg(test)]
 mod tests {
 
+    #[cfg(any(
+        feature = "sklearn-tests",
+        feature = "onnx-tests",
+        feature = "torch-tests",
+        feature = "tensorflow-tests"
+    ))]
     use super::*;
+    #[cfg(any(
+        feature = "sklearn-tests",
+        feature = "onnx-tests",
+        feature = "torch-tests",
+        feature = "tensorflow-tests"
+    ))]
     use crate::execution::session::set_environment;
 
     #[cfg(feature = "sklearn-tests")]

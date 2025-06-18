@@ -176,7 +176,7 @@ async fn main() -> Result<()> {
     memory.read(&mut store, enc_sret as usize, &mut buf)?;
     let data_ptr = i32::from_le_bytes(buf[0..4].try_into().unwrap());
     let length = u32::from_le_bytes(buf[4..8].try_into().unwrap()) as usize;
-    let capacity = u32::from_le_bytes(buf[8..12].try_into().unwrap()) as usize;
+    let _capacity = u32::from_le_bytes(buf[8..12].try_into().unwrap()) as usize;
     let enc_err = i32::from_le_bytes(buf[12..16].try_into().unwrap());
     let enc_err_ptr = i32::from_le_bytes(buf[16..20].try_into().unwrap());
 

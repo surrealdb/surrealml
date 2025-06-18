@@ -9,13 +9,13 @@ use surrealml_tokenizers::Tokenizer;
 
 /// All the Mistral checkpoints we support, by name.
 ///
-/// * `V7B_v0_1` — Mistral-7B-v0.1  
+/// * `V7bV0_1` — Mistral-7B-v0.1  
 ///   <https://huggingface.co/mistralai/Mistral-7B-v0.1/blob/main/config.json>
 ///
 /// * `AmazonLite` — amazon/MistralLite  
 ///   <https://huggingface.co/amazon/MistralLite/blob/main/config.json>
 pub enum Mistral {
-    V7B_v0_1,
+    V7bV0_1,
     AmazonLite,
 }
 
@@ -33,7 +33,7 @@ impl ModelSpec for Mistral {
     /// * `MistralConfig` matching the chosen preset, with `use_flash_attn = false`.
     fn config(&self) -> Self::Cfg {
         match self {
-            Mistral::V7B_v0_1 => MistralConfig::config_7b_v0_1(false),
+            Mistral::V7bV0_1 => MistralConfig::config_7b_v0_1(false),
             Mistral::AmazonLite => MistralConfig::config_amazon_mistral_lite(false),
         }
     }
@@ -41,7 +41,7 @@ impl ModelSpec for Mistral {
     /// Returns a list of filenames for tensor files corresponding to this model.
     ///
     /// Each filename is formatted either as:
-    /// * `"model-<index>-of-<total>.safetensors"` (for `V7B_v0_1`)
+    /// * `"model-<index>-of-<total>.safetensors"` (for `V7bV0_1`)
     /// * `"pytorch_model-<index>-of-<total>.bin"` (for `AmazonLite`)
     ///
     /// - `<index>` runs from `00001` up to `<total>`, zero-padded to 5 digits.
@@ -49,7 +49,7 @@ impl ModelSpec for Mistral {
     ///
     /// # Returns
     /// A `Vec<String>` containing either 2 `.safetensors` filenames
-    /// (`V7B_v0_1`) or 2 `.bin` filenames (`AmazonLite`).
+    /// (`V7bV0_1`) or 2 `.bin` filenames (`AmazonLite`).
     fn return_tensor_filenames(&self) -> Vec<String> {
         // We batch 2 files together for both variants:
         let tensor_count: u8 = 2;
@@ -63,8 +63,8 @@ impl ModelSpec for Mistral {
                 Mistral::AmazonLite => {
                     filenames.push(format!("pytorch_model-{}-of-{}.bin", idx_str, total_str))
                 }
-                // V7B_v0_1 uses .safetensors
-                Mistral::V7B_v0_1 => {
+                // V7bV0_1 uses .safetensors
+                Mistral::V7bV0_1 => {
                     filenames.push(format!("model-{}-of-{}.safetensors", idx_str, total_str))
                 }
             }
@@ -92,10 +92,10 @@ impl ModelSpec for Mistral {
     /// This is a dummy stub that does nothing and always returns an empty string.
     fn run_model(
         &self,
-        model: &mut Self::LoadedModel,
-        input_ids: &[u32],
-        max_steps: usize,
-        tokenizer: &Tokenizer,
+        _model: &mut Self::LoadedModel,
+        _input_ids: &[u32],
+        _max_steps: usize,
+        _tokenizer: &Tokenizer,
     ) -> Result<String, SurrealError> {
         Ok(String::new())
     }
@@ -112,7 +112,7 @@ mod tests {
     #[test]
     fn matches_upstream_v7b_v0_1() {
         let expected: Upstream = Upstream::config_7b_v0_1(false);
-        let ours: Upstream = Mistral::V7B_v0_1.config();
+        let ours: Upstream = Mistral::V7bV0_1.config();
         assert_eq!(expected, ours);
 
         assert_eq!(ours.vocab_size, 32_000);
@@ -153,10 +153,10 @@ mod tests {
         assert_eq!(ours.use_flash_attn, false);
     }
 
-    /// Returns 2 `.safetensors` filenames for V7B_v0_1.
+    /// Returns 2 `.safetensors` filenames for V7bV0_1.
     #[test]
     fn test_v7b_v0_1_filenames() {
-        let m = Mistral::V7B_v0_1;
+        let m = Mistral::V7bV0_1;
         let filenames = m.return_tensor_filenames();
         assert_eq!(filenames.len(), 2);
         assert_eq!(filenames[0], "model-00001-of-00002.safetensors");

@@ -85,8 +85,6 @@ impl PresetTokenizers {
 #[cfg(test)]
 mod tests {
     use super::PresetTokenizers;
-    use crate::error::{SurrealError, SurrealErrorStatus};
-    use std::str::FromStr;
 
     #[test]
     fn from_str_recognises_valid_model_names() {

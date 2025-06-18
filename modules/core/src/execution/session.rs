@@ -25,12 +25,13 @@ pub fn get_session(model_bytes: Vec<u8>) -> Result<Session, SurrealError> {
 
     #[cfg(feature = "gpu")]
     {
-        let cuda = CUDAExecutionProvider::default();
-        if let Err(e) = cuda.register(&builder) {
-            eprintln!("Failed to register CUDA: {:?}. Falling back to CPU.", e);
-        } else {
-            println!("CUDA registered successfully");
-        }
+        // TODO => GPU is breaking with new ort. Will make a ticket to implement GPU
+        // let mut cuda = CUDAExecutionProvider::default();
+        // if let Err(e) = &mut cuda.register(&builder) {
+        //     eprintln!("Failed to register CUDA: {:?}. Falling back to CPU.", e);
+        // } else {
+        //     println!("CUDA registered successfully");
+        // }
     }
     let session: Session = safe_eject!(
         builder.commit_from_memory(&model_bytes),

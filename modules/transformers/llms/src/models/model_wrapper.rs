@@ -39,7 +39,7 @@ impl FromStr for ModelWrapper {
             "google/gemma-7b" => Ok(Self::Gemma(State::new(Gemma))),
             "google/gemma-2b" => Ok(Self::Gemma2(State::new(Gemma2))),
             "google/gemma-3-4b-it" => Ok(Self::Gemma3(State::new(Gemma3))),
-            "mistralai/Mistral-7B-v0.1" => Ok(Self::Mistral(State::new(Mistral::V7B_v0_1))),
+            "mistralai/Mistral-7B-v0.1" => Ok(Self::Mistral(State::new(Mistral::V7bV0_1))),
             "amazon/MistralLite" => Ok(Self::Mistral(State::new(Mistral::AmazonLite))),
             "mistralai/Mixtral-8x7B-v0.1" => Ok(Self::Mixtral(State::new(Mixtral::V0_1_8x7b))),
             other => Err(SurrealError::new(
@@ -58,7 +58,7 @@ impl ModelWrapper {
             ModelWrapper::Gemma2(_) => "google/gemma-2b".to_string(),
             ModelWrapper::Gemma3(_) => "google/gemma-3-4b-it".to_string(),
             ModelWrapper::Mistral(s) => match s.spec {
-                crate::models::model_spec::models::mistral::Mistral::V7B_v0_1 => {
+                crate::models::model_spec::models::mistral::Mistral::V7bV0_1 => {
                     "mistralai/Mistral-7B-v0.1".to_string()
                 }
                 crate::models::model_spec::models::mistral::Mistral::AmazonLite => {

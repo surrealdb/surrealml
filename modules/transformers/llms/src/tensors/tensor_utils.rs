@@ -2,7 +2,6 @@
 use crate::utils::error::{SurrealError, SurrealErrorStatus};
 use candle_core::{DType, Device};
 use candle_transformers::models::mimi::candle_nn::VarBuilder;
-use std::fs;
 use std::path::PathBuf;
 
 /// Load model weights from a list of `.safetensors` files into a `VarBuilder`.
@@ -46,17 +45,23 @@ pub fn load_model_vars(paths: &[PathBuf], dtype: DType) -> Result<VarBuilder, Su
 mod tests {
     use super::*;
     use crate::models::model_spec::model_spec_trait::ModelSpec;
-    use crate::models::model_spec::models::gemma::Gemma;
     use crate::models::model_spec::models::mistral::Mistral;
     use candle_core::DType;
     use std::fs;
-    use std::io::Write;
     use tempfile::tempdir;
+    #[cfg(feature = "local-gemma-test")]
+    use {
+        crate::{interface::load_model::load_model, models::model_spec::models::gemma::Gemma},
+        candle_core::DType,
+        std::io::Write,
+        std::path::PathBuf,
+        tempfile::tempdir,
+    };
 
     #[test]
     fn test_load_model_vars_missing_file_on_disk() {
         // Use the V7B variant, which expects 2 .safetensors files
-        let model_variant = Mistral::V7B_v0_1;
+        let model_variant = Mistral::V7bV0_1;
         let dir = tempdir().unwrap();
 
         // Generate the two expected filenames
@@ -84,7 +89,7 @@ mod tests {
     #[test]
     fn test_load_model_vars_invalid_safetensors_format() {
         // Use the V7B variant again (2 .safetensors files)
-        let model_variant = Mistral::V7B_v0_1;
+        let model_variant = Mistral::V7bV0_1;
         let dir = tempdir().unwrap();
 
         let filenames = model_variant.return_tensor_filenames();

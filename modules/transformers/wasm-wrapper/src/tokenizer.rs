@@ -8,7 +8,7 @@ use std::os::raw::c_char;
 use std::slice;
 use surrealml_tokenizers::{
     decode as decode_surrealml, encode as encode_surrealml,
-    load_tokenizer as load_tokenizer_surrealml, Tokenizer,
+    load_local_tokenizer, load_tokenizer_with_http, Tokenizer,
 };
 
 #[repr(C)]
@@ -21,7 +21,12 @@ pub extern "C" fn load_tokenizer(model: *const c_char, hf_token: *const c_char) 
     let model = process_string_for_tokenizer_return!(model, "model");
     let hf_token = process_opt_string_for_tokenizer_return!(hf_token, "hf_token");
 
-    match load_tokenizer_surrealml(model, hf_token) {
+    let tokenizer = match hf_token {
+        Some(_) => load_tokenizer_with_http(model, hf_token),
+        None => load_local_tokenizer(model)
+    };
+
+    match tokenizer {
         Ok(tok) => {
             let handle = Box::new(TokenizerHandle { tokenizer: tok });
             return TokenizerReturn::success(Box::into_raw(handle));
