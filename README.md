@@ -18,3 +18,14 @@ SurrealML is a feature that allows you to store trained machine learning models 
 
 We have removed `PyO3` for a raw dynamic C lib written in rust. This is how working with Python and we can also link this dynamic C lib to other languages such as JavaScript. The new `Python` client is housed in the `clients`
 directory. Please visit this for the updated installation and API docs.
+
+
+# Running CI locally
+
+Running CI locally can be done with the following command:
+
+```bash
+cargo make --no-workspace preflight
+```
+
+This runs a series of tests in docker containers for dynamic C lib loading and `core` tests for `sklearn`, `tensorflow`, and `pytorch`.
