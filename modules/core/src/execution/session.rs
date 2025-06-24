@@ -1,24 +1,23 @@
 //! Defines the session module for the execution module.
-use ort::session::Session;
-use std::path::PathBuf;
 use crate::errors::error::{SurrealError, SurrealErrorStatus};
 use crate::safe_eject;
 use onnx_embedding::embed_onnx;
+use ort::session::Session;
+use std::path::PathBuf;
 
 #[cfg(feature = "dynamic")]
 use ort::environment::EnvironmentBuilder;
 use tempfile::TempDir;
 
-use tempfile::tempdir;
 use std::io::Cursor;
+use tempfile::tempdir;
 use zip::ZipArchive;
 
-
 /// Creates a session for a model.
-/// 
+///
 /// # Arguments
 /// * `model_bytes` - The model bytes (usually extracted fromt the surml file)
-/// 
+///
 /// # Returns
 /// A session object.
 pub fn get_session(model_bytes: Vec<u8>) -> Result<Session, SurrealError> {
@@ -33,14 +32,15 @@ pub fn get_session(model_bytes: Vec<u8>) -> Result<Session, SurrealError> {
             println!("CUDA registered successfully");
         }
     }
-    let session: Session = safe_eject!(builder
-        .commit_from_memory(&model_bytes), SurrealErrorStatus::Unknown);
+    let session: Session = safe_eject!(
+        builder.commit_from_memory(&model_bytes),
+        SurrealErrorStatus::Unknown
+    );
     Ok(session)
 }
 
-
 /// Unzips bytes into a temp directory.
-/// 
+///
 /// # Arguments
 /// - zip_bytes: the bytes to be unzipped into a temp directory
 fn unzip_to_temp_dir(zip_bytes: &[u8]) -> std::io::Result<(PathBuf, TempDir)> {
@@ -76,10 +76,8 @@ fn unzip_to_temp_dir(zip_bytes: &[u8]) -> std::io::Result<(PathBuf, TempDir)> {
     Ok((temp_path, temp_dir))
 }
 
-
 #[cfg(feature = "dynamic")]
 pub fn set_environment() -> Result<(), SurrealError> {
-
     #[cfg(doc)]
     const ONNX_BYTES: &[u8] = &[];
 
@@ -88,7 +86,12 @@ pub fn set_environment() -> Result<(), SurrealError> {
 
     let (extracted_lib_dir, _temp_dir) = match unzip_to_temp_dir(ONNX_BYTES) {
         Ok(package) => package,
-        Err(e) => return Err(SurrealError::new(e.to_string(), SurrealErrorStatus::Unknown))
+        Err(e) => {
+            return Err(SurrealError::new(
+                e.to_string(),
+                SurrealErrorStatus::Unknown,
+            ))
+        }
     };
 
     let onnx_lib_path = if cfg!(target_os = "windows") {
@@ -105,9 +108,12 @@ pub fn set_environment() -> Result<(), SurrealError> {
             // TODO => might look into wrapping the session in a lock but for now it seems to be
             // working in tests. Below is what the lock can look like:
             //  pub static ORT_ENV: LazyLock<Arc<Mutex<Option<Arc<Environment>>>>> = LazyLock::new(|| Arc::new(Mutex::new(None)));
-        },
+        }
         Err(e) => {
-            return Err(SurrealError::new(e.to_string(), SurrealErrorStatus::Unknown));
+            return Err(SurrealError::new(
+                e.to_string(),
+                SurrealErrorStatus::Unknown,
+            ));
         }
     }
     Ok(())

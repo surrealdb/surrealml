@@ -1,16 +1,12 @@
 //! Defines the struct housing data around the outputs of the model.
 use super::normalisers::wrapper::NormaliserType;
 use crate::{
+    errors::error::{SurrealError, SurrealErrorStatus},
     safe_eject_option,
-    errors::error::{
-        SurrealError,
-        SurrealErrorStatus
-    }
 };
 
-
 /// Houses data around the outputs of the model.
-/// 
+///
 /// # Fields
 /// * `name` - The name of the output.
 /// * `normaliser` - The normaliser to be applied to the output if there is one.
@@ -21,9 +17,8 @@ pub struct Output {
 }
 
 impl Output {
-
     /// Creates a new instance of the Output struct with no normaliser or name.
-    /// 
+    ///
     /// # Returns
     /// A new instance of the Output struct with no normaliser or name.
     pub fn fresh() -> Self {
@@ -34,7 +29,7 @@ impl Output {
     }
 
     /// Creates a new instance of the Output struct without a normaliser.
-    /// 
+    ///
     /// # Arguments
     /// * `name` - The name of the output.
     pub fn new(name: String) -> Self {
@@ -45,7 +40,7 @@ impl Output {
     }
 
     /// Adds a normaliser to the output.
-    /// 
+    ///
     /// # Arguments
     /// * `normaliser` - The normaliser to be applied to the output.
     pub fn add_normaliser(&mut self, normaliser: NormaliserType) {
@@ -53,11 +48,10 @@ impl Output {
     }
 
     /// Converts the output struct to a string.
-    /// 
+    ///
     /// # Returns
     /// * `String` - The output struct as a string.
     pub fn to_string(&self) -> String {
-
         if &self.name == &None && &self.normaliser == &None {
             return "".to_string();
         }
@@ -66,9 +60,7 @@ impl Output {
             Some(name) => name.clone(),
             None => "none".to_string(),
         };
-        let mut buffer = vec![
-            name.clone(),
-        ];
+        let mut buffer = vec![name.clone()];
         match &self.normaliser {
             Some(normaliser) => buffer.push(normaliser.to_string()),
             None => buffer.push("none".to_string()),
@@ -77,15 +69,15 @@ impl Output {
     }
 
     /// Converts a string to an instance of the Output struct.
-    /// 
+    ///
     /// # Arguments
     /// * `data` - The string to be converted into an instance of the Output struct.
-    /// 
+    ///
     /// # Returns
     /// * `Output` - The string as an instance of the Output struct.
     pub fn from_string(data: String) -> Result<Self, SurrealError> {
         if data.contains("=>") == false {
-            return Ok(Output::fresh())
+            return Ok(Output::fresh());
         }
         let mut buffer = data.split("=>");
 
@@ -100,13 +92,9 @@ impl Output {
             "none" => None,
             _ => Some(NormaliserType::from_string(data).unwrap().0),
         };
-        return Ok(Output {
-            name,
-            normaliser
-        })
+        return Ok(Output { name, normaliser });
     }
 }
-
 
 #[cfg(test)]
 pub mod tests {
@@ -115,14 +103,13 @@ pub mod tests {
 
     #[test]
     fn test_output_to_string() {
-
         // with no normaliser
         let mut output = Output::new("test".to_string());
         assert_eq!(output.to_string(), "test=>none");
 
         let normaliser_data = "a=>linear_scaling(0.0,1.0)".to_string();
         let normaliser = NormaliserType::from_string(normaliser_data).unwrap();
-        
+
         output.add_normaliser(normaliser.0);
         assert_eq!(output.to_string(), "test=>linear_scaling(0,1)");
     }
@@ -134,7 +121,10 @@ pub mod tests {
 
         assert_eq!(output.name.unwrap(), "test");
         assert_eq!(output.normaliser.is_some(), true);
-        assert_eq!(output.normaliser.unwrap().to_string(), "linear_scaling(0,1)");
+        assert_eq!(
+            output.normaliser.unwrap().to_string(),
+            "linear_scaling(0,1)"
+        );
     }
 
     #[test]
