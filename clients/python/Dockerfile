@@ -15,11 +15,6 @@ WORKDIR /app
 # Copy the project files into the container
 COPY . .
 
-# Download ONNX Runtime 1.20.0
-RUN wget https://github.com/microsoft/onnxruntime/releases/download/v1.20.0/onnxruntime-linux-x64-1.20.0.tgz \
-    && tar -xvf onnxruntime-linux-x64-1.20.0.tgz \
-    && mv onnxruntime-linux-x64-1.20.0 /onnxruntime
-
 # Set the ONNX Runtime library path
 # you need these environment variables to be able to link the onnxruntime to the c-lib
 ENV ORT_LIB_LOCATION=/onnxruntime/lib

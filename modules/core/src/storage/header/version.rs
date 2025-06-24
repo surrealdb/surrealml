@@ -1,16 +1,12 @@
 //! Defines the process of managing the version of the `surml` file in the file.
 use crate::{
-    safe_eject_option,
-    safe_eject,
-    errors::error::{
-        SurrealError,
-        SurrealErrorStatus
-    }
+    errors::error::{SurrealError, SurrealErrorStatus},
+    safe_eject, safe_eject_option,
 };
-
+use std::fmt;
 
 /// The `Version` struct represents the version of the `surml` file.
-/// 
+///
 /// # Fields
 /// * `one` - The first number in the version.
 /// * `two` - The second number in the version.
@@ -22,11 +18,9 @@ pub struct Version {
     pub three: u8,
 }
 
-
 impl Version {
-    
     /// Creates a new `Version` struct with all zeros.
-    /// 
+    ///
     /// # Returns
     /// A new `Version` struct with all zeros.
     pub fn fresh() -> Self {
@@ -37,27 +31,16 @@ impl Version {
         }
     }
 
-    /// Translates the struct to a string.
-    /// 
-    /// # Returns
-    /// * `String` - The struct as a string.
-    pub fn to_string(&self) -> String {
-        if self.one == 0 && self.two == 0 && self.three == 0 {
-            return "".to_string();
-        }
-        format!("{}.{}.{}", self.one, self.two, self.three)
-    }
-
     /// Creates a new `Version` struct from a string.
-    /// 
+    ///
     /// # Arguments
     /// * `version` - The version as a string.
-    /// 
+    ///
     /// # Returns
     /// A new `Version` struct.
     pub fn from_string(version: String) -> Result<Self, SurrealError> {
-        if version == "".to_string() {
-            return Ok(Version::fresh())
+        if version == *"" {
+            return Ok(Version::fresh());
         }
         let mut split = version.split(".");
         let one_str = safe_eject_option!(split.next());
@@ -85,6 +68,15 @@ impl Version {
     }
 }
 
+impl fmt::Display for Version {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.one == 0 && self.two == 0 && self.three == 0 {
+            write!(f, "")
+        } else {
+            write!(f, "{}.{}.{}", self.one, self.two, self.three)
+        }
+    }
+}
 
 #[cfg(test)]
 pub mod tests {
@@ -106,14 +98,14 @@ pub mod tests {
 
     #[test]
     fn test_to_string() {
-        let version = Version{
+        let version = Version {
             one: 0,
             two: 0,
             three: 0,
         };
         assert_eq!(version.to_string(), "");
 
-        let version = Version{
+        let version = Version {
             one: 1,
             two: 2,
             three: 3,
@@ -123,7 +115,7 @@ pub mod tests {
 
     #[test]
     fn test_increment() {
-        let mut version = Version{
+        let mut version = Version {
             one: 0,
             two: 0,
             three: 0,
@@ -131,7 +123,7 @@ pub mod tests {
         version.increment();
         assert_eq!(version.to_string(), "0.0.1");
 
-        let mut version = Version{
+        let mut version = Version {
             one: 0,
             two: 0,
             three: 9,
@@ -139,7 +131,7 @@ pub mod tests {
         version.increment();
         assert_eq!(version.to_string(), "0.1.0");
 
-        let mut version = Version{
+        let mut version = Version {
             one: 0,
             two: 9,
             three: 9,
@@ -147,7 +139,7 @@ pub mod tests {
         version.increment();
         assert_eq!(version.to_string(), "1.0.0");
 
-        let mut version = Version{
+        let mut version = Version {
             one: 9,
             two: 9,
             three: 9,
@@ -155,5 +147,4 @@ pub mod tests {
         version.increment();
         assert_eq!(version.to_string(), "10.0.0");
     }
-
 }

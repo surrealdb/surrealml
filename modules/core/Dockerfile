@@ -15,16 +15,6 @@ WORKDIR /app
 # Copy the project files into the container
 COPY . .
 
-# Download ONNX Runtime 1.20.0
-RUN wget https://github.com/microsoft/onnxruntime/releases/download/v1.20.0/onnxruntime-linux-x64-1.20.0.tgz \
-    && tar -xvf onnxruntime-linux-x64-1.20.0.tgz \
-    && mv onnxruntime-linux-x64-1.20.0 /onnxruntime
-
-# # Download ONNX Runtime 1.16.0
-# RUN wget https://github.com/microsoft/onnxruntime/releases/download/v1.16.0/onnxruntime-linux-x64-1.16.0.tgz \
-#     && tar -xvf onnxruntime-linux-x64-1.16.0.tgz \
-#     && mv onnxruntime-linux-x64-1.16.0 /onnxruntime
-
 # Set the ONNX Runtime library path
 ENV ORT_LIB_LOCATION=/onnxruntime/lib
 ENV LD_LIBRARY_PATH=$ORT_LIB_LOCATION:$LD_LIBRARY_PATH

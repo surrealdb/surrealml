@@ -1,28 +1,27 @@
 //! Handles the loading, saving, and utilisation of all the data in the header of the model file.
+pub mod engine;
+pub mod input_dims;
 pub mod keys;
 pub mod normalisers;
+pub mod origin;
 pub mod output;
 pub mod string_value;
 pub mod version;
-pub mod engine;
-pub mod origin;
-pub mod input_dims;
 
+use crate::errors::error::{SurrealError, SurrealErrorStatus};
+use crate::safe_eject;
+use engine::Engine;
+use input_dims::InputDims;
 use keys::KeyBindings;
 use normalisers::wrapper::NormaliserType;
 use normalisers::NormaliserMap;
+use origin::Origin;
 use output::Output;
 use string_value::StringValue;
 use version::Version;
-use engine::Engine;
-use origin::Origin;
-use input_dims::InputDims;
-use crate::safe_eject;
-use crate::errors::error::{SurrealError, SurrealErrorStatus};
-
 
 /// The header of the model file.
-/// 
+///
 /// # Fields
 /// * `keys` - The key bindings where the order of the input columns is stored.
 /// * `normalisers` - The normalisers where the normalisation functions are stored per column if there are any.
@@ -45,11 +44,9 @@ pub struct Header {
     pub input_dims: InputDims,
 }
 
-
 impl Header {
-
     /// Creates a new header with no columns or normalisers.
-    /// 
+    ///
     /// # Returns
     /// A new header with no columns or normalisers.
     pub fn fresh() -> Self {
@@ -67,7 +64,7 @@ impl Header {
     }
 
     /// Adds a model name to the `self.name` field.
-    /// 
+    ///
     /// # Arguments
     /// * `model_name` - The name of the model to be added.
     pub fn add_name(&mut self, model_name: String) {
@@ -75,7 +72,7 @@ impl Header {
     }
 
     /// Adds a version to the `self.version` field.
-    /// 
+    ///
     /// # Arguments
     /// * `version` - The version to be added.
     pub fn add_version(&mut self, version: String) -> Result<(), SurrealError> {
@@ -84,16 +81,16 @@ impl Header {
     }
 
     /// Adds a description to the `self.description` field.
-    /// 
+    ///
     /// # Arguments
     /// * `description` - The description to be added.
     pub fn add_description(&mut self, description: String) {
         self.description = StringValue::from_string(description);
     }
 
-    /// Adds a column name to the `self.keys` field. It must be noted that the order in which the columns are added is 
+    /// Adds a column name to the `self.keys` field. It must be noted that the order in which the columns are added is
     /// the order in which they will be expected in the input data. We can do this with the followng example:
-    /// 
+    ///
     /// # Arguments
     /// * `column_name` - The name of the column to be added.
     pub fn add_column(&mut self, column_name: String) {
@@ -101,28 +98,38 @@ impl Header {
     }
 
     /// Adds a normaliser to the `self.normalisers` field.
-    /// 
+    ///
     /// # Arguments
     /// * `column_name` - The name of the column to which the normaliser will be applied.
     /// * `normaliser` - The normaliser to be applied to the column.
-    pub fn add_normaliser(&mut self, column_name: String, normaliser: NormaliserType) -> Result<(), SurrealError> {
-        let _ =  self.normalisers.add_normaliser(normaliser, column_name, &self.keys)?;
+    pub fn add_normaliser(
+        &mut self,
+        column_name: String,
+        normaliser: NormaliserType,
+    ) -> Result<(), SurrealError> {
+        self
+            .normalisers
+            .add_normaliser(normaliser, column_name, &self.keys)?;
         Ok(())
     }
 
     /// Gets the normaliser for a given column name.
-    /// 
+    ///
     /// # Arguments
     /// * `column_name` - The name of the column to which the normaliser will be applied.
-    /// 
+    ///
     /// # Returns
     /// The normaliser for the given column name.
-    pub fn get_normaliser(&self, column_name: &String) -> Result<Option<&NormaliserType>, SurrealError> {
-        self.normalisers.get_normaliser(column_name.to_string(), &self.keys)
+    pub fn get_normaliser(
+        &self,
+        column_name: &String,
+    ) -> Result<Option<&NormaliserType>, SurrealError> {
+        self.normalisers
+            .get_normaliser(column_name.to_string(), &self.keys)
     }
 
     /// Adds an output column to the `self.output` field.
-    /// 
+    ///
     /// # Arguments
     /// * `column_name` - The name of the column to be added.
     /// * `normaliser` - The normaliser to be applied to the column.
@@ -132,7 +139,7 @@ impl Header {
     }
 
     /// Adds an engine to the `self.engine` field.
-    /// 
+    ///
     /// # Arguments
     /// * `engine` - The engine to be added.
     pub fn add_engine(&mut self, engine: String) {
@@ -140,7 +147,7 @@ impl Header {
     }
 
     /// Adds an author to the `self.origin` field.
-    /// 
+    ///
     /// # Arguments
     /// * `author` - The author to be added.
     pub fn add_author(&mut self, author: String) {
@@ -148,7 +155,7 @@ impl Header {
     }
 
     /// Adds an origin to the `self.origin` field.
-    /// 
+    ///
     /// # Arguments
     /// * `origin` - The origin to be added.
     pub fn add_origin(&mut self, origin: String) -> Result<(), SurrealError> {
@@ -158,23 +165,23 @@ impl Header {
     /// The standard delimiter used to seperate each field in the header.
     fn delimiter() -> &'static str {
         "//=>"
-    } 
+    }
 
     /// Constructs the `Header` struct from bytes.
-    /// 
+    ///
     /// # Arguments
     /// * `data` - The bytes to be converted into a `Header` struct.
-    /// 
+    ///
     /// # Returns
     /// The `Header` struct.
     pub fn from_bytes(data: Vec<u8>) -> Result<Self, SurrealError> {
-
         let string_data = safe_eject!(String::from_utf8(data), SurrealErrorStatus::BadRequest);
 
         let buffer = string_data.split(Self::delimiter()).collect::<Vec<&str>>();
 
         let keys: KeyBindings = KeyBindings::from_string(buffer.get(1).unwrap_or(&"").to_string());
-        let normalisers = NormaliserMap::from_string(buffer.get(2).unwrap_or(&"").to_string(), &keys)?;
+        let normalisers =
+            NormaliserMap::from_string(buffer.get(2).unwrap_or(&"").to_string(), &keys)?;
         let output = Output::from_string(buffer.get(3).unwrap_or(&"").to_string())?;
         let name = StringValue::from_string(buffer.get(4).unwrap_or(&"").to_string());
         let version = Version::from_string(buffer.get(5).unwrap_or(&"").to_string())?;
@@ -182,11 +189,21 @@ impl Header {
         let engine = Engine::from_string(buffer.get(7).unwrap_or(&"").to_string());
         let origin = Origin::from_string(buffer.get(8).unwrap_or(&"").to_string())?;
         let input_dims = InputDims::from_string(buffer.get(9).unwrap_or(&"").to_string());
-        Ok(Header {keys, normalisers, output, name, version, description, engine, origin, input_dims})
+        Ok(Header {
+            keys,
+            normalisers,
+            output,
+            name,
+            version,
+            description,
+            engine,
+            origin,
+            input_dims,
+        })
     }
 
     /// Converts the `Header` struct into bytes.
-    /// 
+    ///
     /// # Returns
     /// A tuple containing the number of bytes in the header and the bytes themselves.
     pub fn to_bytes(&self) -> (i32, Vec<u8>) {
@@ -208,31 +225,26 @@ impl Header {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
 
-    use super::*;
     use super::keys::tests::generate_string as generate_key_string;
     use super::normalisers::tests::generate_string as generate_normaliser_string;
     use super::normalisers::{
-        clipping::Clipping,
-        linear_scaling::LinearScaling,
-        log_scale::LogScaling,
-        z_score::ZScore,
+        clipping::Clipping, linear_scaling::LinearScaling, log_scale::LogScaling, z_score::ZScore,
     };
-
+    use super::*;
 
     pub fn generate_string() -> String {
         let keys = generate_key_string();
         let normalisers = generate_normaliser_string();
         let output = "g=>linear_scaling(0.0,1.0)".to_string();
         format!(
-            "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}", 
-            Header::delimiter(), 
-            keys, 
-            Header::delimiter(), 
-            normalisers, 
+            "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
+            Header::delimiter(),
+            keys,
+            Header::delimiter(),
+            normalisers,
             Header::delimiter(),
             output,
             Header::delimiter(),
@@ -244,7 +256,9 @@ mod tests {
             Header::delimiter(),
             Engine::PyTorch.to_string(),
             Header::delimiter(),
-            Origin::from_string("author=>local".to_string()).unwrap().to_string(),
+            Origin::from_string("author=>local".to_string())
+                .unwrap()
+                .to_string(),
             Header::delimiter(),
             InputDims::from_string("1,2".to_string()).to_string(),
             Header::delimiter(),
@@ -329,7 +343,7 @@ mod tests {
         assert_eq!(header.keys.store[5], "f");
     }
 
-    #[test] 
+    #[test]
     fn test_add_normalizer() {
         let mut header = Header::fresh();
         header.add_column("a".to_string());
@@ -340,29 +354,56 @@ mod tests {
         header.add_column("f".to_string());
 
         let _ = header.add_normaliser(
-            "a".to_string(), 
-            NormaliserType::LinearScaling(LinearScaling { min: 0.0, max: 1.0 })
+            "a".to_string(),
+            NormaliserType::LinearScaling(LinearScaling { min: 0.0, max: 1.0 }),
         );
         let _ = header.add_normaliser(
-            "b".to_string(), 
-            NormaliserType::Clipping(Clipping { min: Some(0.0), max: Some(1.5) })
+            "b".to_string(),
+            NormaliserType::Clipping(Clipping {
+                min: Some(0.0),
+                max: Some(1.5),
+            }),
         );
         let _ = header.add_normaliser(
-            "c".to_string(), 
-            NormaliserType::LogScaling(LogScaling { base: 10.0, min: 0.0 })
+            "c".to_string(),
+            NormaliserType::LogScaling(LogScaling {
+                base: 10.0,
+                min: 0.0,
+            }),
         );
         let _ = header.add_normaliser(
-            "e".to_string(), 
-            NormaliserType::ZScore(ZScore { mean: 0.0, std_dev: 1.0 })
+            "e".to_string(),
+            NormaliserType::ZScore(ZScore {
+                mean: 0.0,
+                std_dev: 1.0,
+            }),
         );
 
         assert_eq!(header.normalisers.store.len(), 4);
-        assert_eq!(header.normalisers.store[0], NormaliserType::LinearScaling(LinearScaling { min: 0.0, max: 1.0 }));
-        assert_eq!(header.normalisers.store[1], NormaliserType::Clipping(Clipping { min: Some(0.0), max: Some(1.5) }));
-        assert_eq!(header.normalisers.store[2], NormaliserType::LogScaling(LogScaling { base: 10.0, min: 0.0 }));
-        assert_eq!(header.normalisers.store[3], NormaliserType::ZScore(ZScore { mean: 0.0, std_dev: 1.0 }));
+        assert_eq!(
+            header.normalisers.store[0],
+            NormaliserType::LinearScaling(LinearScaling { min: 0.0, max: 1.0 })
+        );
+        assert_eq!(
+            header.normalisers.store[1],
+            NormaliserType::Clipping(Clipping {
+                min: Some(0.0),
+                max: Some(1.5)
+            })
+        );
+        assert_eq!(
+            header.normalisers.store[2],
+            NormaliserType::LogScaling(LogScaling {
+                base: 10.0,
+                min: 0.0
+            })
+        );
+        assert_eq!(
+            header.normalisers.store[3],
+            NormaliserType::ZScore(ZScore {
+                mean: 0.0,
+                std_dev: 1.0
+            })
+        );
     }
-
 }
-
-

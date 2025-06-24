@@ -1,16 +1,13 @@
 //! Defines the struct housing data around the outputs of the model.
+use std::fmt;
 use super::normalisers::wrapper::NormaliserType;
 use crate::{
+    errors::error::{SurrealError, SurrealErrorStatus},
     safe_eject_option,
-    errors::error::{
-        SurrealError,
-        SurrealErrorStatus
-    }
 };
 
-
 /// Houses data around the outputs of the model.
-/// 
+///
 /// # Fields
 /// * `name` - The name of the output.
 /// * `normaliser` - The normaliser to be applied to the output if there is one.
@@ -21,9 +18,8 @@ pub struct Output {
 }
 
 impl Output {
-
     /// Creates a new instance of the Output struct with no normaliser or name.
-    /// 
+    ///
     /// # Returns
     /// A new instance of the Output struct with no normaliser or name.
     pub fn fresh() -> Self {
@@ -34,7 +30,7 @@ impl Output {
     }
 
     /// Creates a new instance of the Output struct without a normaliser.
-    /// 
+    ///
     /// # Arguments
     /// * `name` - The name of the output.
     pub fn new(name: String) -> Self {
@@ -45,47 +41,23 @@ impl Output {
     }
 
     /// Adds a normaliser to the output.
-    /// 
+    ///
     /// # Arguments
     /// * `normaliser` - The normaliser to be applied to the output.
     pub fn add_normaliser(&mut self, normaliser: NormaliserType) {
         self.normaliser = Some(normaliser);
     }
 
-    /// Converts the output struct to a string.
-    /// 
-    /// # Returns
-    /// * `String` - The output struct as a string.
-    pub fn to_string(&self) -> String {
-
-        if &self.name == &None && &self.normaliser == &None {
-            return "".to_string();
-        }
-
-        let name = match &self.name {
-            Some(name) => name.clone(),
-            None => "none".to_string(),
-        };
-        let mut buffer = vec![
-            name.clone(),
-        ];
-        match &self.normaliser {
-            Some(normaliser) => buffer.push(normaliser.to_string()),
-            None => buffer.push("none".to_string()),
-        }
-        buffer.join("=>")
-    }
-
     /// Converts a string to an instance of the Output struct.
-    /// 
+    ///
     /// # Arguments
     /// * `data` - The string to be converted into an instance of the Output struct.
-    /// 
+    ///
     /// # Returns
     /// * `Output` - The string as an instance of the Output struct.
     pub fn from_string(data: String) -> Result<Self, SurrealError> {
-        if data.contains("=>") == false {
-            return Ok(Output::fresh())
+        if !data.contains("=>") {
+            return Ok(Output::fresh());
         }
         let mut buffer = data.split("=>");
 
@@ -100,13 +72,25 @@ impl Output {
             "none" => None,
             _ => Some(NormaliserType::from_string(data).unwrap().0),
         };
-        return Ok(Output {
-            name,
-            normaliser
-        })
+        Ok(Output { name, normaliser })
     }
 }
 
+impl fmt::Display for Output {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.name.is_none() && self.normaliser.is_none() {
+            return write!(f, "");
+        }
+
+        let name = self.name.as_deref().unwrap_or("none");
+        let normaliser = self.normaliser
+            .as_ref()
+            .map(|n| n.to_string())
+            .unwrap_or_else(|| "none".to_string());
+
+        write!(f, "{}=>{}", name, normaliser)
+    }
+}
 
 #[cfg(test)]
 pub mod tests {
@@ -115,14 +99,13 @@ pub mod tests {
 
     #[test]
     fn test_output_to_string() {
-
         // with no normaliser
         let mut output = Output::new("test".to_string());
         assert_eq!(output.to_string(), "test=>none");
 
         let normaliser_data = "a=>linear_scaling(0.0,1.0)".to_string();
         let normaliser = NormaliserType::from_string(normaliser_data).unwrap();
-        
+
         output.add_normaliser(normaliser.0);
         assert_eq!(output.to_string(), "test=>linear_scaling(0,1)");
     }
@@ -134,7 +117,10 @@ pub mod tests {
 
         assert_eq!(output.name.unwrap(), "test");
         assert_eq!(output.normaliser.is_some(), true);
-        assert_eq!(output.normaliser.unwrap().to_string(), "linear_scaling(0,1)");
+        assert_eq!(
+            output.normaliser.unwrap().to_string(),
+            "linear_scaling(0,1)"
+        );
     }
 
     #[test]
