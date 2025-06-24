@@ -1,4 +1,5 @@
 //! Defines the loading and saving functionality of normalisers.
+use std::fmt;
 use std::collections::HashMap;
 
 pub mod clipping;
@@ -57,7 +58,7 @@ impl NormaliserMap {
         let column_input_index =
             safe_eject_option!(keys_reference.reference.get(column_name.as_str()));
         self.reference
-            .insert(column_input_index.clone() as usize, counter as usize);
+            .insert(*column_input_index as usize, counter);
         self.store.push(normaliser);
         self.store_ref.push(column_name);
         Ok(())
@@ -114,7 +115,7 @@ impl NormaliserMap {
     /// # Returns
     /// A `NormaliserMap` containing the normalisers.
     pub fn from_string(data: String, keys_reference: &KeyBindings) -> Result<Self, SurrealError> {
-        if data.len() == 0 {
+        if data.is_empty() {
             return Ok(NormaliserMap::fresh());
         }
         let normalisers_data = data.split("//");
@@ -123,12 +124,14 @@ impl NormaliserMap {
         let mut store = Vec::new();
         let mut store_ref = Vec::new();
 
+        // I'm referencing counter outside of the loop and this confuses clippy
+        #[allow(clippy::explicit_counter_loop)]
         for normaliser_data in normalisers_data {
             let (normaliser, column_name) =
                 NormaliserType::from_string(normaliser_data.to_string())?;
             let column_input_index =
                 safe_eject_option!(keys_reference.reference.get(column_name.as_str()));
-            reference.insert(column_input_index.clone() as usize, counter as usize);
+            reference.insert(*column_input_index as usize, counter as usize);
             store.push(normaliser);
             store_ref.push(column_name);
             counter += 1;
@@ -140,20 +143,18 @@ impl NormaliserMap {
             store_ref,
         })
     }
+}
 
-    /// Converts the `NormaliserMap` to a string.
-    ///
-    /// # Returns
-    /// A string containing the normaliser data.
-    pub fn to_string(&self) -> String {
-        let mut buffer = Vec::new();
+impl fmt::Display for NormaliserMap {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut parts = Vec::new();
 
-        for index in 0..self.store.len() {
-            let normaliser_string = &self.store[index].to_string();
-            buffer.push(format!("{}=>{}", self.store_ref[index], normaliser_string));
+        for (index, normaliser) in self.store.iter().enumerate() {
+            let column = &self.store_ref[index];
+            parts.push(format!("{}=>{}", column, normaliser));
         }
 
-        buffer.join("//")
+        write!(f, "{}", parts.join("//"))
     }
 }
 

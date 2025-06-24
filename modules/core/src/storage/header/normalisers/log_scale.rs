@@ -21,8 +21,7 @@ impl Normaliser for LogScaling {
     /// # Returns
     /// The normalised value.
     fn normalise(&self, input: f32) -> f32 {
-        let normalised = (input + self.min).log(self.base);
-        normalised
+        (input + self.min).log(self.base)
     }
 
     /// Applies the inverse of the value for the normaliser.
@@ -33,8 +32,7 @@ impl Normaliser for LogScaling {
     /// # Returns
     /// The inverse normalised value.
     fn inverse_normalise(&self, input: f32) -> f32 {
-        let denormalised = (input.powf(self.base)) - self.min;
-        denormalised
+        (input.powf(self.base)) - self.min
     }
 
     /// The key of the normaliser.

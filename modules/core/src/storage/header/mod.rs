@@ -107,7 +107,7 @@ impl Header {
         column_name: String,
         normaliser: NormaliserType,
     ) -> Result<(), SurrealError> {
-        let _ = self
+        self
             .normalisers
             .add_normaliser(normaliser, column_name, &self.keys)?;
         Ok(())

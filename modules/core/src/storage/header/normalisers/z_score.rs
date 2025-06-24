@@ -21,8 +21,7 @@ impl Normaliser for ZScore {
     /// # Returns
     /// The normalised value.
     fn normalise(&self, input: f32) -> f32 {
-        let normalised = (input - self.mean) / self.std_dev;
-        normalised
+        (input - self.mean) / self.std_dev
     }
 
     /// Applies the inverse of the value for the normaliser.
@@ -33,8 +32,7 @@ impl Normaliser for ZScore {
     /// # Returns
     /// The inverse normalised value.
     fn inverse_normalise(&self, input: f32) -> f32 {
-        let denormalised = (input * self.std_dev) + self.mean;
-        denormalised
+        (input * self.std_dev) + self.mean
     }
 
     fn key() -> String {

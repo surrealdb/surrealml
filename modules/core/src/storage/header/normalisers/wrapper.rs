@@ -1,4 +1,5 @@
 //! Defines the constructing and storing of normalisers.
+use std::fmt;
 use super::clipping;
 use super::linear_scaling;
 use super::log_scale;
@@ -119,36 +120,6 @@ impl NormaliserType {
         Ok((normaliser, column_name))
     }
 
-    /// Converts a normaliser to a string.
-    ///
-    /// # Returns
-    /// A string containing the normaliser data.
-    pub fn to_string(&self) -> String {
-        let normaliser_string = match self {
-            NormaliserType::LinearScaling(linear_scaling) => {
-                let min = linear_scaling.min;
-                let max = linear_scaling.max;
-                format!("linear_scaling({},{})", min, max)
-            }
-            NormaliserType::Clipping(clipping) => {
-                let min = clipping.min.unwrap();
-                let max = clipping.max.unwrap();
-                format!("clipping({},{})", min, max)
-            }
-            NormaliserType::LogScaling(log_scaling) => {
-                let base = log_scaling.base;
-                let min = log_scaling.min;
-                format!("log_scaling({},{})", base, min)
-            }
-            NormaliserType::ZScore(z_score) => {
-                let mean = z_score.mean;
-                let std_dev = z_score.std_dev;
-                format!("z_score({},{})", mean, std_dev)
-            }
-        };
-        normaliser_string
-    }
-
     /// Normalises a value.
     ///
     /// # Arguments
@@ -178,6 +149,27 @@ impl NormaliserType {
             NormaliserType::Clipping(normaliser) => normaliser.inverse_normalise(value),
             NormaliserType::LogScaling(normaliser) => normaliser.inverse_normalise(value),
             NormaliserType::ZScore(normaliser) => normaliser.inverse_normalise(value),
+        }
+    }
+}
+
+impl fmt::Display for NormaliserType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            NormaliserType::LinearScaling(normaliser) => {
+                write!(f, "linear_scaling({},{})", normaliser.min, normaliser.max)
+            }
+            NormaliserType::Clipping(normaliser) => {
+                let min = normaliser.min.unwrap_or_default();
+                let max = normaliser.max.unwrap_or_default();
+                write!(f, "clipping({},{})", min, max)
+            }
+            NormaliserType::LogScaling(normaliser) => {
+                write!(f, "log_scaling({},{})", normaliser.base, normaliser.min)
+            }
+            NormaliserType::ZScore(normaliser) => {
+                write!(f, "z_score({},{})", normaliser.mean, normaliser.std_dev)
+            }
         }
     }
 }

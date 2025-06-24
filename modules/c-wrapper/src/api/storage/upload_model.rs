@@ -70,16 +70,15 @@ pub extern "C" fn upload_model(
             empty_return_safe_eject!(HeaderValue::from_str(&db)),
         );
 
-    let req;
-    if username.is_none() == false && password.is_none() == false {
+    let req = if username.is_some() && password.is_some() {
         // unwraps are safe because we have already checked that the values are not None
         let encoded_credentials = encode(format!("{}:{}", username.unwrap(), password.unwrap()));
-        req = empty_return_safe_eject!(part_req
+        empty_return_safe_eject!(part_req
             .header(AUTHORIZATION, format!("Basic {}", encoded_credentials))
-            .body(body));
+            .body(body))
     } else {
-        req = empty_return_safe_eject!(part_req.body(body));
-    }
+        empty_return_safe_eject!(part_req.body(body))
+    };
 
     let tokio_runtime = empty_return_safe_eject!(tokio::runtime::Builder::new_current_thread()
         .enable_io()

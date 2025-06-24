@@ -68,7 +68,7 @@ pub extern "C" fn raw_compute(
         }
     };
 
-    let mut file = match state.get_mut(&file_id) {
+    let file = match state.get_mut(&file_id) {
         Some(file) => file,
         None => {
             return Vecf32Return {
@@ -90,7 +90,7 @@ pub extern "C" fn raw_compute(
     let slice = unsafe { std::slice::from_raw_parts(data_ptr, length) };
     let tensor = ndarray::arr1(slice).into_dyn();
     let compute_unit = ModelComputation {
-        surml_file: &mut file,
+        surml_file: file,
     };
 
     // perform the computation

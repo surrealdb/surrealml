@@ -1,4 +1,5 @@
 //! Defines the placeholder for the type of model engine in the header.
+use std::fmt;
 
 /// Defines the type of engine being used to run the model.
 ///
@@ -36,16 +37,14 @@ impl Engine {
             _ => Engine::Undefined,
         }
     }
+}
 
-    /// Translates the struct to a string.
-    ///
-    /// # Returns
-    /// * `String` - The struct as a string.
-    pub fn to_string(&self) -> String {
+impl fmt::Display for Engine {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Engine::Native => "native".to_string(),
-            Engine::PyTorch => "pytorch".to_string(),
-            Engine::Undefined => "".to_string(),
+            Engine::Native => write!(f, "native"),
+            Engine::PyTorch => write!(f, "pytorch"),
+            Engine::Undefined => write!(f, ""),
         }
     }
 }

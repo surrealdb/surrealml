@@ -23,7 +23,8 @@ macro_rules! process_string_for_empty_return {
                 };
             }
             false => {
-                let c_str = unsafe { CStr::from_ptr($str_ptr) };
+                let str_ptr = $str_ptr;
+                let c_str = unsafe { CStr::from_ptr(str_ptr) };
                 match c_str.to_str() {
                     Ok(s) => s.to_owned(),
                     Err(_) => {
@@ -89,7 +90,8 @@ macro_rules! process_string_for_string_return {
                 };
             }
             false => {
-                let c_str = unsafe { CStr::from_ptr($str_ptr) };
+                let str_ptr = $str_ptr;
+                let c_str = unsafe { CStr::from_ptr(str_ptr) };
                 match c_str.to_str() {
                     Ok(s) => s.to_owned(),
                     Err(_) => {
@@ -134,7 +136,8 @@ macro_rules! process_string_for_vec_u8_return {
                 };
             }
             false => {
-                let c_str = unsafe { CStr::from_ptr($str_ptr) };
+                let str_ptr = $str_ptr;
+                let c_str = unsafe { CStr::from_ptr(str_ptr) };
                 match c_str.to_str() {
                     Ok(s) => s.to_owned(),
                     Err(_) => {

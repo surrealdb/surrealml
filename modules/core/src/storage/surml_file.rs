@@ -142,7 +142,7 @@ impl SurMlFile {
         combined_vec.extend(num_bytes);
         combined_vec.extend(header_bytes);
         combined_vec.extend(self.model.clone());
-        return combined_vec;
+        combined_vec
     }
 
     /// Writes the header and the model to a `surml` file.

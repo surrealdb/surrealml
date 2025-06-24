@@ -1,4 +1,5 @@
 //! Defines the origin of the model in the file.
+use std::fmt;
 use crate::errors::error::{SurrealError, SurrealErrorStatus};
 
 use super::string_value::StringValue;
@@ -47,16 +48,14 @@ impl OriginValue {
             )),
         }
     }
+}
 
-    /// Converts the `OriginValue` to a string.
-    ///
-    /// # Returns
-    /// The `OriginValue` as a string.
-    pub fn to_string(&self) -> String {
+impl fmt::Display for OriginValue {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            OriginValue::Local(string_value) => string_value.to_string(),
-            OriginValue::SurrealDb(string_value) => string_value.to_string(),
-            OriginValue::None(string_value) => string_value.to_string(),
+            OriginValue::Local(val)
+            | OriginValue::SurrealDb(val)
+            | OriginValue::None(val) => write!(f, "{}", val),
         }
     }
 }
@@ -100,17 +99,6 @@ impl Origin {
         Ok(())
     }
 
-    /// Converts an origin to a string.
-    ///
-    /// # Returns
-    /// The origin as a string.
-    pub fn to_string(&self) -> String {
-        if self.author.value.is_none() && self.origin == OriginValue::None(StringValue::fresh()) {
-            return String::from("");
-        }
-        format!("{}=>{}", self.author.to_string(), self.origin.to_string())
-    }
-
     /// Creates a new origin from a string.
     ///
     /// # Arguments
@@ -119,7 +107,7 @@ impl Origin {
     /// # Returns
     /// A new origin.
     pub fn from_string(origin: String) -> Result<Self, SurrealError> {
-        if origin == "".to_string() {
+        if origin == *"" {
             return Ok(Origin::fresh());
         }
         let mut split = origin.split("=>");
@@ -129,6 +117,19 @@ impl Origin {
             origin: OriginValue::from_string(origin)?,
             author: StringValue::from_string(author),
         })
+    }
+}
+
+impl fmt::Display for Origin {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let is_empty_author = self.author.value.is_none();
+        let is_empty_origin = matches!(self.origin, OriginValue::None(ref s) if s.value.is_none());
+
+        if is_empty_author && is_empty_origin {
+            write!(f, "")
+        } else {
+            write!(f, "{}=>{}", self.author, self.origin)
+        }
     }
 }
 

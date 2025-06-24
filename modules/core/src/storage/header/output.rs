@@ -1,4 +1,5 @@
 //! Defines the struct housing data around the outputs of the model.
+use std::fmt;
 use super::normalisers::wrapper::NormaliserType;
 use crate::{
     errors::error::{SurrealError, SurrealErrorStatus},
@@ -47,27 +48,6 @@ impl Output {
         self.normaliser = Some(normaliser);
     }
 
-    /// Converts the output struct to a string.
-    ///
-    /// # Returns
-    /// * `String` - The output struct as a string.
-    pub fn to_string(&self) -> String {
-        if &self.name == &None && &self.normaliser == &None {
-            return "".to_string();
-        }
-
-        let name = match &self.name {
-            Some(name) => name.clone(),
-            None => "none".to_string(),
-        };
-        let mut buffer = vec![name.clone()];
-        match &self.normaliser {
-            Some(normaliser) => buffer.push(normaliser.to_string()),
-            None => buffer.push("none".to_string()),
-        }
-        buffer.join("=>")
-    }
-
     /// Converts a string to an instance of the Output struct.
     ///
     /// # Arguments
@@ -76,7 +56,7 @@ impl Output {
     /// # Returns
     /// * `Output` - The string as an instance of the Output struct.
     pub fn from_string(data: String) -> Result<Self, SurrealError> {
-        if data.contains("=>") == false {
+        if !data.contains("=>") {
             return Ok(Output::fresh());
         }
         let mut buffer = data.split("=>");
@@ -92,7 +72,23 @@ impl Output {
             "none" => None,
             _ => Some(NormaliserType::from_string(data).unwrap().0),
         };
-        return Ok(Output { name, normaliser });
+        Ok(Output { name, normaliser })
+    }
+}
+
+impl fmt::Display for Output {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.name.is_none() && self.normaliser.is_none() {
+            return write!(f, "");
+        }
+
+        let name = self.name.as_deref().unwrap_or("none");
+        let normaliser = self.normaliser
+            .as_ref()
+            .map(|n| n.to_string())
+            .unwrap_or_else(|| "none".to_string());
+
+        write!(f, "{}=>{}", name, normaliser)
     }
 }
 

@@ -22,8 +22,7 @@ impl Normaliser for LinearScaling {
     /// The normalised value.
     fn normalise(&self, input: f32) -> f32 {
         let range = self.max - self.min;
-        let normalised = (input - self.min) / range;
-        normalised
+        (input - self.min) / range
     }
 
     /// Applies the inverse of the value for the normaliser.
@@ -35,8 +34,7 @@ impl Normaliser for LinearScaling {
     /// The inverse normalised value.
     fn inverse_normalise(&self, input: f32) -> f32 {
         let range = self.max - self.min;
-        let denormalised = (input * range) + self.min;
-        denormalised
+        (input * range) + self.min
     }
 
     /// The key of the normaliser.

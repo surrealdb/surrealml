@@ -95,7 +95,7 @@ pub extern "C" fn load_model(file_path_ptr: *const c_char) -> FileInfo {
         }
     };
 
-    let file = match SurMlFile::from_file(&file_path) {
+    let file = match SurMlFile::from_file(file_path) {
         Ok(file) => file,
         Err(e) => {
             return FileInfo {
