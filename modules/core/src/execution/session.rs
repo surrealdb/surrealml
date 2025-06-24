@@ -13,6 +13,11 @@ use std::io::Cursor;
 use tempfile::tempdir;
 use zip::ZipArchive;
 
+#[cfg(feature = "gpu")]
+use ort::execution_providers::CUDAExecutionProvider;
+#[cfg(feature = "gpu")]
+use ort::execution_providers::ExecutionProvider;
+
 /// Creates a session for a model.
 ///
 /// # Arguments
@@ -21,12 +26,17 @@ use zip::ZipArchive;
 /// # Returns
 /// A session object.
 pub fn get_session(model_bytes: Vec<u8>) -> Result<Session, SurrealError> {
+
+    #[cfg(feature = "gpu")]
+    let mut builder = safe_eject!(Session::builder(), SurrealErrorStatus::Unknown);
+
+    #[cfg(not(feature = "gpu"))]
     let builder = safe_eject!(Session::builder(), SurrealErrorStatus::Unknown);
 
     #[cfg(feature = "gpu")]
     {
         let cuda = CUDAExecutionProvider::default();
-        if let Err(e) = cuda.register(&builder) {
+        if let Err(e) = cuda.register(&mut builder) {
             eprintln!("Failed to register CUDA: {:?}. Falling back to CPU.", e);
         } else {
             println!("CUDA registered successfully");

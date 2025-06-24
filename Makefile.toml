@@ -1,0 +1,43 @@
+[tasks.build]
+description = "Build the project"
+command = "cargo"
+args = ["build"]
+
+[tasks.release]
+description = "Build the project in release mode"
+command = "cargo"
+args = ["build", "--release"]
+
+[tasks.test]
+description = "Run tests"
+command = "cargo"
+args = ["test"]
+
+[tasks.format]
+description = "Format code using rustfmt"
+command = "cargo"
+args = ["fmt", "--all"]
+
+[tasks.lint]
+description = "Run Clippy linter"
+command = "cargo"
+args = ["clippy", "--all-targets", "--all-features", "--", "-D", "warnings"]
+
+[tasks.clean]
+description = "Clean the project"
+command = "cargo"
+args = ["clean"]
+
+[tasks.preflight]
+description = "Runs the CI test scripts"
+script = [
+    "cd modules/c-wrapper/scripts && sh build-docker.sh",
+    "cd modules/core && docker build -t rust-onnx-runtime .",
+    "cd modules/core && docker run --rm rust-onnx-runtime cargo test --features onnx-tests",
+    "cd modules/core && docker run --rm rust-onnx-runtime cargo test --features tensorflow-tests",
+    "cd modules/core && docker run --rm rust-onnx-runtime cargo test --features sklearn-tests",
+    "cd modules/core && docker run --rm rust-onnx-runtime cargo test --features torch-tests"
+]
+
+[env]
+RUST_BACKTRACE = "1"
