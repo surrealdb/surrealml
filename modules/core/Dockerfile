@@ -16,9 +16,9 @@ WORKDIR /app
 COPY . .
 
 # Download ONNX Runtime 1.20.0
-RUN wget https://github.com/microsoft/onnxruntime/releases/download/v1.20.0/onnxruntime-linux-x64-1.20.0.tgz \
-    && tar -xvf onnxruntime-linux-x64-1.20.0.tgz \
-    && mv onnxruntime-linux-x64-1.20.0 /onnxruntime
+# RUN wget https://github.com/microsoft/onnxruntime/releases/download/v1.20.0/onnxruntime-linux-x64-1.20.0.tgz \
+#     && tar -xvf onnxruntime-linux-x64-1.20.0.tgz \
+#     && mv onnxruntime-linux-x64-1.20.0 /onnxruntime
 
 # # Download ONNX Runtime 1.16.0
 # RUN wget https://github.com/microsoft/onnxruntime/releases/download/v1.16.0/onnxruntime-linux-x64-1.16.0.tgz \
