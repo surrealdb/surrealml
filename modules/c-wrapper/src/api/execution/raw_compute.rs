@@ -89,9 +89,7 @@ pub extern "C" fn raw_compute(
 
     let slice = unsafe { std::slice::from_raw_parts(data_ptr, length) };
     let tensor = ndarray::arr1(slice).into_dyn();
-    let compute_unit = ModelComputation {
-        surml_file: file,
-    };
+    let compute_unit = ModelComputation { surml_file: file };
 
     // perform the computation
     let mut outcome = match compute_unit.raw_compute(tensor, None) {
