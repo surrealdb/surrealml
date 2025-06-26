@@ -117,7 +117,6 @@ pub mod tests {
         let output = Output::from_string(data).unwrap();
 
         assert_eq!(output.name.unwrap(), "test");
-        assert!(output.normaliser.is_none());
         assert_eq!(
             output.normaliser.unwrap().to_string(),
             "linear_scaling(0,1)"

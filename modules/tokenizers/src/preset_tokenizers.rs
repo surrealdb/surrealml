@@ -3,6 +3,7 @@ use crate::error::{SurrealError, SurrealErrorStatus};
 use std::fmt;
 use std::str::FromStr;
 use tokenizers::Tokenizer;
+use std::convert::TryInto; 
 
 /// Model identifier files embedded in the binary.
 const MIXTRAL_8X7B_V01: &str =
@@ -70,26 +71,26 @@ impl fmt::Display for PresetTokenizers {
 }
 
 impl PresetTokenizers {
-    /// Convert a canonical model string to a [`PresetTokenizers`] variant.
-    ///
-    /// # Arguments
-    /// * `model` – Model identifier used on the model hub (e.g. `"mistralai/Mixtral-8x7B-v0.1"`).
-    ///
-    /// # Returns
-    /// * `Some(variant)` when the identifier is recognised.
-    /// * `None` for unknown identifiers.
-    pub fn from_str(model: &str) -> Option<Self> {
-        match model {
-            "mistralai/Mixtral-8x7B-v0.1" => Some(PresetTokenizers::Mixtral8x7Bv01),
-            "mistralai/Mistral-7B-v0.1" => Some(PresetTokenizers::Mistral7Bv01),
-            "amazon/MistralLite" => Some(PresetTokenizers::MistralLite),
-            "google/gemma-7b" => Some(PresetTokenizers::Gemma7B),
-            "google/gemma-2b" => Some(PresetTokenizers::Gemma2B),
-            "google/gemma-3-4b-it" => Some(PresetTokenizers::Gemma3_4BIt),
-            "tiiuae/falcon-7b" => Some(PresetTokenizers::Falcon7B),
-            _ => None,
-        }
-    }
+    // /// Convert a canonical model string to a [`PresetTokenizers`] variant.
+    // ///
+    // /// # Arguments
+    // /// * `model` – Model identifier used on the model hub (e.g. `"mistralai/Mixtral-8x7B-v0.1"`).
+    // ///
+    // /// # Returns
+    // /// * `Some(variant)` when the identifier is recognised.
+    // /// * `None` for unknown identifiers.
+    // pub fn from_str(model: &str) -> Option<Self> {
+    //     match model {
+    //         "mistralai/Mixtral-8x7B-v0.1" => Some(PresetTokenizers::Mixtral8x7Bv01),
+    //         "mistralai/Mistral-7B-v0.1" => Some(PresetTokenizers::Mistral7Bv01),
+    //         "amazon/MistralLite" => Some(PresetTokenizers::MistralLite),
+    //         "google/gemma-7b" => Some(PresetTokenizers::Gemma7B),
+    //         "google/gemma-2b" => Some(PresetTokenizers::Gemma2B),
+    //         "google/gemma-3-4b-it" => Some(PresetTokenizers::Gemma3_4BIt),
+    //         "tiiuae/falcon-7b" => Some(PresetTokenizers::Falcon7B),
+    //         _ => None,
+    //     }
+    // }
 
     /// Retrieve the embedded tokenizer identifier for this variant.
     ///
@@ -115,47 +116,47 @@ impl PresetTokenizers {
     }
 }
 
+impl FromStr for PresetTokenizers {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.try_into()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::PresetTokenizers;
+    use std::str::FromStr;
+
+    macro_rules! assert_tokenizers {
+        ($($model_name:expr => $token:expr),*) => {
+            $(
+                assert_eq!(
+                    PresetTokenizers::from_str($model_name),
+                    Ok($token)
+                );
+            )*
+        };
+    }
 
     #[test]
     fn from_str_recognises_valid_model_names() {
         // Each known model string should map to the correct enum variant.
-        assert_eq!(
-            PresetTokenizers::from_str("mistralai/Mixtral-8x7B-v0.1"),
-            Some(PresetTokenizers::Mixtral8x7Bv01)
-        );
-        assert_eq!(
-            PresetTokenizers::from_str("mistralai/Mistral-7B-v0.1"),
-            Some(PresetTokenizers::Mistral7Bv01)
-        );
-        assert_eq!(
-            PresetTokenizers::from_str("amazon/MistralLite"),
-            Some(PresetTokenizers::MistralLite)
-        );
-        assert_eq!(
-            PresetTokenizers::from_str("google/gemma-7b"),
-            Some(PresetTokenizers::Gemma7B)
-        );
-        assert_eq!(
-            PresetTokenizers::from_str("google/gemma-2b"),
-            Some(PresetTokenizers::Gemma2B)
-        );
-        assert_eq!(
-            PresetTokenizers::from_str("google/gemma-3-4b-it"),
-            Some(PresetTokenizers::Gemma3_4BIt)
-        );
-        assert_eq!(
-            PresetTokenizers::from_str("tiiuae/falcon-7b"),
-            Some(PresetTokenizers::Falcon7B)
+        assert_tokenizers!(
+            "mistralai/Mixtral-8x7B-v0.1" => PresetTokenizers::Mixtral8x7Bv01,
+            "mistralai/Mistral-7B-v0.1" => PresetTokenizers::Mistral7Bv01,
+            "amazon/MistralLite" => PresetTokenizers::MistralLite,
+            "google/gemma-7b" => PresetTokenizers::Gemma7B,
+            "google/gemma-2b" => PresetTokenizers::Gemma2B,
+            "google/gemma-3-4b-it" => PresetTokenizers::Gemma3_4BIt,
+            "tiiuae/falcon-7b" => PresetTokenizers::Falcon7B
         );
     }
 
     #[test]
-    fn from_str_unknown_model_returns_none() {
-        // An unsupported model string should yield None, not panic.
-        assert_eq!(PresetTokenizers::from_str("some-random-model"), None);
+    fn from_str_unknown_model_returns_error() {
+        assert!(PresetTokenizers::from_str("some-random-model").is_err());
     }
 
     #[test]

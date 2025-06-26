@@ -2,6 +2,7 @@
 use crate::error::{SurrealError, SurrealErrorStatus};
 use crate::preset_tokenizers::PresetTokenizers;
 use tokenizers::Tokenizer;
+use std::str::FromStr;
 
 #[cfg(feature = "http-access")]
 use crate::fetch_tokenizer::{fetch_tokenizer, load_tokenizer_from_file};
@@ -20,7 +21,7 @@ pub fn load_tokenizer_with_http(
     model: String,
     hf_token: Option<String>,
 ) -> Result<Tokenizer, SurrealError> {
-    if let Some(preset) = PresetTokenizers::from_str(&model) {
+    if let Ok(preset) = PresetTokenizers::from_str(&model) {
         return preset.retrieve_tokenizer()
     }
     let tokenizer_path = fetch_tokenizer(&model, hf_token.as_deref())?;
@@ -36,7 +37,7 @@ pub fn load_tokenizer_with_http(
 /// * `Ok(Tokenizer)` on success.
 /// * `Err(SurrealError)` when either retrieval or deserialization fails.
 pub fn load_local_tokenizer(model: String) -> Result<Tokenizer, SurrealError> {
-    if let Some(preset) = PresetTokenizers::from_str(&model) {
+    if let Ok(preset) = PresetTokenizers::from_str(&model) {
         return preset.retrieve_tokenizer();
     }
     Err(SurrealError::new(
