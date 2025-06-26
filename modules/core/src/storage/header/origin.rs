@@ -1,6 +1,6 @@
 //! Defines the origin of the model in the file.
-use std::fmt;
 use crate::errors::error::{SurrealError, SurrealErrorStatus};
+use std::fmt;
 
 use super::string_value::StringValue;
 
@@ -53,9 +53,9 @@ impl OriginValue {
 impl fmt::Display for OriginValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            OriginValue::Local(val)
-            | OriginValue::SurrealDb(val)
-            | OriginValue::None(val) => write!(f, "{}", val),
+            OriginValue::Local(val) | OriginValue::SurrealDb(val) | OriginValue::None(val) => {
+                write!(f, "{}", val)
+            }
         }
     }
 }
