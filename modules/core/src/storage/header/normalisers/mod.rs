@@ -1,6 +1,6 @@
 //! Defines the loading and saving functionality of normalisers.
-use std::fmt;
 use std::collections::HashMap;
+use std::fmt;
 
 pub mod clipping;
 pub mod linear_scaling;
@@ -57,8 +57,7 @@ impl NormaliserMap {
         let counter = self.store.len();
         let column_input_index =
             safe_eject_option!(keys_reference.reference.get(column_name.as_str()));
-        self.reference
-            .insert(*column_input_index as usize, counter);
+        self.reference.insert(*column_input_index as usize, counter);
         self.store.push(normaliser);
         self.store_ref.push(column_name);
         Ok(())
