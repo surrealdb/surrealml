@@ -14,4 +14,4 @@ jobs:
         fetch-depth: 0
 
     - name: Run Core Unit Tests
-      run:  docker build -t rust-onnx-runtime . && docker run --rm rust-onnx-runtime cd modules/core && cargo test --features onnx-tests
+      run:  docker run --rm -it rust-onnx-runtime bash -c "cd modules/core && cargo test --features onnx-tests"

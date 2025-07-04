@@ -1,5 +1,5 @@
 # Use an official Rust image
-FROM rust:1.83-slim
+FROM rust:1.88-slim
 
 # Install necessary tools
 RUN apt-get update && apt-get install -y \
@@ -15,9 +15,9 @@ WORKDIR /app
 # Copy the project files into the container
 COPY . .
 
-# Set the ONNX Runtime library path
-ENV ORT_LIB_LOCATION=/onnxruntime/lib
-ENV LD_LIBRARY_PATH=$ORT_LIB_LOCATION:$LD_LIBRARY_PATH
+# # Set the ONNX Runtime library path
+# ENV ORT_LIB_LOCATION=/onnxruntime/lib
+# ENV LD_LIBRARY_PATH=$ORT_LIB_LOCATION:$LD_LIBRARY_PATH
 
 # Clean and build the Rust project
 RUN cargo clean
