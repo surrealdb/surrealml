@@ -1,11 +1,11 @@
 //! Defines the constructing and storing of normalisers.
-use std::fmt;
 use super::clipping;
 use super::linear_scaling;
 use super::log_scale;
 use super::traits::Normaliser;
 use super::utils::{extract_label, extract_two_numbers};
 use super::z_score;
+use std::fmt;
 
 use crate::errors::error::{SurrealError, SurrealErrorStatus};
 use crate::safe_eject_option;
@@ -183,7 +183,7 @@ mod tests {
         let normaliser =
             NormaliserType::LinearScaling(linear_scaling::LinearScaling { min: 0.0, max: 1.0 });
         let column_name = "column_name".to_string();
-        format!("{}=>{}", column_name, normaliser.to_string())
+        format!("{}=>{}", column_name, normaliser)
     }
 
     #[test]
