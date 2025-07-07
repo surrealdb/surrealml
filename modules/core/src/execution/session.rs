@@ -26,7 +26,6 @@ use ort::execution_providers::ExecutionProvider;
 /// # Returns
 /// A session object.
 pub fn get_session(model_bytes: Vec<u8>) -> Result<Session, SurrealError> {
-
     #[cfg(feature = "gpu")]
     let mut builder = safe_eject!(Session::builder(), SurrealErrorStatus::Unknown);
 
