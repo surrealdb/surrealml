@@ -1,0 +1,17 @@
+.idea/
+builds/
+onnx_driver/
+target/
+tests/
+output/
+clients/
+LICENSE
+README.md
+Cargo.lock
+.vscode/
+./modules/utils/target/
+modules/core/target/
+modules/c-wrapper/target/
+./modules/onnx_driver/target/
+modules/onnx_driver/target/
+/target/
