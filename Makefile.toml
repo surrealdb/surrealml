@@ -20,6 +20,7 @@ args = ["fmt", "--all"]
 
 [tasks.lint]
 description = "Run Clippy linter"
+workspace = false
 command = "cargo"
 args = ["clippy", "--all-targets", "--all-features", "--", "-D", "warnings"]
 

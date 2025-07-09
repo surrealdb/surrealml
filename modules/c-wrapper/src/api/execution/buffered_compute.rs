@@ -147,9 +147,7 @@ pub extern "C" fn buffered_compute(
             }
         }
     };
-    let compute_unit = ModelComputation {
-        surml_file: file,
-    };
+    let compute_unit = ModelComputation { surml_file: file };
     match compute_unit.buffered_compute(&mut input_map) {
         Ok(mut output) => {
             let output_len = output.len();

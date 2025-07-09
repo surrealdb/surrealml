@@ -3,7 +3,10 @@
 resolver = "2"
 members = [
     "modules/c-wrapper",
-    "modules/core",
+    "modules/core", 
+    "modules/tokenizers", 
+    "modules/llms",
+    "modules/wasm-linker",
 ]
 
 [workspace.lints.clippy]
