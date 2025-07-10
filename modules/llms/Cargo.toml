@@ -20,6 +20,5 @@ name = "surrealml_llms"
 path = "src/lib.rs"
 
 [features]
-# default = ["http-access", "local-gemma-test"]
 http-access = []
 local-gemma-test = []

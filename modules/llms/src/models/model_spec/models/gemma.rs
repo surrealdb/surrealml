@@ -83,6 +83,19 @@ impl ModelSpec for Gemma {
         Ok(model)
     }
 
+    /// Runs a model that has been loaded.
+    ///
+    /// # Notes
+    /// If the maximum number of tokens is too big for the response then the
+    /// LLM will repeat itself until the maximum number of tokens is produced.
+    ///
+    /// # Arguments
+    /// - `model`: The loaded LLM model to be executed.
+    /// - `input_string`: The input to be fed intot he LLM model.
+    /// - `max_steps`: The number of tokens that the LLM can produce
+    ///
+    /// # Returns
+    /// The string that the LLM produced
     fn run_model(
         &self,
         model: &mut <Self as ModelSpec>::LoadedModel,
@@ -92,36 +105,40 @@ impl ModelSpec for Gemma {
     ) -> Result<String, SurrealError> {
         // For now preset device to CPU.
         let device = Device::Cpu;
-    
+
         // Prepend BOS if absent
         let mut ids = input_ids.to_vec();
-        if input_ids.first() != Some(&2) { // 2 is the BOS token for Gemma
+        if input_ids.first() != Some(&2) {
+            // 2 is the BOS token for Gemma
             ids.insert(0, 2);
         }
-    
-        // Turn the prompt into a [1, seq_len] tensor 
+
+        // Turn the prompt into a [1, seq_len] tensor
         let prompt_tensor = Tensor::new(&ids[..], &device)
-            .map_err(|e| SurrealError::new(
-                format!("Failed to build input tensor: {}", e),
-                SurrealErrorStatus::BadRequest,
-            ))?
+            .map_err(|e| {
+                SurrealError::new(
+                    format!("Failed to build input tensor: {}", e),
+                    SurrealErrorStatus::BadRequest,
+                )
+            })?
             .unsqueeze(0)
-            .map_err(|e| SurrealError::new(
-                format!("Failed to unsqueeze input tensor: {}", e),
-                SurrealErrorStatus::BadRequest,
-            ))?;
-    
+            .map_err(|e| {
+                SurrealError::new(
+                    format!("Failed to unsqueeze input tensor: {}", e),
+                    SurrealErrorStatus::BadRequest,
+                )
+            })?;
+
         // Warm up Gemma on the entire prompt
         Self::warmup(model, &prompt_tensor)?;
-    
+
         // Autoregressive generation
-        let generated = Self::generate(model, &ids, device, max_steps, tokenizer)?;    
+        let generated = Self::generate(model, &ids, device, max_steps, tokenizer)?;
         Ok(generated)
     }
 }
 
 impl Gemma {
-
     /// Do the first forward‐pass over the whole prompt (seqlen_offset = 0).
     fn warmup(
         model: &mut <Self as ModelSpec>::LoadedModel,
@@ -136,6 +153,16 @@ impl Gemma {
     }
 
     /// Autoregressively generate up to `max_steps` new tokens.
+    ///
+    /// # Arguments
+    /// - `model`: The already-loaded neural-network weights plus any internal state (e.g., past-key memory). It’s mutable because inference updates the model’s cached KV tensors for each new step.
+    /// - `input_ids`: The token IDs of the user-supplied prompt. The last element starts the autoregressive loop; the full slice establishes the offset so the model knows how far into the sequence it is.
+    /// - `device`: Tells the tensor library which backend to place new tensors on (CPU, CUDA GPU, Metal, etc.). Every temporary tensor (token_t, scores_t) is created on this device so that operations stay on the same accelerator.
+    /// - `max_steps`: Hard ceiling on how many new tokens the function will try to generate. The loop breaks early on EOS (token ID 2) but never exceeds this count, preventing runaway inference.
+    /// - `tokenizer`: Used twice: (1) to turn the winning prev_id into human-readable text that gets appended to output; (2) to handle byte-pair/word-piece quirks such as merging spaces (decode(&[prev_id], true)).
+    ///
+    /// # Returns
+    /// The response string from the
     fn generate(
         model: &mut <Self as ModelSpec>::LoadedModel,
         input_ids: &[u32],

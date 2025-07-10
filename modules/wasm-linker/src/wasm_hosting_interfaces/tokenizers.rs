@@ -60,11 +60,11 @@ fn tokenizer_encode_raw(
 }
 
 /// Links the host with the ML functions.
-/// 
+///
 /// # Notes
 /// Right now this is just to prove it works but happy to refine the
 /// interface later with input from others in the team
-/// 
+///
 /// # Arguments
 /// - `linker`: the linker to the WASM host
 pub fn link_ml(linker: &mut Linker<()>) {

@@ -99,15 +99,15 @@ mod tests {
         assert!(matches!(wrapper, ModelWrapper::Gemma(_)));
     }
 
-    // /// HTTP fallback + `http-access` + `local-gemma-test` → success
-    // #[cfg(feature = "http-access")]
-    // #[test]
-    // fn load_model_via_http() {
-    //     // Rely on fetch_safetensors to pull the same cached files
-    //     let wrapper = load_model("google/gemma-7b", DType::F16, None, Some("TOKEN"))
-    //         .expect("should fetch & load via HTTP");
-    //     assert!(matches!(wrapper, ModelWrapper::Gemma(_)));
-    // }
+    /// HTTP fallback + `http-access` + `local-gemma-test` → success
+    #[cfg(feature = "http-access")]
+    #[test]
+    fn load_model_via_http() {
+        // Rely on fetch_safetensors to pull the same cached files
+        let wrapper = load_model("google/gemma-7b", DType::F16, None, Some("TOKEN"))
+            .expect("should fetch & load via HTTP");
+        assert!(matches!(wrapper, ModelWrapper::Gemma(_)));
+    }
 
     /// Dummy local paths → NotFound error
     #[test]
