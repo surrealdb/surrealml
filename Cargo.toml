@@ -9,6 +9,12 @@ members = [
     "modules/wasm-linker",
 ]
 
+[dependencies]
+regex = "1.11.1"
+ort = { version = "=2.0.0-rc.9", features = ["cuda", "ndarray"] }
+ort-sys = { version = "=2.0.0-rc.9", default-features = false }
+ndarray = "0.16.1"
+
 [workspace.lints.clippy]
 
 # Checks for usage of `#[allow]` attribute and suggests replacing it with `#[expect]`.
