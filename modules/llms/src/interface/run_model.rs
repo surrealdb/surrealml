@@ -1,7 +1,21 @@
+//! The interface for running a model.
 use crate::models::model_wrapper::ModelWrapper;
 use crate::utils::error::{SurrealError, SurrealErrorStatus};
 use surrealml_tokenizers::{encode, load_local_tokenizer};
 
+/// Runs a model that has been loaded.
+///
+/// # Notes
+/// If the maximum number of tokens is too big for the response then the
+/// LLM will repeat itself until the maximum number of tokens is produced.
+///
+/// # Arguments
+/// - `model`: The loaded LLM model to be executed.
+/// - `input_string`: The input to be fed intot he LLM model.
+/// - `max_steps`: The number of tokens that the LLM can produce
+///
+/// # Returns
+/// The string that the LLM produced
 pub fn run_model(
     model: &mut ModelWrapper,
     input_string: String,

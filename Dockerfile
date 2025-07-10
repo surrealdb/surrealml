@@ -7,7 +7,14 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     libssl-dev \
     pkg-config \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release \
+    vim \
     && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y python3 python3-pip
 
 # Set the working directory
 WORKDIR /app
@@ -21,7 +28,7 @@ COPY . .
 
 # Clean and build the Rust project
 RUN cargo clean
-RUN cargo build --features tensorflow-tests
+RUN cargo build
 
 # Run the tests
 CMD ["cargo", "test", "--features", "tensorflow-tests"]
