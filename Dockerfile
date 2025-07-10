@@ -31,4 +31,4 @@ RUN cargo clean
 RUN cargo build
 
 # Run the tests
-CMD ["cargo", "test", "--features", "tensorflow-tests"]
+CMD ["cargo", "test"]
