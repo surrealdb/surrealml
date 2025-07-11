@@ -7,14 +7,14 @@ license-file = "LICENSE"
 
 [dependencies]
 surrealml-core = { version = "0.1.4", path = "../core", features = ["dynamic"] }
-uuid = { version = "1.11.1", features = ["v4"] }
-ndarray = "0.16.1"
+uuid = { workspace = true }
+ndarray = { workspace = true }
 
 # for the uploading the model to the server
-tokio = { version = "1.43.0", features = ["full"] }
-hyper = { version = "0.14.27", features = ["full"] }
-base64 = "0.13"
-zip = "4.1.0"
+tokio = { workspace = true }
+hyper = { workspace = true }
+base64 = { workspace = true }
+zip = { workspace = true }
 
 [lib]
 crate-type = ["cdylib"]
