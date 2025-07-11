@@ -35,7 +35,7 @@ zip = { workspace = true }
 surrealml-tokenizers = { path = "../tokenizers/", optional = true }
 
 [dev-dependencies]
-tokio = { version = "1.44.2", features = ["full"] }
+tokio = { workspace = true }
 
 [lib]
 name = "surrealml_core"

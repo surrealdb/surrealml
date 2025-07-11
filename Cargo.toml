@@ -25,6 +25,13 @@ tempfile = "3.20.0"
 zip = "4.1.0"
 tokio = { version = "1.43.0", features = ["full"] }
 uuid = { version = "1.11.1", features = ["v4"] }
+hf-hub = { version = "0.4.1", features = ["tokio"] }
+candle-core = "0.9.1"
+candle-transformers = "0.9.1"
+candle-nn = "0.9.1"
+wasmtime = "34.0.1"
+wasmtime-wasi = { version = "34.0.1", features = ["preview1"] }
+bytemuck = "1.23.1"
 
 # for the uploading of the surml file
 hyper = { version = "0.14.27", features = ["full"] }
