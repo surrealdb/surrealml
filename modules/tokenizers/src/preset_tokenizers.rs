@@ -1,20 +1,18 @@
 //! Utilities for working with **preset** Hugging Face model identifiers.
 use crate::error::{SurrealError, SurrealErrorStatus};
+use std::convert::TryInto;
 use std::fmt;
 use std::str::FromStr;
 use tokenizers::Tokenizer;
-use std::convert::TryInto; 
 
 /// Model identifier files embedded in the binary.
 const MIXTRAL_8X7B_V01: &str =
     include_str!("../tokenizers/mistralai-Mixtral-8x7B-v0.1-tokenizer.json");
-const MISTRAL_7B_V01: &str =
-    include_str!("../tokenizers/mistralai-Mistral-7B-v0.1-tokenizer.json");
+const MISTRAL_7B_V01: &str = include_str!("../tokenizers/mistralai-Mistral-7B-v0.1-tokenizer.json");
 const MISTRALLITE: &str = include_str!("../tokenizers/amazon-MistralLite-tokenizer.json");
 const GEMMA_7B: &str = include_str!("../tokenizers/google-gemma-7b-tokenizer.json");
 const GEMMA_2B: &str = include_str!("../tokenizers/google-gemma-2b-tokenizer.json");
-const GEMMA_3_4B_IT: &str =
-    include_str!("../tokenizers/google-gemma-3-4b-it-tokenizer.json");
+const GEMMA_3_4B_IT: &str = include_str!("../tokenizers/google-gemma-3-4b-it-tokenizer.json");
 const FALCON_7B: &str = include_str!("../tokenizers/tiiuae-falcon-7b-tokenizer.json");
 
 /// Identifiers for the built-in models bundled with this crate.
