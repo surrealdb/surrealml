@@ -6,7 +6,7 @@ members = [
     "modules/core", 
     "modules/tokenizers",
     "modules/llms",
-    "modules/wasm-linker",
+    "modules/wasm-linker", "modules/transformers",
 ]
 
 [workspace.dependencies]
@@ -23,6 +23,13 @@ onnx-embedding = "0.1.4"
 serde = { version = "1.0", features = ["derive"] }
 tempfile = "3.20.0"
 zip = "4.1.0"
+candle-core = "0.9.1"
+anyhow = "1.0.98"
+candle-nn = "0.9.1"
+candle-transformers = "0.9.1"
+serde_json = "1.0.140"
+safetensors = "0.6.0"
+tokenizers = "0.21.2"
 
 [workspace.lints.clippy]
 
