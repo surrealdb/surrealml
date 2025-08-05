@@ -32,21 +32,12 @@ args = ["clean"]
 [tasks.preflight]
 description = "Runs the CI test scripts"
 script = [
-<<<<<<< HEAD
-    'docker build -t rust-onnx-runtime . && docker run --rm rust-onnx-runtime bash -c "cd modules/c-wrapper/tests && python3 -m unittest discover ."',
-    # "cd modules/core && docker build -t rust-onnx-runtime .",
-    # "cd modules/core && docker run --rm rust-onnx-runtime cargo test --features onnx-tests",
-    # "cd modules/core && docker run --rm rust-onnx-runtime cargo test --features tensorflow-tests",
-    # "cd modules/core && docker run --rm rust-onnx-runtime cargo test --features sklearn-tests",
-    # "cd modules/core && docker run --rm rust-onnx-runtime cargo test --features torch-tests"
-=======
     "cd modules/c-wrapper/scripts && sh build-docker.sh",
     "cd modules/core && docker build -t rust-onnx-runtime .",
     "cd modules/core && docker run --rm rust-onnx-runtime cargo test --features onnx-tests",
     "cd modules/core && docker run --rm rust-onnx-runtime cargo test --features tensorflow-tests",
     "cd modules/core && docker run --rm rust-onnx-runtime cargo test --features sklearn-tests",
     "cd modules/core && docker run --rm rust-onnx-runtime cargo test --features torch-tests"
->>>>>>> origin/main
 ]
 
 [env]

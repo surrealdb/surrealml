@@ -25,9 +25,8 @@ jobs:
         python-version: '3.11'
 
     - name: Run Core Unit Tests
-<<<<<<< HEAD
       # run: cd modules/c-wrapper/scripts && sh build-docker.sh
       run: docker build -t rust-onnx-runtime . && docker run --rm rust-onnx-runtime bash -c "cd modules/c-wrapper/tests && python3 -m unittest discover ."
-=======
-      run: cd modules/c-wrapper/scripts && sh build-docker.sh
->>>>>>> origin/main
+# =======
+#       run: cd modules/c-wrapper/scripts && sh build-docker.sh
+# >>>>>>> origin/main
