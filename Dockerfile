@@ -7,7 +7,6 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     libssl-dev \
     pkg-config \
-<<<<<<< HEAD
     ca-certificates \
     curl \
     gnupg \
@@ -17,10 +16,6 @@ RUN apt-get update && apt-get install -y \
 
 RUN apt-get update && apt-get install -y python3 python3-pip
 
-=======
-    && rm -rf /var/lib/apt/lists/*
-
->>>>>>> origin/main
 # Set the working directory
 WORKDIR /app
 
@@ -33,15 +28,15 @@ COPY . .
 
 # Clean and build the Rust project
 RUN cargo clean
-<<<<<<< HEAD
+# <<<<<<< HEAD
 RUN cargo build
 RUN cp ./target/debug/libc_wrapper.so modules/c-wrapper/tests/test_utils/libc_wrapper.so
 
 # Run the tests
 CMD ["cargo", "test"]
-=======
-RUN cargo build --features tensorflow-tests
+# =======
+# RUN cargo build --features tensorflow-tests
 
-# Run the tests
-CMD ["cargo", "test", "--features", "tensorflow-tests"]
->>>>>>> origin/main
+# # Run the tests
+# CMD ["cargo", "test", "--features", "tensorflow-tests"]
+# >>>>>>> origin/main
