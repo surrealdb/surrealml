@@ -16,6 +16,16 @@ const GEMMA_3_4B_IT: &str = include_str!("../tokenizers/google-gemma-3-4b-it-tok
 const FALCON_7B: &str = include_str!("../tokenizers/tiiuae-falcon-7b-tokenizer.json");
 const BERT_BASE_UNCASED: &str = include_str!("../tokenizers/google-bert-base-uncased-tokenizer.json");
 
+// const MISTRAL_7B_V01: &str =
+//     include_str!("../tokenizers/mistralai-Mistral-7B-v0.1-tokenizer.json");
+// const MISTRALLITE: &str = include_str!("../tokenizers/amazon-MistralLite-tokenizer.json");
+// const GEMMA_7B: &str = include_str!("../tokenizers/google-gemma-7b-tokenizer.json");
+// const GEMMA_2B: &str = include_str!("../tokenizers/google-gemma-2b-tokenizer.json");
+// const GEMMA_3_4B_IT: &str =
+//     include_str!("../tokenizers/google-gemma-3-4b-it-tokenizer.json");
+// const FALCON_7B: &str = include_str!("../tokenizers/tiiuae-falcon-7b-tokenizer.json");
+
+
 /// Identifiers for the built-in models bundled with this crate.
 ///
 /// # Variants
@@ -136,6 +146,7 @@ mod tests {
             "google/gemma-3-4b-it" => PresetTokenizers::Gemma3_4BIt,
             "tiiuae/falcon-7b" => PresetTokenizers::Falcon7B,
             "google-bert/bert-base-uncased" => PresetTokenizers::BertBaseUncased
+            "tiiuae/falcon-7b" => PresetTokenizers::Falcon7B
         );
     }
 

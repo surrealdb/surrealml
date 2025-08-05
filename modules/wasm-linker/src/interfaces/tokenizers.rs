@@ -8,7 +8,7 @@ use std::os::raw::c_char;
 use std::slice;
 use surrealml_tokenizers::{
     Tokenizer, decode as decode_surrealml, encode as encode_surrealml, load_local_tokenizer,
-    load_tokenizer_with_http,
+    load_tokenizer_with_http
 };
 
 #[repr(C)]
