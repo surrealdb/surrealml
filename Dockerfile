@@ -22,21 +22,10 @@ WORKDIR /app
 # Copy the project files into the container
 COPY . .
 
-# # Set the ONNX Runtime library path
-# ENV ORT_LIB_LOCATION=/onnxruntime/lib
-# ENV LD_LIBRARY_PATH=$ORT_LIB_LOCATION:$LD_LIBRARY_PATH
-
 # Clean and build the Rust project
 RUN cargo clean
-# <<<<<<< HEAD
 RUN cargo build
 RUN cp ./target/debug/libc_wrapper.so modules/c-wrapper/tests/test_utils/libc_wrapper.so
 
 # Run the tests
 CMD ["cargo", "test"]
-# =======
-# RUN cargo build --features tensorflow-tests
-
-# # Run the tests
-# CMD ["cargo", "test", "--features", "tensorflow-tests"]
-# >>>>>>> origin/main
