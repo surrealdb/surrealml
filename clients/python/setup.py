@@ -201,7 +201,8 @@ setup(
             "scikit-learn==1.4.0",
         ],
         "torch": [
-            "torch==2.1.2",
+            "torch==2.1.2; python_version < '3.13'",
+            "torch>=2.7,<2.9; python_version >= '3.13'",
         ],
         "tensorflow": [
             "tf2onnx==1.16.1",
