@@ -7,8 +7,8 @@ use std::ffi::CString;
 use std::os::raw::c_char;
 use std::slice;
 use surrealml_tokenizers::{
-    decode as decode_surrealml, encode as encode_surrealml,
-    load_local_tokenizer, load_tokenizer_with_http, Tokenizer,
+    Tokenizer, decode as decode_surrealml, encode as encode_surrealml, load_local_tokenizer,
+    load_tokenizer_with_http
 };
 
 #[repr(C)]
@@ -51,13 +51,16 @@ pub struct TokenizerHandle {
 ///
 /// Failure to uphold any of these invariants invokes *undefined behaviour*.
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn load_tokenizer(model: *const c_char, hf_token: *const c_char) -> TokenizerReturn {
+pub unsafe extern "C" fn load_tokenizer(
+    model: *const c_char,
+    hf_token: *const c_char,
+) -> TokenizerReturn {
     let model = process_string_for_tokenizer_return!(model, "model");
     let hf_token = process_opt_string_for_tokenizer_return!(hf_token, "hf_token");
 
     let tokenizer = match hf_token {
         Some(_) => load_tokenizer_with_http(model, hf_token),
-        None => load_local_tokenizer(model)
+        None => load_local_tokenizer(model),
     };
 
     match tokenizer {
@@ -91,7 +94,9 @@ pub unsafe extern "C" fn encode(
     text: *const c_char,
 ) -> VecU32Return {
     if tokenizer_handle.is_null() {
-        return VecU32Return::error("Received null pointer for tokenizer handle in encode fn".into());
+        return VecU32Return::error(
+            "Received null pointer for tokenizer handle in encode fn".into(),
+        );
     }
     let text = process_string_for_vecu32_return!(text, "text");
     let tokenizer = unsafe { &(*tokenizer_handle).tokenizer };
@@ -164,22 +169,18 @@ pub unsafe extern "C" fn decode(
                 is_error: 0,
                 error_message: std::ptr::null_mut(),
             },
-            Err(_) => {
-                StringReturn {
-                    string: std::ptr::null_mut(),
-                    is_error: 1,
-                    error_message: CString::new("Failed to create CString from decoded string")
-                        .unwrap()
-                        .into_raw(),
-                }
-            }
-        },
-        Err(_) => {
-            StringReturn {
+            Err(_) => StringReturn {
                 string: std::ptr::null_mut(),
                 is_error: 1,
-                error_message: CString::new("Failed to decode data").unwrap().into_raw(),
-            }
-        }
+                error_message: CString::new("Failed to create CString from decoded string")
+                    .unwrap()
+                    .into_raw(),
+            },
+        },
+        Err(_) => StringReturn {
+            string: std::ptr::null_mut(),
+            is_error: 1,
+            error_message: CString::new("Failed to decode data").unwrap().into_raw(),
+        },
     }
 }

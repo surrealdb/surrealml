@@ -1,21 +1,30 @@
 //! Utilities for working with **preset** Hugging Face model identifiers.
 use crate::error::{SurrealError, SurrealErrorStatus};
+use std::convert::TryInto;
 use std::fmt;
 use std::str::FromStr;
 use tokenizers::Tokenizer;
-use std::convert::TryInto; 
 
 /// Model identifier files embedded in the binary.
 const MIXTRAL_8X7B_V01: &str =
     include_str!("../tokenizers/mistralai-Mixtral-8x7B-v0.1-tokenizer.json");
-const MISTRAL_7B_V01: &str =
-    include_str!("../tokenizers/mistralai-Mistral-7B-v0.1-tokenizer.json");
+const MISTRAL_7B_V01: &str = include_str!("../tokenizers/mistralai-Mistral-7B-v0.1-tokenizer.json");
 const MISTRALLITE: &str = include_str!("../tokenizers/amazon-MistralLite-tokenizer.json");
 const GEMMA_7B: &str = include_str!("../tokenizers/google-gemma-7b-tokenizer.json");
 const GEMMA_2B: &str = include_str!("../tokenizers/google-gemma-2b-tokenizer.json");
-const GEMMA_3_4B_IT: &str =
-    include_str!("../tokenizers/google-gemma-3-4b-it-tokenizer.json");
+const GEMMA_3_4B_IT: &str = include_str!("../tokenizers/google-gemma-3-4b-it-tokenizer.json");
 const FALCON_7B: &str = include_str!("../tokenizers/tiiuae-falcon-7b-tokenizer.json");
+const BERT_BASE_UNCASED: &str = include_str!("../tokenizers/google-bert-base-uncased-tokenizer.json");
+
+// const MISTRAL_7B_V01: &str =
+//     include_str!("../tokenizers/mistralai-Mistral-7B-v0.1-tokenizer.json");
+// const MISTRALLITE: &str = include_str!("../tokenizers/amazon-MistralLite-tokenizer.json");
+// const GEMMA_7B: &str = include_str!("../tokenizers/google-gemma-7b-tokenizer.json");
+// const GEMMA_2B: &str = include_str!("../tokenizers/google-gemma-2b-tokenizer.json");
+// const GEMMA_3_4B_IT: &str =
+//     include_str!("../tokenizers/google-gemma-3-4b-it-tokenizer.json");
+// const FALCON_7B: &str = include_str!("../tokenizers/tiiuae-falcon-7b-tokenizer.json");
+
 
 /// Identifiers for the built-in models bundled with this crate.
 ///
@@ -27,6 +36,7 @@ const FALCON_7B: &str = include_str!("../tokenizers/tiiuae-falcon-7b-tokenizer.j
 /// * `Gemma2B` — `google/gemma-2b`  
 /// * `Gemma3_4BIt` — `google/gemma-3-4b-it`  
 /// * `Falcon7B` — `tiiuae/falcon-7b`
+/// * `BertBaseUncased` — `google-bert/bert-base-uncased`
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum PresetTokenizers {
     Mixtral8x7Bv01,
@@ -36,6 +46,7 @@ pub enum PresetTokenizers {
     Gemma2B,
     Gemma3_4BIt,
     Falcon7B,
+    BertBaseUncased,
 }
 
 impl TryFrom<&str> for PresetTokenizers {
@@ -50,6 +61,7 @@ impl TryFrom<&str> for PresetTokenizers {
             "google/gemma-2b" => Ok(PresetTokenizers::Gemma2B),
             "google/gemma-3-4b-it" => Ok(PresetTokenizers::Gemma3_4BIt),
             "tiiuae/falcon-7b" => Ok(PresetTokenizers::Falcon7B),
+            "google-bert/bert-base-uncased" => Ok(PresetTokenizers::BertBaseUncased),
             _ => Err(format!("{} is not a preset tokenizer", value)),
         }
     }
@@ -65,32 +77,13 @@ impl fmt::Display for PresetTokenizers {
             PresetTokenizers::Gemma2B => "google/gemma-2b",
             PresetTokenizers::Gemma3_4BIt => "google/gemma-3-4b-it",
             PresetTokenizers::Falcon7B => "tiiuae/falcon-7b",
+            PresetTokenizers::BertBaseUncased => "google-bert/bert-base-uncased",
         };
         write!(f, "{s}")
     }
 }
 
 impl PresetTokenizers {
-    // /// Convert a canonical model string to a [`PresetTokenizers`] variant.
-    // ///
-    // /// # Arguments
-    // /// * `model` – Model identifier used on the model hub (e.g. `"mistralai/Mixtral-8x7B-v0.1"`).
-    // ///
-    // /// # Returns
-    // /// * `Some(variant)` when the identifier is recognised.
-    // /// * `None` for unknown identifiers.
-    // pub fn from_str(model: &str) -> Option<Self> {
-    //     match model {
-    //         "mistralai/Mixtral-8x7B-v0.1" => Some(PresetTokenizers::Mixtral8x7Bv01),
-    //         "mistralai/Mistral-7B-v0.1" => Some(PresetTokenizers::Mistral7Bv01),
-    //         "amazon/MistralLite" => Some(PresetTokenizers::MistralLite),
-    //         "google/gemma-7b" => Some(PresetTokenizers::Gemma7B),
-    //         "google/gemma-2b" => Some(PresetTokenizers::Gemma2B),
-    //         "google/gemma-3-4b-it" => Some(PresetTokenizers::Gemma3_4BIt),
-    //         "tiiuae/falcon-7b" => Some(PresetTokenizers::Falcon7B),
-    //         _ => None,
-    //     }
-    // }
 
     /// Retrieve the embedded tokenizer identifier for this variant.
     ///
@@ -105,6 +98,7 @@ impl PresetTokenizers {
             PresetTokenizers::Gemma2B => GEMMA_2B,
             PresetTokenizers::Gemma3_4BIt => GEMMA_3_4B_IT,
             PresetTokenizers::Falcon7B => FALCON_7B,
+            PresetTokenizers::BertBaseUncased => BERT_BASE_UNCASED,
         };
 
         Tokenizer::from_str(data).map_err(|e| {
@@ -150,6 +144,8 @@ mod tests {
             "google/gemma-7b" => PresetTokenizers::Gemma7B,
             "google/gemma-2b" => PresetTokenizers::Gemma2B,
             "google/gemma-3-4b-it" => PresetTokenizers::Gemma3_4BIt,
+            "tiiuae/falcon-7b" => PresetTokenizers::Falcon7B,
+            "google-bert/bert-base-uncased" => PresetTokenizers::BertBaseUncased
             "tiiuae/falcon-7b" => PresetTokenizers::Falcon7B
         );
     }
@@ -169,6 +165,7 @@ mod tests {
             PresetTokenizers::Gemma2B,
             PresetTokenizers::Gemma3_4BIt,
             PresetTokenizers::Falcon7B,
+            PresetTokenizers::BertBaseUncased,
         ];
 
         for preset in presets {

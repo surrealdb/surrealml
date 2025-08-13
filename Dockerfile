@@ -7,7 +7,14 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     libssl-dev \
     pkg-config \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release \
+    vim \
     && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y python3 python3-pip
 
 # Set the working directory
 WORKDIR /app
@@ -15,13 +22,10 @@ WORKDIR /app
 # Copy the project files into the container
 COPY . .
 
-# # Set the ONNX Runtime library path
-# ENV ORT_LIB_LOCATION=/onnxruntime/lib
-# ENV LD_LIBRARY_PATH=$ORT_LIB_LOCATION:$LD_LIBRARY_PATH
-
 # Clean and build the Rust project
 RUN cargo clean
-RUN cargo build --features tensorflow-tests
+RUN cargo build
+RUN cp ./target/debug/libc_wrapper.so modules/c-wrapper/tests/test_utils/libc_wrapper.so
 
 # Run the tests
-CMD ["cargo", "test", "--features", "tensorflow-tests"]
+CMD ["cargo", "test"]

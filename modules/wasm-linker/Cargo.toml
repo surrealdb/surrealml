@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 surrealml-tokenizers = { path = "../tokenizers", features = ["http-access"] }
+surrealml-llms = { path = "../llms" }
 wasmtime = "34.0.1"
 wasmtime-wasi = { version = "34.0.1", features = ["preview1"] }
 bytemuck = "1.23.1"
