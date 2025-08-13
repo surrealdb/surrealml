@@ -97,6 +97,16 @@ class LibLoader(metaclass=Singleton):
         for i in functions:
             i.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
             i.restype = EmptyReturn
+
+        self.lib.add_normaliser.argtypes = [
+            ctypes.c_char_p,  # file_id
+            ctypes.c_char_p,  # column_name
+            ctypes.c_char_p,  # normaliser_type
+            ctypes.c_char_p,  # one
+            ctypes.c_char_p,  # two
+        ]
+        self.lib.add_normaliser.restype = EmptyReturn
+
         self.lib.load_model.restype = FileInfo
         self.lib.load_model.argtypes = [ctypes.c_char_p]
         self.lib.load_cached_raw_model.restype = StringReturn
