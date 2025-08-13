@@ -196,17 +196,19 @@ setup(
         "dev": [
             "twine",
         ],
+        # These ranges intentionally avoid strict pins so pip can solve with NumPy 2.
+        # If you want to be stricter, bump the lower bounds once you’ve validated.
         "sklearn": [
-            "skl2onnx==1.16.0",
-            "scikit-learn==1.4.0",
+            "scikit-learn>=1.5",   # NumPy 2–compatible releases
+            "skl2onnx>=1.16.0",
         ],
         "torch": [
-            "torch==2.1.2",
+            "torch>=2.4",          # reliably NumPy 2–compatible
         ],
         "tensorflow": [
-            "tf2onnx==1.16.1",
-            "tensorflow==2.16.1",
-        ],
+            "tensorflow>=2.16",    # keep loose; TF often pins its own NumPy
+            "tf2onnx>=1.16.1",
+         ],
     },
     include_package_data=True,   
     zip_safe=False,
