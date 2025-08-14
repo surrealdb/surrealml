@@ -174,6 +174,8 @@ mod tests {
         ];
 
         for (text, expected_label) in samples.iter() {
+
+            // here is where the host code runs with the text from the WASM module
             let enc = tokenizer.encode(*text, true).unwrap();
             let (ids, _, mask) = encoding_to_tensors(&enc, &Device::Cpu)?;
             let logits = model.predict(&ids, &mask)?;
@@ -187,6 +189,7 @@ mod tests {
                 .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
                 .unwrap();
 
+            // this is what you return to the user's WASM module
             let predicted_label = if pred_idx == 0 { "negative" } else { "positive" };
 
             // --- Assertions --------------------------------------------------
