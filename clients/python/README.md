@@ -28,33 +28,33 @@ export LOCAL_BUILD="TRUE"
 We can then install the package with the command below:
 
 ```bash
-pip install git+https://github.com/surrealdb/surrealml.git@main#subdirectory=clients/python
+pip install "surrealml @ git+https://github.com/surrealdb/surrealml.git@main#subdirectory=clients/python"
 ```
 
 This can take some time as the `surrealml` binary lib is being compiled in the background. You will then be able to use `surrealml` in python.
 
 You can install the package with both `PyTorch` and `SKLearn` with the command below:
 
-```
-pip install git+https://github.com/surrealdb/surrealml.git@main#subdirectory=clients/python[sklearn,torch]"
+```bash
+pip install "surrealml[sklearn,torch] @ git+https://github.com/surrealdb/surrealml.git@main#subdirectory=clients/python"
 ```
 
 If you want to use `SurrealML` with `sklearn` you will need the following installation:
 
 ```bash
-pip install git+https://github.com/surrealdb/surrealml.git@main#subdirectory=clients/python[sklearn]"
+pip install "surrealml[sklearn] @ git+https://github.com/surrealdb/surrealml.git@main#subdirectory=clients/python"
 ```
 
 For `PyTorch`:
 
 ```bash
-pip install git+https://github.com/surrealdb/surrealml.git@main#subdirectory=clients/python[torch]"
+pip install "surrealml[torch] @ git+https://github.com/surrealdb/surrealml.git@main#subdirectory=clients/python"
 ```
 
 For `Tensorflow`:
 
 ```bash
-pip install git+https://github.com/surrealdb/surrealml.git@main#subdirectory=clients/python[tensorflow]"
+pip install "surrealml[tensorflow] @ git+https://github.com/surrealdb/surrealml.git@main#subdirectory=clients/python"
 ```
 
 ## Quick start with Sk-learn

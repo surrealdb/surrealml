@@ -6,6 +6,19 @@ This package is for storing machine learning models with meta data in Rust so th
 
 SurrealML is a feature that allows you to store trained machine learning models in a special format called 'surml'. This enables you to run these models in either Python or Rust, and even upload them to a SurrealDB node to run the models on the server
 
+## Structure
+
+The SurrealML structure takes the following outline:
+
+<p align="center">
+  <img src="doc-assets/structure.png" alt="System Structure" width="1000">
+</p>
+
+We can see that the `core` module is the Rust module that houses the ML model file storage and execution of models. This `core` module is directly compiled into the surrealDB server to load, save, and run ML models. A `c-wrapper` rust workspace imports the `core` and produces a dynamic C lib that clients like `TypeScript` and `Python` can link to and run. This means that the exact same code that runs in the SurrealDB server runs in the clients. The install scripts for clients essentially download the precompiled dynamic C libs from `releases` in the repo and link to them.
+
+
+
+
 ## Prerequisites
 
 1. A basic understanding of Machine Learning: You should be familiar with ML concepts, algorithms, and model training processes.
