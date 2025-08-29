@@ -189,7 +189,7 @@ pub mod tests {
         assert_eq!(normaliser_map.reference[&0], 0);
         assert_eq!(normaliser_map.reference[&1], 1);
         assert_eq!(normaliser_map.reference[&2], 2);
-        assert_eq!(normaliser_map.reference[&3], 3);
+        assert_eq!(normaliser_map.reference[&4], 3);
     }
 
     #[test]
