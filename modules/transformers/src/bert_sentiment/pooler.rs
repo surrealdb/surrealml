@@ -18,7 +18,7 @@
 //! ```
 
 use candle_core::{Result as CandleResult, Tensor};
-use candle_nn::{linear, Linear, Module, VarBuilder};
+use candle_nn::{Linear, Module, VarBuilder, linear};
 use candle_transformers::models::bert::Config;
 
 /// Pooling layer that converts token-level representations into a single
@@ -46,17 +46,18 @@ impl BertPooler {
     /// `hidden_size`, as required by the original architecture.
     pub fn load(vb: VarBuilder, config: &Config) -> CandleResult<Self> {
         let dense = linear(config.hidden_size, config.hidden_size, vb.pp("dense"))?;
-        Ok(Self { dense })
+        Ok(Self {
+            dense,
+        })
     }
 
     /// Forward pass.
     ///
     /// # Arguments
-    /// * `hidden_states` – The final hidden states output by the last
-    ///   transformer layer.
+    /// * `hidden_states` – The final hidden states output by the last transformer layer.
     ///   * **Shape:** `(batch, seq_len, hidden_size)`
-    ///   * The first token along `seq_len` is expected to be the `[CLS]` token,
-    ///     whose embedding is pooled by this layer.
+    ///   * The first token along `seq_len` is expected to be the `[CLS]` token, whose embedding is
+    ///     pooled by this layer.
     ///
     /// # Returns
     /// A tensor of shape **(batch, hidden_size)** representing the pooled
@@ -70,25 +71,28 @@ impl BertPooler {
         // Extract `[CLS]` token (first token in the sequence dimension).
         let cls_embedding = hidden_states
             .narrow(1, 0, 1)? // keep the first token only
-            .squeeze(1)?;    // remove the singleton dimension
+            .squeeze(1)?; // remove the singleton dimension
 
         // Apply dense layer and activation.
         self.dense.forward(&cls_embedding)?.tanh()
     }
 }
 
-
 #[cfg(test)]
 mod tests {
+    use candle_core::{DType, Device, Tensor};
+
     use super::*;
-    use candle_core::{Device, DType, Tensor};
 
     /// Helper that constructs a `BertPooler` with zero‑initialised weights on
     /// the CPU. Suitable for lightweight shape/property tests.
     fn build_pooler(hidden_size: usize) -> BertPooler {
         let device = &Device::Cpu;
         let vb = VarBuilder::zeros(DType::F32, device);
-        let config = Config { hidden_size, ..Default::default() };
+        let config = Config {
+            hidden_size,
+            ..Default::default()
+        };
         BertPooler::load(vb, &config).expect("failed to build pooler")
     }
 

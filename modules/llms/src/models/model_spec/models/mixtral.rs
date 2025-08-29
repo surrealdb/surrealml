@@ -1,11 +1,11 @@
 //! Utilities for working with **preset Mixtral model configurations**.
 
+use candle_transformers::models::mimi::candle_nn::VarBuilder;
+use candle_transformers::models::mixtral::{Config as MixtralConfig, Model as MixtralModel};
+use surrealml_tokenizers::Tokenizer;
+
 use crate::models::model_spec::model_spec_trait::ModelSpec;
 use crate::utils::error::{SurrealError, SurrealErrorStatus};
-use candle_transformers::models::mimi::candle_nn::VarBuilder;
-use candle_transformers::models::mixtral::Config as MixtralConfig;
-use candle_transformers::models::mixtral::Model as MixtralModel;
-use surrealml_tokenizers::Tokenizer;
 
 /// All the Mixtral checkpoints we support, by name.
 ///
@@ -81,8 +81,9 @@ impl ModelSpec for Mixtral {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use candle_transformers::models::mixtral::Config as Upstream;
+
+    use super::*;
 
     /// Enum-based config must equal the canonical upstream config.
     #[test]

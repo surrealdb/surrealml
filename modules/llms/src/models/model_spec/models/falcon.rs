@@ -1,16 +1,15 @@
 //! Utilities for working with **preset Falcon model configurations**.
 
-use crate::models::model_spec::model_spec_trait::ModelSpec;
-use crate::utils::error::{SurrealError, SurrealErrorStatus};
-use candle_transformers::models::falcon::Config as FalconConfig;
-use candle_transformers::models::falcon::Falcon as FalconModel;
+use candle_transformers::models::falcon::{Config as FalconConfig, Falcon as FalconModel};
 use candle_transformers::models::mimi::candle_nn::VarBuilder;
 use surrealml_tokenizers::Tokenizer;
 
+use crate::models::model_spec::model_spec_trait::ModelSpec;
+use crate::utils::error::{SurrealError, SurrealErrorStatus};
+
 /// All the Falcon checkpoints we support, by name.
 ///
-/// * `Falcon7B` — Falcon-7B  
-///   <https://huggingface.co/tiiuae/falcon-7b/blob/main/config.json>
+/// * `Falcon7B` — Falcon-7B   <https://huggingface.co/tiiuae/falcon-7b/blob/main/config.json>
 pub enum Falcon {
     Falcon7B,
 }
@@ -78,8 +77,9 @@ impl ModelSpec for Falcon {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use candle_transformers::models::falcon::Config as Upstream;
+
+    use super::*;
 
     #[test]
     fn matches_upstream_falcon7b_fields() {

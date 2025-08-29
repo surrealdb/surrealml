@@ -2,7 +2,8 @@
 use std::ffi::CString;
 use std::os::raw::{c_char, c_int};
 
-/// Checks that the pointer to the string is not null and converts to a Rust string. Any errors are returned as an `EmptyReturn`.
+/// Checks that the pointer to the string is not null and converts to a Rust string. Any errors are
+/// returned as an `EmptyReturn`.
 ///
 /// # Arguments
 /// * `str_ptr` - The pointer to the string.
@@ -68,7 +69,8 @@ macro_rules! process_string_for_empty_return {
     };
 }
 
-/// Checks that the pointer to the string is not null and converts to a Rust string. Any errors are returned as a `StringReturn`.
+/// Checks that the pointer to the string is not null and converts to a Rust string. Any errors are
+/// returned as a `StringReturn`.
 ///
 /// # Arguments
 /// * `str_ptr` - The pointer to the string.
@@ -112,7 +114,8 @@ macro_rules! process_string_for_string_return {
     };
 }
 
-/// Checks that the pointer to the string is not null and converts to a Rust string. Any errors are returned as a `VecU8Return`.
+/// Checks that the pointer to the string is not null and converts to a Rust string. Any errors are
+/// returned as a `VecU8Return`.
 ///
 /// # Arguments
 /// * `str_ptr` - The pointer to the string.
@@ -163,7 +166,8 @@ macro_rules! process_string_for_vec_u8_return {
 /// Checks the result of an execution and returns an `StringReturn` if an error occurred.
 ///
 /// # Arguments
-/// * `execution` - The execution such as a function call to map to `StringReturn` if an error occurred.
+/// * `execution` - The execution such as a function call to map to `StringReturn` if an error
+///   occurred.
 #[macro_export]
 macro_rules! string_return_safe_eject {
     ($execution:expr) => {
@@ -180,15 +184,18 @@ macro_rules! string_return_safe_eject {
     };
 }
 
-/// Checks the result of an execution and returns an `EmptyReturn` if an error occurred or a none is returned.
+/// Checks the result of an execution and returns an `EmptyReturn` if an error occurred or a none is
+/// returned.
 ///
 /// # Arguments
-/// * `execution` - The execution such as a function call to map to `EmptyReturn` if an error occurred.
+/// * `execution` - The execution such as a function call to map to `EmptyReturn` if an error
+///   occurred.
 /// * `var` - The variable name to include in the error message.
 /// * `Option` - The type of the execution.
 ///
 /// # Arguments
-/// * `execution` - The execution such as a function call to map to `EmptyReturn` if an error occurred.
+/// * `execution` - The execution such as a function call to map to `EmptyReturn` if an error
+///   occurred.
 #[macro_export]
 macro_rules! empty_return_safe_eject {
     ($execution:expr, $var:expr, Option) => {
@@ -346,13 +353,7 @@ impl VecU8Return {
 pub extern "C" fn free_vec_u8(vec_u8: VecU8Return) {
     // Free the data if it is not null
     if !vec_u8.data.is_null() {
-        unsafe {
-            drop(Vec::from_raw_parts(
-                vec_u8.data,
-                vec_u8.length,
-                vec_u8.capacity,
-            ))
-        };
+        unsafe { drop(Vec::from_raw_parts(vec_u8.data, vec_u8.length, vec_u8.capacity)) };
     }
 }
 

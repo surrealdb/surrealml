@@ -1,17 +1,17 @@
 //! Utilities for **wrapping a `ModelSpec` preset together with its
 //! (eventually-)loaded Candle model**.
 
-use crate::models::model_spec::model_spec_trait::ModelSpec;
-use crate::utils::error::{SurrealError, SurrealErrorStatus};
 use candle_transformers::models::mimi::candle_nn::VarBuilder;
 use surrealml_tokenizers::Tokenizer;
+
+use crate::models::model_spec::model_spec_trait::ModelSpec;
+use crate::utils::error::{SurrealError, SurrealErrorStatus};
 
 /// Container that tracks both the *spec* (compile-time preset) **and**
 /// the loaded Candle model.
 ///
-/// * `spec`   – any type that implements [`ModelSpec`].  
-/// * `loaded` – `None` until you call [`State::load`]; afterwards
-///              `Some(S::LoadedModel)`.
+/// * `spec`   – any type that implements [`ModelSpec`].
+/// * `loaded` – `None` until you call [`State::load`]; afterwards `Some(S::LoadedModel)`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct State<S: ModelSpec> {
     pub spec: S,
@@ -21,15 +21,18 @@ pub struct State<S: ModelSpec> {
 impl<S: ModelSpec> State<S> {
     /// Create a fresh state whose model is **not yet loaded**.
     pub fn new(spec: S) -> Self {
-        Self { spec, loaded: None }
+        Self {
+            spec,
+            loaded: None,
+        }
     }
 
     /// Consume a `VarBuilder` and initialize the runtime model **once**.
     ///
     /// # Errors
     /// * `SurrealErrorStatus::Unknown` if the model is already loaded.
-    /// * Whatever error `S::return_loaded_model` propagates while
-    ///   constructing the concrete Candle model.
+    /// * Whatever error `S::return_loaded_model` propagates while constructing the concrete Candle
+    ///   model.
     pub fn load(&mut self, vb: VarBuilder) -> Result<(), SurrealError> {
         if self.loaded.is_some() {
             return Err(SurrealError::new(
@@ -59,18 +62,17 @@ impl<S: ModelSpec> State<S> {
             SurrealError::new("Error loading model".into(), SurrealErrorStatus::BadRequest)
         })?;
 
-        let model_result = self
-            .spec
-            .run_model(model, input_ids, max_steps, tokenizer)?;
+        let model_result = self.spec.run_model(model, input_ids, max_steps, tokenizer)?;
         Ok(model_result)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use candle_core::{DType, Device};
     use candle_transformers::models::mimi::candle_nn::VarBuilder;
+
+    use super::*;
 
     struct DummySpec;
     struct DummyModel;
@@ -79,9 +81,7 @@ mod tests {
         type Cfg = ();
         type LoadedModel = DummyModel;
 
-        fn config(&self) -> Self::Cfg {
-            ()
-        }
+        fn config(&self) -> Self::Cfg {}
         fn return_tensor_filenames(&self) -> Vec<String> {
             Vec::new()
         }

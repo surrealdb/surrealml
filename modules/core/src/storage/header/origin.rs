@@ -1,8 +1,8 @@
 //! Defines the origin of the model in the file.
-use crate::errors::error::{SurrealError, SurrealErrorStatus};
 use std::fmt;
 
 use super::string_value::StringValue;
+use crate::errors::error::{SurrealError, SurrealErrorStatus};
 
 const LOCAL: &str = "local";
 const SURREAL_DB: &str = "surreal_db";

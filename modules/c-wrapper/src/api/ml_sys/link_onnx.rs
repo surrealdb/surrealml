@@ -1,6 +1,8 @@
-use crate::utils::EmptyReturn;
 use std::ffi::CString;
+
 use surrealml_core::execution::session::set_environment;
+
+use crate::utils::EmptyReturn;
 
 /// Links the onnx file to the environment.
 ///

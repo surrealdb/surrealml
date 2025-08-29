@@ -39,18 +39,17 @@
 //!
 //! ---
 
-pub mod pooler;
 pub mod model;
+pub mod pooler;
 
 use std::collections::HashMap;
 
-use candle_core::{Device, DType, Result as CandleResult, Tensor};
+use candle_core::{DType, Device, Result as CandleResult, Tensor};
 use candle_nn::VarBuilder;
+pub use candle_nn::ops::softmax;
 use candle_transformers::models::bert::Config;
 use serde_json;
-use tokenizers::Encoding;
-
-pub use candle_nn::ops::softmax; // re‑export for convenience in demos/tests
+use tokenizers::Encoding; // re‑export for convenience in demos/tests
 
 /// BERT configuration (`config.json`) embedded at compile‑time.
 const BERT_MODEL: &str = include_str!("../../transformers/sent_two_config.json");
@@ -103,7 +102,7 @@ pub fn get_sentiment_model() -> anyhow::Result<model::BertForSequenceClassificat
 
     // 6 Wrap everything in a VarBuilder and instantiate the classifier.
     let vb = VarBuilder::from_tensors(tensors, DType::F32, &device);
-    let model = model::BertForSequenceClassification::load(vb, &cfg, /*num_labels=*/ 2)?;
+    let model = model::BertForSequenceClassification::load(vb, &cfg, /* num_labels= */ 2)?;
 
     Ok(model)
 }
@@ -118,9 +117,7 @@ pub fn load_label_map() -> HashMap<usize, String> {
         .and_then(|m| m.as_object())
         .map(|m| {
             m.iter()
-                .filter_map(|(k, v)| {
-                    k.parse::<usize>().ok().zip(v.as_str().map(|s| s.to_owned()))
-                })
+                .filter_map(|(k, v)| k.parse::<usize>().ok().zip(v.as_str().map(|s| s.to_owned())))
                 .collect()
         })
         .unwrap_or_default()
@@ -131,7 +128,8 @@ pub fn load_label_map() -> HashMap<usize, String> {
 /// * **`type_ids`** – segment IDs `(1, seq_len)` – always zero for single‑sentence tasks
 /// * **`mask`** – attention mask `(1, seq_len)` – `DType::F32`
 ///
-/// Returns a tuple `(ids, type_ids, mask)` ready for [`model::BertForSequenceClassification::forward`].
+/// Returns a tuple `(ids, type_ids, mask)` ready for
+/// [`model::BertForSequenceClassification::forward`].
 pub fn encoding_to_tensors(
     enc: &Encoding,
     device: &Device,
@@ -141,8 +139,8 @@ pub fn encoding_to_tensors(
     let len = ids.len();
 
     // IDs & type‑ids stay in their original integer dtype (U32).
-    let ids_tensor = Tensor::from_slice(ids, (1, len), device)?;          // U32
-    let type_ids = Tensor::zeros((1, len), DType::U32, device)?;          // U32
+    let ids_tensor = Tensor::from_slice(ids, (1, len), device)?; // U32
+    let type_ids = Tensor::zeros((1, len), DType::U32, device)?; // U32
 
     // Attention mask is expected as F32 by Candle's BERT implementation.
     let mask_tensor = Tensor::from_slice(mask, (1, len), device)?.to_dtype(DType::F32)?;
@@ -150,11 +148,11 @@ pub fn encoding_to_tensors(
     Ok((ids_tensor, type_ids, mask_tensor))
 }
 
-
 #[cfg(test)]
 mod tests {
+    use surrealml_tokenizers::{PresetTokenizers, load_local_tokenizer};
+
     use super::*;
-    use surrealml_tokenizers::{load_local_tokenizer, PresetTokenizers};
 
     /// The model should classify clear‑cut positive/negative phrases correctly
     /// with high confidence (>95 %).
@@ -174,7 +172,6 @@ mod tests {
         ];
 
         for (text, expected_label) in samples.iter() {
-
             // here is where the host code runs with the text from the WASM module
             let enc = tokenizer.encode(*text, true).unwrap();
             let (ids, _, mask) = encoding_to_tensors(&enc, &Device::Cpu)?;
@@ -190,7 +187,11 @@ mod tests {
                 .unwrap();
 
             // this is what you return to the user's WASM module
-            let predicted_label = if pred_idx == 0 { "negative" } else { "positive" };
+            let predicted_label = if pred_idx == 0 {
+                "negative"
+            } else {
+                "positive"
+            };
 
             // --- Assertions --------------------------------------------------
             assert_eq!(predicted_label, *expected_label, "{}", text);

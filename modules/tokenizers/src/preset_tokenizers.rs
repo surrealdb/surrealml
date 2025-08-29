@@ -1,9 +1,11 @@
 //! Utilities for working with **preset** Hugging Face model identifiers.
-use crate::error::{SurrealError, SurrealErrorStatus};
 use std::convert::TryInto;
 use std::fmt;
 use std::str::FromStr;
+
 use tokenizers::Tokenizer;
+
+use crate::error::{SurrealError, SurrealErrorStatus};
 
 /// Model identifier files embedded in the binary.
 const MIXTRAL_8X7B_V01: &str =
@@ -14,7 +16,8 @@ const GEMMA_7B: &str = include_str!("../tokenizers/google-gemma-7b-tokenizer.jso
 const GEMMA_2B: &str = include_str!("../tokenizers/google-gemma-2b-tokenizer.json");
 const GEMMA_3_4B_IT: &str = include_str!("../tokenizers/google-gemma-3-4b-it-tokenizer.json");
 const FALCON_7B: &str = include_str!("../tokenizers/tiiuae-falcon-7b-tokenizer.json");
-const BERT_BASE_UNCASED: &str = include_str!("../tokenizers/google-bert-base-uncased-tokenizer.json");
+const BERT_BASE_UNCASED: &str =
+    include_str!("../tokenizers/google-bert-base-uncased-tokenizer.json");
 
 // const MISTRAL_7B_V01: &str =
 //     include_str!("../tokenizers/mistralai-Mistral-7B-v0.1-tokenizer.json");
@@ -25,16 +28,15 @@ const BERT_BASE_UNCASED: &str = include_str!("../tokenizers/google-bert-base-unc
 //     include_str!("../tokenizers/google-gemma-3-4b-it-tokenizer.json");
 // const FALCON_7B: &str = include_str!("../tokenizers/tiiuae-falcon-7b-tokenizer.json");
 
-
 /// Identifiers for the built-in models bundled with this crate.
 ///
 /// # Variants
-/// * `Mixtral8x7Bv01` — `mistralai/Mixtral-8x7B-v0.1`  
-/// * `Mistral7Bv01` — `mistralai/Mistral-7B-v0.1`  
-/// * `MistralLite` — `amazon/MistralLite`  
-/// * `Gemma7B` — `google/gemma-7b`  
-/// * `Gemma2B` — `google/gemma-2b`  
-/// * `Gemma3_4BIt` — `google/gemma-3-4b-it`  
+/// * `Mixtral8x7Bv01` — `mistralai/Mixtral-8x7B-v0.1`
+/// * `Mistral7Bv01` — `mistralai/Mistral-7B-v0.1`
+/// * `MistralLite` — `amazon/MistralLite`
+/// * `Gemma7B` — `google/gemma-7b`
+/// * `Gemma2B` — `google/gemma-2b`
+/// * `Gemma3_4BIt` — `google/gemma-3-4b-it`
 /// * `Falcon7B` — `tiiuae/falcon-7b`
 /// * `BertBaseUncased` — `google-bert/bert-base-uncased`
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -84,11 +86,11 @@ impl fmt::Display for PresetTokenizers {
 }
 
 impl PresetTokenizers {
-
     /// Retrieve the embedded tokenizer identifier for this variant.
     ///
     /// # Returns
-    /// * `Result<Tokenizer, SurrealError> - A fully initialised [`Tokenizer`] ready for encoding and decoding.
+    /// * `Result<Tokenizer, SurrealError> - A fully initialised [`Tokenizer`] ready for encoding
+    ///   and decoding.
     pub fn retrieve_tokenizer(&self) -> Result<Tokenizer, SurrealError> {
         let data: &'static str = match self {
             PresetTokenizers::Mixtral8x7Bv01 => MIXTRAL_8X7B_V01,
@@ -120,8 +122,9 @@ impl FromStr for PresetTokenizers {
 
 #[cfg(test)]
 mod tests {
-    use super::PresetTokenizers;
     use std::str::FromStr;
+
+    use super::PresetTokenizers;
 
     macro_rules! assert_tokenizers {
         ($($model_name:expr => $token:expr),*) => {
@@ -146,7 +149,6 @@ mod tests {
             "google/gemma-3-4b-it" => PresetTokenizers::Gemma3_4BIt,
             "tiiuae/falcon-7b" => PresetTokenizers::Falcon7B,
             "google-bert/bert-base-uncased" => PresetTokenizers::BertBaseUncased
-            "tiiuae/falcon-7b" => PresetTokenizers::Falcon7B
         );
     }
 
@@ -171,9 +173,7 @@ mod tests {
         for preset in presets {
             println!("Testing preset: {:?}", preset);
             // Should produce Ok(Tokenizer)
-            let tok = preset
-                .retrieve_tokenizer()
-                .expect("preset tokenizer must load");
+            let tok = preset.retrieve_tokenizer().expect("preset tokenizer must load");
 
             // Sanity: tokenizer should yield at least one token for a short input
             let enc = tok.encode("test", true).unwrap();

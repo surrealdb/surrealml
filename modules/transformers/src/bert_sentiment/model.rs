@@ -36,16 +36,16 @@
 //! and is required for compatibility with many public weights.
 //!
 //! ## Implementation notes
-//! * The weight prefixes match the layout of common checkpoints (`bert.*`)
-//!   so you can reuse HuggingFace `.safetensors`/`.npz` files directly.
-//! * `predict()` is a thin wrapper that mirrors `forward()` but prints the
-//!   intermediate tensor shapes – handy while debugging.
+//! * The weight prefixes match the layout of common checkpoints (`bert.*`) so you can reuse
+//!   HuggingFace `.safetensors`/`.npz` files directly.
+//! * `predict()` is a thin wrapper that mirrors `forward()` but prints the intermediate tensor
+//!   shapes – handy while debugging.
 //!
 //! ## Status
 //! * **Feature‑complete** w.r.t. the reference PyTorch model
 //! * Unit‑tested for shape correctness (see `#[cfg(test)]` below)
 use candle_core::{Result as CandleResult, Tensor};
-use candle_nn::{linear, Dropout, Linear, Module, ModuleT, VarBuilder};
+use candle_nn::{Dropout, Linear, Module, ModuleT, VarBuilder, linear};
 use candle_transformers::models::bert::{BertModel, Config};
 
 use crate::bert_sentiment::pooler::BertPooler;
@@ -68,11 +68,10 @@ impl BertForSequenceClassification {
     /// configuration.
     ///
     /// # Arguments
-    /// * `vb` – A [`VarBuilder`] positioned at the *root* of the model.  This
-    ///          function consumes the builder so that subsequent calls cannot
-    ///          accidentally re‑use the same weights.
-    /// * `cfg` – BERT configuration struct.  Only a subset of the fields is
-    ///           required but passing the full object avoids hand‑picking.
+    /// * `vb` – A [`VarBuilder`] positioned at the *root* of the model.  This function consumes the
+    ///   builder so that subsequent calls cannot accidentally re‑use the same weights.
+    /// * `cfg` – BERT configuration struct.  Only a subset of the fields is required but passing
+    ///   the full object avoids hand‑picking.
     /// * `num_labels` – Size of the classification target space.
     pub fn load(vb: VarBuilder, cfg: &Config, num_labels: usize) -> CandleResult<Self> {
         // Encoder: load weights under the "bert" sub‑prefix so the variable
@@ -83,11 +82,16 @@ impl BertForSequenceClassification {
         let pooler = BertPooler::load(vb.pp("bert.pooler"), cfg)?;
 
         // ❸ Classifier (hidden_size → num_labels).
-        let classifier = linear(cfg.hidden_size as usize, num_labels, vb.pp("classifier"))?;
+        let classifier = linear(cfg.hidden_size, num_labels, vb.pp("classifier"))?;
 
         let dropout = Dropout::new(cfg.hidden_dropout_prob as f32);
 
-        Ok(Self { bert, pooler, dropout, classifier })
+        Ok(Self {
+            bert,
+            pooler,
+            dropout,
+            classifier,
+        })
     }
 
     /// Inference helper identical to [`Self::forward`] but prints tensor shapes
@@ -98,7 +102,7 @@ impl BertForSequenceClassification {
         let type_ids = Tensor::zeros_like(ids)?; // BERT uses segment‑ids; zero‑filled for single‑sentence tasks.
         let sequence_output = self.bert.forward(ids, &type_ids, Some(mask))?;
         let pooled_output = self.pooler.forward(&sequence_output)?;
-        let dropped = self.dropout.forward_t(&pooled_output, /*train=*/ false)?;
+        let dropped = self.dropout.forward_t(&pooled_output, /* train= */ false)?;
         self.classifier.forward(&dropped)
     }
 
@@ -113,18 +117,18 @@ impl BertForSequenceClassification {
         let type_ids = Tensor::zeros_like(ids)?;
         let sequence_output = self.bert.forward(ids, &type_ids, Some(mask))?;
         let pooled_output = self.pooler.forward(&sequence_output)?;
-        let dropped = self.dropout.forward_t(&pooled_output, /*train=*/ false)?;
+        let dropped = self.dropout.forward_t(&pooled_output, /* train= */ false)?;
         self.classifier.forward(&dropped)
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     // Tests (shape sanity only – no training)
-    use super::*;
     use candle_core::{Device, Tensor};
     use candle_nn::VarBuilder;
+
+    use super::*;
 
     #[test]
     fn forward_shapes_match() {
@@ -141,8 +145,8 @@ mod tests {
 
         let batch = 4_usize;
         let seq_len = 10_usize;
-        let ids  = Tensor::zeros((batch, seq_len), candle_core::DType::I64, device).unwrap();
-        let mask = Tensor::ones((batch, seq_len),  candle_core::DType::U8, device).unwrap();
+        let ids = Tensor::zeros((batch, seq_len), candle_core::DType::I64, device).unwrap();
+        let mask = Tensor::ones((batch, seq_len), candle_core::DType::U8, device).unwrap();
 
         let logits = model.forward(&ids, &mask).unwrap();
         assert_eq!(logits.dims(), &[batch, num_labels]);

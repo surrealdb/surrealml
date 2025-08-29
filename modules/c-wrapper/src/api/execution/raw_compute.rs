@@ -1,8 +1,11 @@
-//! This module contains the raw_compute function that is called from the C API to compute the model.
+//! This module contains the raw_compute function that is called from the C API to compute the
+//! model.
+use std::ffi::{c_char, c_float, CStr, CString};
+
+use surrealml_core::execution::compute::ModelComputation;
+
 use crate::state::STATE;
 use crate::utils::Vecf32Return;
-use std::ffi::{c_char, c_float, CStr, CString};
-use surrealml_core::execution::compute::ModelComputation;
 
 /// Computes the model with the given data.
 ///
@@ -89,7 +92,9 @@ pub extern "C" fn raw_compute(
 
     let slice = unsafe { std::slice::from_raw_parts(data_ptr, length) };
     let tensor = ndarray::arr1(slice).into_dyn();
-    let compute_unit = ModelComputation { surml_file: file };
+    let compute_unit = ModelComputation {
+        surml_file: file,
+    };
 
     // perform the computation
     let mut outcome = match compute_unit.raw_compute(tensor, None) {

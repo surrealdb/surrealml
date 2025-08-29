@@ -1,6 +1,8 @@
-//! Custom error that can be attached to a web framework to automcatically result in a http response,
-use serde::{Deserialize, Serialize};
+//! Custom error that can be attached to a web framework to automcatically result in a http
+//! response,
 use std::fmt;
+
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 #[macro_export]
@@ -102,7 +104,10 @@ impl SurrealError {
     /// # Returns
     /// A new custom error.
     pub fn new(message: String, status: SurrealErrorStatus) -> Self {
-        SurrealError { message, status }
+        SurrealError {
+            message,
+            status,
+        }
     }
 }
 

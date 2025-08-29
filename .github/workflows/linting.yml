@@ -4,14 +4,51 @@ on:
   pull_request:
     types: [opened, reopened, synchronize]
 
+env:
+  RUST_VERSION: 1.87.0
+  RUST_NIGHTLY_VERSION: nightly-2025-08-07
+
 jobs:
-  test_core:
+  fmt:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0
 
+    - name: Install nightly toolchain
+      uses: dtolnay/rust-toolchain@4305c38b25d97ef35a8ad1f985ccf2d2242004f2 # (Actions must be pinned by commit hash) stable
+      with:
+        toolchain: ${{ env.RUST_NIGHTLY_VERSION }}
+        components: rustfmt
+
+    - name: Install cargo-make
+      run: cargo install --debug --locked cargo-make
+    
+    - name: Check with Rustfmt
+      run: cargo make fmt-check
+
+
+  clippy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Install stable toolchain
+      uses: dtolnay/rust-toolchain@4305c38b25d97ef35a8ad1f985ccf2d2242004f2 # (Actions must be pinned by commit hash) stable
+      with:
+        toolchain: ${{ env.RUST_VERSION }}
+        components: clippy
+    - name: Install cargo-make
+      run: cargo install --debug --locked cargo-make
+
     - name: Check with Clippy
-      run: cargo clippy
+      run: cargo make lint

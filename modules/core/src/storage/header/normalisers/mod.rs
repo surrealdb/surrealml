@@ -10,18 +10,20 @@ pub mod utils;
 pub mod wrapper;
 pub mod z_score;
 
+use utils::{extract_label, extract_two_numbers};
+use wrapper::NormaliserType;
+
 use super::keys::KeyBindings;
 use crate::errors::error::{SurrealError, SurrealErrorStatus};
 use crate::safe_eject_option;
-use utils::{extract_label, extract_two_numbers};
-use wrapper::NormaliserType;
 
 /// A map of normalisers so they can be accessed by column name and input index.
 ///
 /// # Fields
 /// * `store` - A vector of normalisers.
 /// * `store_ref` - A vector of column names to correlate with the normalisers in the store.
-/// * `reference` - A map of the index of the column in the key bindings to the index of the normaliser in the store.
+/// * `reference` - A map of the index of the column in the key bindings to the index of the
+///   normaliser in the store.
 #[derive(Debug, PartialEq)]
 pub struct NormaliserMap {
     pub store: Vec<NormaliserType>,
@@ -57,7 +59,7 @@ impl NormaliserMap {
         let counter = self.store.len();
         let column_input_index =
             safe_eject_option!(keys_reference.reference.get(column_name.as_str()));
-        self.reference.insert(*column_input_index as usize, counter);
+        self.reference.insert(*column_input_index, counter);
         self.store.push(normaliser);
         self.store_ref.push(column_name);
         Ok(())
@@ -124,13 +126,13 @@ impl NormaliserMap {
         let mut store_ref = Vec::new();
 
         // I'm referencing counter outside of the loop and this confuses clippy
-        #[allow(clippy::explicit_counter_loop)]
+        #[expect(clippy::explicit_counter_loop)]
         for normaliser_data in normalisers_data {
             let (normaliser, column_name) =
                 NormaliserType::from_string(normaliser_data.to_string())?;
             let column_input_index =
                 safe_eject_option!(keys_reference.reference.get(column_name.as_str()));
-            reference.insert(*column_input_index as usize, counter as usize);
+            reference.insert(*column_input_index, counter as usize);
             store.push(normaliser);
             store_ref.push(column_name);
             counter += 1;
@@ -184,10 +186,10 @@ pub mod tests {
         assert_eq!(normaliser_map.reference.len(), 4);
         assert_eq!(normaliser_map.store.len(), 4);
 
-        assert_eq!(normaliser_map.reference.get(&0).unwrap(), &0);
-        assert_eq!(normaliser_map.reference.get(&1).unwrap(), &1);
-        assert_eq!(normaliser_map.reference.get(&2).unwrap(), &2);
-        assert_eq!(normaliser_map.reference.get(&4).unwrap(), &3);
+        assert_eq!(normaliser_map.reference[&0], 0);
+        assert_eq!(normaliser_map.reference[&1], 1);
+        assert_eq!(normaliser_map.reference[&2], 2);
+        assert_eq!(normaliser_map.reference[&4], 3);
     }
 
     #[test]
@@ -211,7 +213,10 @@ pub mod tests {
         let mut normaliser_map = NormaliserMap::from_string(data, &key_bindings).unwrap();
 
         let _ = normaliser_map.add_normaliser(
-            NormaliserType::LinearScaling(linear_scaling::LinearScaling { min: 0.0, max: 1.0 }),
+            NormaliserType::LinearScaling(linear_scaling::LinearScaling {
+                min: 0.0,
+                max: 1.0,
+            }),
             "d".to_string(),
             &key_bindings,
         );
@@ -219,11 +224,11 @@ pub mod tests {
         assert_eq!(normaliser_map.reference.len(), 5);
         assert_eq!(normaliser_map.store.len(), 5);
 
-        assert_eq!(normaliser_map.reference.get(&0).unwrap(), &0);
-        assert_eq!(normaliser_map.reference.get(&1).unwrap(), &1);
-        assert_eq!(normaliser_map.reference.get(&2).unwrap(), &2);
-        assert_eq!(normaliser_map.reference.get(&4).unwrap(), &3);
-        assert_eq!(normaliser_map.reference.get(&3).unwrap(), &4);
+        assert_eq!(normaliser_map.reference[&0], 0);
+        assert_eq!(normaliser_map.reference[&1], 1);
+        assert_eq!(normaliser_map.reference[&2], 2);
+        assert_eq!(normaliser_map.reference[&4], 3);
+        assert_eq!(normaliser_map.reference[&3], 4);
 
         assert_eq!(normaliser_map.store_ref[0], "a");
         assert_eq!(normaliser_map.store_ref[1], "b");
@@ -239,10 +244,8 @@ pub mod tests {
 
         let normaliser_map = NormaliserMap::from_string(data, &key_bindings).unwrap();
 
-        let normaliser = normaliser_map
-            .get_normaliser("e".to_string(), &key_bindings)
-            .unwrap()
-            .unwrap();
+        let normaliser =
+            normaliser_map.get_normaliser("e".to_string(), &key_bindings).unwrap().unwrap();
 
         match normaliser {
             NormaliserType::ZScore(z_score) => {

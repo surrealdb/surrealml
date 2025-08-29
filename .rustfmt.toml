@@ -1,0 +1,13 @@
+edition = "2021"
+merge_derives = true
+reorder_imports = true
+reorder_modules = true
+use_field_init_shorthand = true
+use_small_heuristics = "Off"
+
+imports_granularity = "Module"
+imports_layout = "HorizontalVertical"
+group_imports = "StdExternalCrate"
+wrap_comments = true
+
+comment_width = 100

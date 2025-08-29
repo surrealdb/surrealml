@@ -8,8 +8,6 @@ pub mod output;
 pub mod string_value;
 pub mod version;
 
-use crate::errors::error::{SurrealError, SurrealErrorStatus};
-use crate::safe_eject;
 use engine::Engine;
 use input_dims::InputDims;
 use keys::KeyBindings;
@@ -20,11 +18,15 @@ use output::Output;
 use string_value::StringValue;
 use version::Version;
 
+use crate::errors::error::{SurrealError, SurrealErrorStatus};
+use crate::safe_eject;
+
 /// The header of the model file.
 ///
 /// # Fields
 /// * `keys` - The key bindings where the order of the input columns is stored.
-/// * `normalisers` - The normalisers where the normalisation functions are stored per column if there are any.
+/// * `normalisers` - The normalisers where the normalisation functions are stored per column if
+///   there are any.
 /// * `output` - The output where the output column name and normaliser are stored if there are any.
 /// * `name` - The name of the model.
 /// * `version` - The version of the model.
@@ -88,8 +90,9 @@ impl Header {
         self.description = StringValue::from_string(description);
     }
 
-    /// Adds a column name to the `self.keys` field. It must be noted that the order in which the columns are added is
-    /// the order in which they will be expected in the input data. We can do this with the followng example:
+    /// Adds a column name to the `self.keys` field. It must be noted that the order in which the
+    /// columns are added is the order in which they will be expected in the input data. We can do
+    /// this with the followng example:
     ///
     /// # Arguments
     /// * `column_name` - The name of the column to be added.
@@ -107,8 +110,7 @@ impl Header {
         column_name: String,
         normaliser: NormaliserType,
     ) -> Result<(), SurrealError> {
-        self.normalisers
-            .add_normaliser(normaliser, column_name, &self.keys)?;
+        self.normalisers.add_normaliser(normaliser, column_name, &self.keys)?;
         Ok(())
     }
 
@@ -123,8 +125,7 @@ impl Header {
         &self,
         column_name: &String,
     ) -> Result<Option<&NormaliserType>, SurrealError> {
-        self.normalisers
-            .get_normaliser(column_name.to_string(), &self.keys)
+        self.normalisers.get_normaliser(column_name.to_string(), &self.keys)
     }
 
     /// Adds an output column to the `self.output` field.
@@ -178,16 +179,17 @@ impl Header {
 
         let buffer = string_data.split(Self::delimiter()).collect::<Vec<&str>>();
 
-        let keys: KeyBindings = KeyBindings::from_string(buffer.get(1).unwrap_or(&"").to_string());
+        let keys: KeyBindings =
+            KeyBindings::from_string((*buffer.get(1).unwrap_or(&"")).to_string());
         let normalisers =
-            NormaliserMap::from_string(buffer.get(2).unwrap_or(&"").to_string(), &keys)?;
-        let output = Output::from_string(buffer.get(3).unwrap_or(&"").to_string())?;
-        let name = StringValue::from_string(buffer.get(4).unwrap_or(&"").to_string());
-        let version = Version::from_string(buffer.get(5).unwrap_or(&"").to_string())?;
-        let description = StringValue::from_string(buffer.get(6).unwrap_or(&"").to_string());
-        let engine = Engine::from_string(buffer.get(7).unwrap_or(&"").to_string());
-        let origin = Origin::from_string(buffer.get(8).unwrap_or(&"").to_string())?;
-        let input_dims = InputDims::from_string(buffer.get(9).unwrap_or(&"").to_string());
+            NormaliserMap::from_string((*buffer.get(2).unwrap_or(&"")).to_string(), &keys)?;
+        let output = Output::from_string((*buffer.get(3).unwrap_or(&"")).to_string())?;
+        let name = StringValue::from_string((*buffer.get(4).unwrap_or(&"")).to_string());
+        let version = Version::from_string((*buffer.get(5).unwrap_or(&"")).to_string())?;
+        let description = StringValue::from_string((*buffer.get(6).unwrap_or(&"")).to_string());
+        let engine = Engine::from_string((*buffer.get(7).unwrap_or(&"")).to_string());
+        let origin = Origin::from_string((*buffer.get(8).unwrap_or(&"")).to_string())?;
+        let input_dims = InputDims::from_string((*buffer.get(9).unwrap_or(&"")).to_string());
         Ok(Header {
             keys,
             normalisers,
@@ -228,10 +230,11 @@ impl Header {
 mod tests {
 
     use super::keys::tests::generate_string as generate_key_string;
+    use super::normalisers::clipping::Clipping;
+    use super::normalisers::linear_scaling::LinearScaling;
+    use super::normalisers::log_scale::LogScaling;
     use super::normalisers::tests::generate_string as generate_normaliser_string;
-    use super::normalisers::{
-        clipping::Clipping, linear_scaling::LinearScaling, log_scale::LogScaling, z_score::ZScore,
-    };
+    use super::normalisers::z_score::ZScore;
     use super::*;
 
     pub fn generate_string() -> String {
@@ -256,10 +259,10 @@ mod tests {
             Engine::PyTorch,
             Header::delimiter(),
             Origin::from_string("author=>local".to_string()).unwrap(),
-// =======
-//             Origin::from_string("author=>local".to_string())
-//                 .unwrap(),
-// >>>>>>> origin/main
+            // =======
+            //             Origin::from_string("author=>local".to_string())
+            //                 .unwrap(),
+            // >>>>>>> origin/main
             Header::delimiter(),
             InputDims::from_string("1,2".to_string()),
             Header::delimiter(),
@@ -307,8 +310,8 @@ mod tests {
         let (bytes_num, bytes) = header.to_bytes();
         let string = String::from_utf8(bytes).unwrap();
 
-        // below the integers are correct but there is a difference with the decimal point representation in the string, we can alter this
-        // fairly easy and will investigate it
+        // below the integers are correct but there is a difference with the decimal point
+        // representation in the string, we can alter this fairly easy and will investigate it
         let expected_string = "//=>a=>b=>c=>d=>e=>f//=>a=>linear_scaling(0,1)//b=>clipping(0,1.5)//c=>log_scaling(10,0)//e=>z_score(0,1)//=>g=>linear_scaling(0,1)//=>test model name//=>0.0.1//=>test description//=>pytorch//=>author=>local//=>1,2//=>".to_string();
 
         assert_eq!(string, expected_string);
@@ -356,7 +359,10 @@ mod tests {
 
         let _ = header.add_normaliser(
             "a".to_string(),
-            NormaliserType::LinearScaling(LinearScaling { min: 0.0, max: 1.0 }),
+            NormaliserType::LinearScaling(LinearScaling {
+                min: 0.0,
+                max: 1.0,
+            }),
         );
         let _ = header.add_normaliser(
             "b".to_string(),
@@ -383,7 +389,10 @@ mod tests {
         assert_eq!(header.normalisers.store.len(), 4);
         assert_eq!(
             header.normalisers.store[0],
-            NormaliserType::LinearScaling(LinearScaling { min: 0.0, max: 1.0 })
+            NormaliserType::LinearScaling(LinearScaling {
+                min: 0.0,
+                max: 1.0
+            })
         );
         assert_eq!(
             header.normalisers.store[1],

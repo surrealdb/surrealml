@@ -20,3 +20,6 @@ path = "src/lib.rs"
 [features]
 default = []
 http-access = ["hf-hub"]
+
+[lints]
+workspace = true

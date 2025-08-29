@@ -1,3 +1,7 @@
+
+[config]
+default_to_workspace = false
+
 [tasks.build]
 description = "Build the project"
 command = "cargo"
@@ -13,16 +17,23 @@ description = "Run tests"
 command = "cargo"
 args = ["test"]
 
-[tasks.format]
+[tasks.fmt]
 description = "Format code using rustfmt"
+toolchain = "nightly-2025-08-07"
 command = "cargo"
 args = ["fmt", "--all"]
+
+[tasks.fmt-check]
+description = "Format code using rustfmt"
+toolchain = "nightly-2025-08-07"
+command = "cargo"
+args = ["fmt", "--check", "--all"]
 
 [tasks.lint]
 description = "Run Clippy linter"
 workspace = false
 command = "cargo"
-args = ["clippy", "--all-targets", "--all-features", "--", "-D", "warnings"]
+args = ["clippy", "--workspace", "--all-targets", "--all-features", "--", "-D", "warnings"]
 
 [tasks.clean]
 description = "Clean the project"

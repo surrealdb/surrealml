@@ -16,7 +16,9 @@ impl StringValue {
     /// # Returns
     /// A new string value with no value.
     pub fn fresh() -> Self {
-        StringValue { value: None }
+        StringValue {
+            value: None,
+        }
     }
 
     /// Creates a new string value from a string.
@@ -28,8 +30,12 @@ impl StringValue {
     /// A new string value.
     pub fn from_string(value: String) -> Self {
         match value.as_str() {
-            "" => StringValue { value: None },
-            _ => StringValue { value: Some(value) },
+            "" => StringValue {
+                value: None,
+            },
+            _ => StringValue {
+                value: Some(value),
+            },
         }
     }
 }
@@ -50,7 +56,12 @@ mod tests {
     #[test]
     fn test_fresh() {
         let string_value = StringValue::fresh();
-        assert_eq!(string_value, StringValue { value: None });
+        assert_eq!(
+            string_value,
+            StringValue {
+                value: None
+            }
+        );
     }
 
     #[test]
@@ -67,7 +78,12 @@ mod tests {
     #[test]
     fn test_from_string_none() {
         let string_value = StringValue::from_string(String::from(""));
-        assert_eq!(string_value, StringValue { value: None });
+        assert_eq!(
+            string_value,
+            StringValue {
+                value: None
+            }
+        );
     }
 
     #[test]
@@ -78,7 +94,9 @@ mod tests {
 
     #[test]
     fn test_to_string_none() {
-        let string_value = StringValue { value: None };
+        let string_value = StringValue {
+            value: None,
+        };
         assert_eq!(string_value.to_string(), String::from(""));
     }
 }
