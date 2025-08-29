@@ -190,7 +190,7 @@ setup(
     ],
     python_requires=">=3.6",
     install_requires=[
-        "numpy==1.26.3",
+        "numpy>=2.3",
     ],
     extras_require={
         "dev": [
@@ -200,7 +200,7 @@ setup(
         # If you want to be stricter, bump the lower bounds once you’ve validated.
         "sklearn": [
             "scikit-learn>=1.5",   # NumPy 2–compatible releases
-            "skl2onnx>=1.16.0",
+            "skl2onnx>=1.19.1",
         ],
         "torch": [
             "torch>=2.4",          # reliably NumPy 2–compatible
