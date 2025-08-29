@@ -2,16 +2,15 @@
 use std::fs::File;
 use std::io::{Read, Write};
 
-use crate::{
-    errors::error::{SurrealError, SurrealErrorStatus},
-    safe_eject, safe_eject_internal,
-    storage::header::Header,
-};
+use crate::errors::error::{SurrealError, SurrealErrorStatus};
+use crate::storage::header::Header;
+use crate::{safe_eject, safe_eject_internal};
 
 /// The `SurMlFile` struct represents the entire `surml` file.
 ///
 /// # Fields
-/// * `header` - The header of the `surml` file containing data such as key bindings for inputs and normalisers.
+/// * `header` - The header of the `surml` file containing data such as key bindings for inputs and
+///   normalisers.
 /// * `model` - The PyTorch model in C.
 pub struct SurMlFile {
     pub header: Header,
@@ -36,13 +35,17 @@ impl SurMlFile {
     /// Creates a new `SurMlFile` struct.
     ///
     /// # Arguments
-    /// * `header` - The header of the `surml` file containing data such as key bindings for inputs and normalisers.
+    /// * `header` - The header of the `surml` file containing data such as key bindings for inputs
+    ///   and normalisers.
     /// * `model` - The PyTorch model in C.
     ///
     /// # Returns
     /// A new `SurMlFile` struct.
     pub fn new(header: Header, model: Vec<u8>) -> Self {
-        Self { header, model }
+        Self {
+            header,
+            model,
+        }
     }
 
     /// Creates a new `SurMlFile` struct from a vector of bytes.
@@ -86,7 +89,10 @@ impl SurMlFile {
         // construct the header and C model from the bytes
         let header = Header::from_bytes(header_bytes)?;
         let model = model_bytes;
-        Ok(Self { header, model })
+        Ok(Self {
+            header,
+            model,
+        })
     }
 
     /// Creates a new `SurMlFile` struct from a file.
@@ -106,10 +112,7 @@ impl SurMlFile {
 
         // Read the next integer_value bytes for the header
         let mut header_buffer = vec![0u8; integer_value as usize];
-        safe_eject!(
-            file.read_exact(&mut header_buffer),
-            SurrealErrorStatus::BadRequest
-        );
+        safe_eject!(file.read_exact(&mut header_buffer), SurrealErrorStatus::BadRequest);
 
         // Create a Vec<u8> to store the data
         let mut model_buffer = Vec::new();

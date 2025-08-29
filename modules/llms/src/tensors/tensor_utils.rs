@@ -1,8 +1,10 @@
 //! Utilities for loading model weights into a `VarBuilder` from `.safetensors` files.
-use crate::utils::error::{SurrealError, SurrealErrorStatus};
+use std::path::PathBuf;
+
 use candle_core::{DType, Device};
 use candle_transformers::models::mimi::candle_nn::VarBuilder;
-use std::path::PathBuf;
+
+use crate::utils::error::{SurrealError, SurrealErrorStatus};
 
 /// Load model weights from a list of `.safetensors` files into a `VarBuilder`.
 /// Note, in the future we may pass the device type as an argument (see note below).
@@ -15,8 +17,8 @@ use std::path::PathBuf;
 /// * `Ok(VarBuilder)` containing all loaded variables, ready for model instantiation.
 /// * `Err(SurrealError)` with any errors.
 pub fn load_model_vars(paths: &[PathBuf], dtype: DType) -> Result<VarBuilder, SurrealError> {
-    // TO DO - For now we hardcode Device::Cpu, because elsewhere in the config we haven't supported CUDA yet.
-    // If we ever support CUDA, we can pass the device into the method.
+    // TO DO - For now we hardcode Device::Cpu, because elsewhere in the config we haven't supported
+    // CUDA yet. If we ever support CUDA, we can pass the device into the method.
     let device = Device::Cpu;
 
     for path in paths {
@@ -43,18 +45,16 @@ pub fn load_model_vars(paths: &[PathBuf], dtype: DType) -> Result<VarBuilder, Su
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+
+    use candle_core::DType;
+    use tempfile::tempdir;
+
     use super::*;
     use crate::models::model_spec::model_spec_trait::ModelSpec;
-    use crate::models::model_spec::models::mistral::Mistral;
-    use candle_core::DType;
-    use std::fs;
-    use tempfile::tempdir;
     #[cfg(feature = "local-gemma-test")]
-    use {
-        crate::{interface::load_model::load_model, models::model_spec::models::gemma::Gemma},
-        std::io::Write,
-        std::path::PathBuf,
-    };
+    use crate::models::model_spec::models::gemma::Gemma;
+    use crate::models::model_spec::models::mistral::Mistral;
 
     #[test]
     fn test_load_model_vars_missing_file_on_disk() {
@@ -105,8 +105,7 @@ mod tests {
         };
 
         assert!(
-            err.message
-                .contains("Failed to load weights via VarBuilder"),
+            err.message.contains("Failed to load weights via VarBuilder"),
             "unexpected error message: {}",
             err.message
         );
@@ -114,7 +113,8 @@ mod tests {
     }
 
     // This only runs if the `local-gemma-test` feature is enabled.
-    // For it to work you must have the Gemma-7B files already cached in Hugging Face’s default location.
+    // For it to work you must have the Gemma-7B files already cached in Hugging Face’s default
+    // location.
     #[cfg(feature = "local-gemma-test")]
     #[test]
     fn test_load_model_vars_success() {

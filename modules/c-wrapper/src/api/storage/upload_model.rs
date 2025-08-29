@@ -4,10 +4,8 @@ use std::os::raw::c_char;
 
 // External crate imports
 use base64::encode;
-use hyper::{
-    header::{HeaderValue, AUTHORIZATION, CONTENT_TYPE},
-    Body, Client, Method, Request, Uri,
-};
+use hyper::header::{HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use hyper::{Body, Client, Method, Request, Uri};
 use surrealml_core::storage::stream_adapter::StreamAdapter;
 
 // Local module imports
@@ -61,14 +59,8 @@ pub extern "C" fn upload_model(
         .method(Method::POST)
         .uri(uri)
         .header(CONTENT_TYPE, "application/octet-stream")
-        .header(
-            "surreal-ns",
-            empty_return_safe_eject!(HeaderValue::from_str(&ns)),
-        )
-        .header(
-            "surreal-db",
-            empty_return_safe_eject!(HeaderValue::from_str(&db)),
-        );
+        .header("surreal-ns", empty_return_safe_eject!(HeaderValue::from_str(&ns)))
+        .header("surreal-db", empty_return_safe_eject!(HeaderValue::from_str(&db)));
 
     let req = if username.is_some() && password.is_some() {
         // unwraps are safe because we have already checked that the values are not None

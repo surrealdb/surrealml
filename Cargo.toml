@@ -31,7 +31,6 @@ serde_json = "1.0.140"
 safetensors = "0.6.0"
 tokenizers = "0.21.2"
 
-
 [workspace.lints.clippy]
 
 # Checks for usage of `#[allow]` attribute and suggests replacing it with `#[expect]`.
@@ -45,6 +44,9 @@ allow_attributes = "warn"
 # therefore avoid allocations.
 # https://rust-lang.github.io/rust-clippy/master/#assigning_clones
 assigning_clones = "warn"
+
+# Allow using `assert_eq!` with booleans.
+bool_assert_comparison = "allow"
 
 # Checks for the usage of `as _` conversion using inferred type.
 # https://rust-lang.github.io/rust-clippy/master/#cloned_instead_of_copied

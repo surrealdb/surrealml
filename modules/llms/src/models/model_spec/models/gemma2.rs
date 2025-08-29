@@ -1,12 +1,12 @@
 //! Utilities for working with **preset Gemma-2 model configurations**.
 
-use crate::models::model_spec::model_spec_trait::ModelSpec;
-use crate::utils::error::{SurrealError, SurrealErrorStatus};
 use candle_nn::activation::Activation;
-use candle_transformers::models::gemma2::Config as Gemma2Config;
-use candle_transformers::models::gemma2::Model as Gemma2Model;
+use candle_transformers::models::gemma2::{Config as Gemma2Config, Model as Gemma2Model};
 use candle_transformers::models::mimi::candle_nn::VarBuilder;
 use surrealml_tokenizers::Tokenizer;
+
+use crate::models::model_spec::model_spec_trait::ModelSpec;
+use crate::utils::error::{SurrealError, SurrealErrorStatus};
 
 /// Marker type for the **Gemma-2** family.
 ///
@@ -100,8 +100,9 @@ impl ModelSpec for Gemma2 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use candle_transformers::models::gemma2::Config as Upstream;
+
+    use super::*;
 
     /// Config must equal the manually constructed `Gemma2Config` values.
     #[test]

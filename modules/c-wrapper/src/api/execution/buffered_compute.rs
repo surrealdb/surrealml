@@ -1,9 +1,12 @@
-//! This module contains the buffered_compute function that is called from the C API to compute the model.
-use crate::state::STATE;
-use crate::utils::Vecf32Return;
+//! This module contains the buffered_compute function that is called from the C API to compute the
+//! model.
 use std::collections::HashMap;
 use std::ffi::{c_char, c_float, c_int, CStr, CString};
+
 use surrealml_core::execution::compute::ModelComputation;
+
+use crate::state::STATE;
+use crate::utils::Vecf32Return;
 
 /// Computes the model with the given data.
 ///
@@ -88,9 +91,7 @@ pub extern "C" fn buffered_compute(
                 length: 0,
                 capacity: 0,
                 is_error: 1,
-                error_message: CString::new("null string passed in as key")
-                    .unwrap()
-                    .into_raw(),
+                error_message: CString::new("null string passed in as key").unwrap().into_raw(),
             };
         }
     }
@@ -147,7 +148,9 @@ pub extern "C" fn buffered_compute(
             }
         }
     };
-    let compute_unit = ModelComputation { surml_file: file };
+    let compute_unit = ModelComputation {
+        surml_file: file,
+    };
     match compute_unit.buffered_compute(&mut input_map) {
         Ok(mut output) => {
             let output_len = output.len();

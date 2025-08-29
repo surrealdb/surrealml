@@ -1,7 +1,8 @@
 //! Utils for returning C types and processing null pointers for raw C inputs.
-use crate::interfaces::tokenizers::TokenizerHandle;
 use std::ffi::CString;
 use std::os::raw::{c_char, c_int};
+
+use crate::interfaces::tokenizers::TokenizerHandle;
 
 /// Checks that the pointer to the string is not null and converts to a Rust `String`.
 /// On error, returns early from the enclosing function with a `TokenizerReturn::error`.
@@ -121,7 +122,8 @@ pub extern "C" fn free_tokenizer_return(tokenizer_return: TokenizerReturn) {
     }
 }
 
-/// Checks that the pointer to the string is not null and converts to a Rust string. Any errors are returned as a `StringReturn`.
+/// Checks that the pointer to the string is not null and converts to a Rust string. Any errors are
+/// returned as a `StringReturn`.
 ///
 /// # Arguments
 /// * `str_ptr` - The pointer to the string.
@@ -218,8 +220,8 @@ pub extern "C" fn free_string_return(string_return: StringReturn) {
 /// On error, returns early from the enclosing function with a `VecU32Return::error`.  
 ///  
 /// # Arguments  
-/// * `str_ptr` — The pointer to the C string.  
-/// * `var_name` — The name of the variable being processed (for error messages).  
+/// * `str_ptr` — The pointer to the C string.
+/// * `var_name` — The name of the variable being processed (for error messages).
 #[macro_export]
 macro_rules! process_string_for_vecu32_return {
     ($str_ptr:expr, $var_name:expr) => {{

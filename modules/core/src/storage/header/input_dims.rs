@@ -16,7 +16,9 @@ impl InputDims {
     /// # Returns
     /// A new `InputDims` struct with all zeros.
     pub fn fresh() -> Self {
-        InputDims { dims: [0, 0] }
+        InputDims {
+            dims: [0, 0],
+        }
     }
 
     /// Creates a new `InputDims` struct from a string.

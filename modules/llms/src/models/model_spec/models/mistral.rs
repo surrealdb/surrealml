@@ -1,19 +1,17 @@
 //! Utilities for working with **preset Mistral model configurations**.
 
+use candle_transformers::models::mimi::candle_nn::VarBuilder;
+use candle_transformers::models::mistral::{Config as MistralConfig, Model as MistralModel};
+use surrealml_tokenizers::Tokenizer;
+
 use crate::models::model_spec::model_spec_trait::ModelSpec;
 use crate::utils::error::{SurrealError, SurrealErrorStatus};
-use candle_transformers::models::mimi::candle_nn::VarBuilder;
-use candle_transformers::models::mistral::Config as MistralConfig;
-use candle_transformers::models::mistral::Model as MistralModel;
-use surrealml_tokenizers::Tokenizer;
 
 /// All the Mistral checkpoints we support, by name.
 ///
-/// * `V7bV0_1` — Mistral-7B-v0.1  
-///   <https://huggingface.co/mistralai/Mistral-7B-v0.1/blob/main/config.json>
+/// * `V7bV0_1` — Mistral-7B-v0.1   <https://huggingface.co/mistralai/Mistral-7B-v0.1/blob/main/config.json>
 ///
-/// * `AmazonLite` — amazon/MistralLite  
-///   <https://huggingface.co/amazon/MistralLite/blob/main/config.json>
+/// * `AmazonLite` — amazon/MistralLite   <https://huggingface.co/amazon/MistralLite/blob/main/config.json>
 pub enum Mistral {
     V7bV0_1,
     AmazonLite,
@@ -103,9 +101,10 @@ impl ModelSpec for Mistral {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use candle_nn::Activation;
     use candle_transformers::models::mistral::Config as Upstream;
+
+    use super::*;
 
     /// Enum-based config must equal the canonical upstream `config_7b_v0_1(false)`
     /// and have the expected field values.

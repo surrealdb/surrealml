@@ -1,7 +1,8 @@
 //! The interface for running a model.
+use surrealml_tokenizers::{encode, load_local_tokenizer};
+
 use crate::models::model_wrapper::ModelWrapper;
 use crate::utils::error::{SurrealError, SurrealErrorStatus};
-use surrealml_tokenizers::{encode, load_local_tokenizer};
 
 /// Runs a model that has been loaded.
 ///
@@ -25,11 +26,7 @@ pub fn run_model(
     // isn't enabled, so we aren't passing in the `hf_token` parameter.
     let tokenizer = load_local_tokenizer(model.to_string()).map_err(|e| {
         SurrealError::new(
-            format!(
-                "Failed to load tokenizer for model '{}': {}",
-                model.to_string(),
-                e
-            ),
+            format!("Failed to load tokenizer for model '{model}': {e}"),
             SurrealErrorStatus::NotFound,
         )
     })?;
@@ -48,7 +45,6 @@ pub fn run_model(
 #[cfg(test)]
 mod tests {
 
-    use super::*;
     use std::str::FromStr;
 
     #[cfg(feature = "local-gemma-test")]
@@ -59,8 +55,9 @@ mod tests {
         },
         candle_core::DType,
         std::path::PathBuf,
-        tempfile::tempdir,
     };
+
+    use super::*;
 
     /// Local Gemma → `run_model` should succeed and return some text
     #[cfg(feature = "local-gemma-test")]
@@ -70,12 +67,7 @@ mod tests {
         let home = std::env::var("HOME").unwrap();
         let base =
             PathBuf::from(home).join(".cache/huggingface/hub/models--google--gemma-7b/snapshots");
-        let snapshot = std::fs::read_dir(&base)
-            .unwrap()
-            .next()
-            .unwrap()
-            .unwrap()
-            .path();
+        let snapshot = std::fs::read_dir(&base).unwrap().next().unwrap().unwrap().path();
 
         let names = Gemma.return_tensor_filenames();
         let paths: Vec<PathBuf> = names.into_iter().map(|f| snapshot.join(f)).collect();

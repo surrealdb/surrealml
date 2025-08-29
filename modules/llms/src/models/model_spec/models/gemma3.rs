@@ -1,12 +1,12 @@
 //! Utilities for working with **preset Gemma-3 model configurations**.
 
-use crate::models::model_spec::model_spec_trait::ModelSpec;
-use crate::utils::error::{SurrealError, SurrealErrorStatus};
 use candle_nn::activation::Activation;
-use candle_transformers::models::gemma3::Config as Gemma3Config;
-use candle_transformers::models::gemma3::Model as Gemma3Model;
+use candle_transformers::models::gemma3::{Config as Gemma3Config, Model as Gemma3Model};
 use candle_transformers::models::mimi::candle_nn::VarBuilder;
 use surrealml_tokenizers::Tokenizer;
+
+use crate::models::model_spec::model_spec_trait::ModelSpec;
+use crate::utils::error::{SurrealError, SurrealErrorStatus};
 
 /// Marker type for the **Gemma-3** family.
 ///
@@ -99,8 +99,9 @@ impl ModelSpec for Gemma3 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use candle_transformers::models::gemma3::Config as Upstream;
+
+    use super::*;
 
     /// Config must equal the manually constructed `Gemma3Config` values.
     #[test]

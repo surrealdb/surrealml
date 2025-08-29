@@ -144,27 +144,18 @@ pub extern "C" fn add_output(
     let normaliser_label = if normaliser_label_ptr.is_null() {
         None
     } else {
-        Some(process_string_for_empty_return!(
-            normaliser_label_ptr,
-            "normaliser label"
-        ))
+        Some(process_string_for_empty_return!(normaliser_label_ptr, "normaliser label"))
     };
 
     let one = if one.is_null() {
         None
     } else {
-        Some(empty_return_safe_eject!(process_string_for_empty_return!(
-            one, "one"
-        )
-        .parse::<f32>()))
+        Some(empty_return_safe_eject!(process_string_for_empty_return!(one, "one").parse::<f32>()))
     };
     let two = if two.is_null() {
         None
     } else {
-        Some(empty_return_safe_eject!(process_string_for_empty_return!(
-            two, "two"
-        )
-        .parse::<f32>()))
+        Some(empty_return_safe_eject!(process_string_for_empty_return!(two, "two").parse::<f32>()))
     };
 
     let mut state = STATE.lock().unwrap();
@@ -202,9 +193,6 @@ pub extern "C" fn add_normaliser(
     let normaliser = NormaliserType::new(normaliser_label, one, two);
     let mut state = STATE.lock().unwrap();
     let file = empty_return_safe_eject!(state.get_mut(&file_id), "Model not found", Option);
-    let _ = file
-        .header
-        .normalisers
-        .add_normaliser(normaliser, column_name, &file.header.keys);
+    let _ = file.header.normalisers.add_normaliser(normaliser, column_name, &file.header.keys);
     EmptyReturn::success()
 }

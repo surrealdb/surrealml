@@ -1,11 +1,12 @@
 //! High‑level helpers for **tokenizer** loading & (de‑)coding.
-use crate::error::{SurrealError, SurrealErrorStatus};
-use crate::preset_tokenizers::PresetTokenizers;
 use std::str::FromStr;
+
 use tokenizers::Tokenizer;
 
+use crate::error::{SurrealError, SurrealErrorStatus};
 #[cfg(feature = "http-access")]
 use crate::fetch_tokenizer::{fetch_tokenizer, load_tokenizer_from_file};
+use crate::preset_tokenizers::PresetTokenizers;
 
 /// Load a [`Tokenizer`] by **model name**.
 ///
@@ -107,10 +108,7 @@ mod tests {
 
         // Quick sanity check - encoding a non-empty string yields at least one id.
         let ids = encode(&tokenizer, "Hello from a preset!").expect("encode failed");
-        assert!(
-            !ids.is_empty(),
-            "expected non-empty token id vector from encode()"
-        );
+        assert!(!ids.is_empty(), "expected non-empty token id vector from encode()");
     }
 
     #[cfg(not(feature = "http-access"))]
@@ -125,10 +123,7 @@ mod tests {
     fn encode_returns_non_empty_ids() {
         let tok = mixtral_tok();
         let ids = encode(&tok, "hello again").expect("encode failed");
-        assert!(
-            !ids.is_empty(),
-            "expected at least one token id for a non-empty string"
-        );
+        assert!(!ids.is_empty(), "expected at least one token id for a non-empty string");
     }
 
     #[test]

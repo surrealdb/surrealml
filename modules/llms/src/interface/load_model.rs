@@ -1,30 +1,31 @@
 //! Utilities for loading a checkpoint into a `ModelWrapper`, either from
 //! local `.safetensors` files or (optionally) by fetching them over HTTP.
+use std::path::PathBuf;
+use std::str::FromStr;
+
+use candle_core::DType;
+
 use crate::models::model_wrapper::ModelWrapper;
 use crate::tensors::fetch_tensors::fetch_safetensors;
 use crate::tensors::tensor_utils::load_model_vars;
 use crate::utils::error::SurrealError;
-use candle_core::DType;
-use std::path::PathBuf;
-use std::str::FromStr;
 
 /// Load and initialise a model given its Hugging-Face ID or local tensor files.
 ///
 /// Attempts to parse `model_id` into a [`ModelWrapper`] (via
 /// [`FromStr`]).  Then:
 /// 1. If `paths` is `Some(vec![...])`, loads weights from those files.
-/// 2. Otherwise, if the `"http-access"` feature is enabled, fetches them
-///    from the Hub using `model_id` and an optional token.
+/// 2. Otherwise, if the `"http-access"` feature is enabled, fetches them from the Hub using
+///    `model_id` and an optional token.
 /// 3. If neither applies, returns an error.
 ///
 /// # Arguments
 ///
 /// * `model_id` — e.g. `"google/gemma-7b"`, `"tiiuae/falcon-7b"`.
 /// * `dtype` — the numeric type of the model weights (`DType::F32`, `DType::F16`, etc.).
-/// * `paths` — local filesystem paths to the `.safetensors` shards (in order),
-///   if already downloaded.
-/// * `optional_hf_token` — an OAuth token for private repos; ignored if
-///   `paths` is `Some`.
+/// * `paths` — local filesystem paths to the `.safetensors` shards (in order), if already
+///   downloaded.
+/// * `optional_hf_token` — an OAuth token for private repos; ignored if `paths` is `Some`.
 ///
 /// # Returns
 ///
@@ -65,17 +66,18 @@ mod tests {
     //! 2) http-access + local-gemma-test,
     //! 3) error cases.
 
-    use super::*;
-    use crate::utils::error::SurrealErrorStatus;
+    #[cfg(feature = "local-gemma-test")]
+    use std::path::PathBuf;
+
     use candle_core::DType;
     use tempfile::tempdir;
 
+    use super::*;
     #[cfg(feature = "local-gemma-test")]
     use crate::models::model_spec::model_spec_trait::ModelSpec;
     #[cfg(feature = "local-gemma-test")]
     use crate::models::model_spec::models::gemma::Gemma;
-    #[cfg(feature = "local-gemma-test")]
-    use std::path::PathBuf;
+    use crate::utils::error::SurrealErrorStatus;
 
     /// Local paths + `local-gemma-test` → success
     #[cfg(feature = "local-gemma-test")]
@@ -85,12 +87,7 @@ mod tests {
         let home = std::env::var("HOME").unwrap();
         let base =
             PathBuf::from(home).join(".cache/huggingface/hub/models--google--gemma-7b/snapshots");
-        let snapshot = std::fs::read_dir(&base)
-            .unwrap()
-            .next()
-            .unwrap()
-            .unwrap()
-            .path();
+        let snapshot = std::fs::read_dir(&base).unwrap().next().unwrap().unwrap().path();
 
         let names = Gemma.return_tensor_filenames();
         let paths: Vec<PathBuf> = names.into_iter().map(|f| snapshot.join(f)).collect();

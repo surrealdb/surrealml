@@ -1,9 +1,8 @@
 //! Defines the process of managing the version of the `surml` file in the file.
-use crate::{
-    errors::error::{SurrealError, SurrealErrorStatus},
-    safe_eject, safe_eject_option,
-};
 use std::fmt;
+
+use crate::errors::error::{SurrealError, SurrealErrorStatus};
+use crate::{safe_eject, safe_eject_option};
 
 /// The `Version` struct represents the version of the `surml` file.
 ///

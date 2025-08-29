@@ -1,20 +1,22 @@
 //! Utilities for **remote** tokenizer access.
-use crate::error::{SurrealError, SurrealErrorStatus};
-use hf_hub::api::sync::ApiBuilder;
 use std::path::PathBuf;
+
+use hf_hub::api::sync::ApiBuilder;
 use tokenizers::Tokenizer;
+
+use crate::error::{SurrealError, SurrealErrorStatus};
 
 /// Download `tokenizer.json` for a given model from the Hugging Face Hub.
 ///
 /// # Arguments
 /// * `model_id` — Fully‑qualified model identifier, e.g. `"bert-base-uncased"`.
-/// * `hf_token` — Optional user access token.  Pass `None` for public models
-///   or when the token is already set via the `HF_TOKEN` environment variable.
+/// * `hf_token` — Optional user access token.  Pass `None` for public models or when the token is
+///   already set via the `HF_TOKEN` environment variable.
 ///
 /// # Returns
 /// * `Ok(PathBuf)` containing the local path to *tokenizer.json*.
-/// * `Err(SurrealError)` if the Hub API cannot be initialised or the file is
-///   missing in the repository.
+/// * `Err(SurrealError)` if the Hub API cannot be initialised or the file is missing in the
+///   repository.
 pub fn fetch_tokenizer(model_id: &str, hf_token: Option<&str>) -> Result<PathBuf, SurrealError> {
     let token: Option<String> = match hf_token {
         Some(token) if !token.is_empty() => Some(token.to_string()),
@@ -23,16 +25,12 @@ pub fn fetch_tokenizer(model_id: &str, hf_token: Option<&str>) -> Result<PathBuf
 
     // TODO: hoist the builder into a lazy_static and reuse between calls.
     // TODO: allow setting a custom cache path.
-    let api = ApiBuilder::new()
-        .with_token(token)
-        .with_progress(true)
-        .build()
-        .map_err(|_| {
-            SurrealError::new(
-                "Failed to initialise Hugging Face API".to_string(),
-                SurrealErrorStatus::NotFound,
-            )
-        })?;
+    let api = ApiBuilder::new().with_token(token).with_progress(true).build().map_err(|_| {
+        SurrealError::new(
+            "Failed to initialise Hugging Face API".to_string(),
+            SurrealErrorStatus::NotFound,
+        )
+    })?;
 
     let repo = api.model(model_id.to_string());
     let tokenizer_path = repo.get("tokenizer.json").map_err(|_| {
@@ -48,8 +46,7 @@ pub fn fetch_tokenizer(model_id: &str, hf_token: Option<&str>) -> Result<PathBuf
 /// Load and deserialize a tokenizer from a local *tokenizer.json* file.
 ///
 /// # Arguments
-/// * `path` — Path to *tokenizer.json* on disk, usually obtained via
-///   [`fetch_tokenizer`].
+/// * `path` — Path to *tokenizer.json* on disk, usually obtained via [`fetch_tokenizer`].
 ///
 /// # Returns
 /// * `Ok(Tokenizer)` ready to encode and decode strings.

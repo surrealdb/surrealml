@@ -1,27 +1,32 @@
 //! Defines the operations around performing computations on a loaded model.
-use crate::storage::surml_file::SurMlFile;
+use std::collections::HashMap;
+
 use ndarray::ArrayD;
 use ort::session::Session;
 use ort::value::ValueType;
-use std::collections::HashMap;
 
 use crate::errors::error::{SurrealError, SurrealErrorStatus};
 use crate::execution::session::get_session;
 use crate::safe_eject;
+use crate::storage::surml_file::SurMlFile;
 
-/// A wrapper for the loaded machine learning model so we can perform computations on the loaded model.
+/// A wrapper for the loaded machine learning model so we can perform computations on the loaded
+/// model.
 ///
 /// # Attributes
-/// * `surml_file` - The loaded machine learning model using interior mutability to allow mutable access to the model
+/// * `surml_file` - The loaded machine learning model using interior mutability to allow mutable
+///   access to the model
 pub struct ModelComputation<'a> {
     pub surml_file: &'a mut SurMlFile,
 }
 
 impl ModelComputation<'_> {
-    /// Creates a Tensor that can be used as input to the loaded model from a hashmap of keys and values.
+    /// Creates a Tensor that can be used as input to the loaded model from a hashmap of keys and
+    /// values.
     ///
     /// # Arguments
-    /// * `input_values` - A hashmap of keys and values that will be used to create the input tensor.
+    /// * `input_values` - A hashmap of keys and values that will be used to create the input
+    ///   tensor.
     ///
     /// # Returns
     /// A Tensor that can be used as input to the loaded model.
@@ -65,10 +70,12 @@ impl ModelComputation<'_> {
         Ok(dims_cache)
     }
 
-    /// Creates a Vector that can be used manipulated with other operations such as normalisation from a hashmap of keys and values.
+    /// Creates a Vector that can be used manipulated with other operations such as normalisation
+    /// from a hashmap of keys and values.
     ///
     /// # Arguments
-    /// * `input_values` - A hashmap of keys and values that will be used to create the input vector.
+    /// * `input_values` - A hashmap of keys and values that will be used to create the input
+    ///   vector.
     ///
     /// # Returns
     /// A Vector that can be used manipulated with other operations such as normalisation.
@@ -150,11 +157,9 @@ impl ModelComputation<'_> {
                 }
             }
             Err(_) => {
-                for i in safe_eject!(
-                    outputs[0].try_extract_tensor::<i64>(),
-                    SurrealErrorStatus::Unknown
-                )
-                .iter()
+                for i in
+                    safe_eject!(outputs[0].try_extract_tensor::<i64>(), SurrealErrorStatus::Unknown)
+                        .iter()
                 {
                     buffer.push(*i as f32);
                 }
@@ -163,14 +168,16 @@ impl ModelComputation<'_> {
         Ok(buffer)
     }
 
-    /// Checks the header applying normalisers if present and then performs a raw computation on the loaded model. Will
-    /// also apply inverse normalisers if present on the outputs.
+    /// Checks the header applying normalisers if present and then performs a raw computation on the
+    /// loaded model. Will also apply inverse normalisers if present on the outputs.
     ///
     /// # Notes
-    /// This function is fairly coupled and will consider breaking out the functions later on if needed.
+    /// This function is fairly coupled and will consider breaking out the functions later on if
+    /// needed.
     ///
     /// # Arguments
-    /// * `input_values` - A hashmap of keys and values that will be used to create the input tensor.
+    /// * `input_values` - A hashmap of keys and values that will be used to create the input
+    ///   tensor.
     ///
     /// # Returns
     /// The computed output tensor from the loaded model.
@@ -241,13 +248,9 @@ mod tests {
         input_values.insert(String::from("squarefoot"), 1000.0);
         input_values.insert(String::from("num_floors"), 2.0);
 
-        let raw_input = model_computation
-            .input_tensor_from_key_bindings(input_values)
-            .unwrap();
+        let raw_input = model_computation.input_tensor_from_key_bindings(input_values).unwrap();
 
-        let output = model_computation
-            .raw_compute(raw_input, Some((1, 2)))
-            .unwrap();
+        let output = model_computation.raw_compute(raw_input, Some((1, 2))).unwrap();
         assert_eq!(output.len(), 1);
         assert_eq!(output[0], 985.57745);
     }
@@ -265,9 +268,7 @@ mod tests {
         input_values.insert(String::from("squarefoot"), 1000.0);
         input_values.insert(String::from("num_floors"), 2.0);
 
-        let output = model_computation
-            .buffered_compute(&mut input_values)
-            .unwrap();
+        let output = model_computation.buffered_compute(&mut input_values).unwrap();
         assert_eq!(output.len(), 1);
     }
 
@@ -284,13 +285,9 @@ mod tests {
         input_values.insert(String::from("squarefoot"), 1000.0);
         input_values.insert(String::from("num_floors"), 2.0);
 
-        let raw_input = model_computation
-            .input_tensor_from_key_bindings(input_values)
-            .unwrap();
+        let raw_input = model_computation.input_tensor_from_key_bindings(input_values).unwrap();
 
-        let output = model_computation
-            .raw_compute(raw_input, Some((1, 2)))
-            .unwrap();
+        let output = model_computation.raw_compute(raw_input, Some((1, 2))).unwrap();
         assert_eq!(output.len(), 1);
         assert_eq!(output[0], 985.57745);
     }
@@ -308,9 +305,7 @@ mod tests {
         input_values.insert(String::from("squarefoot"), 1000.0);
         input_values.insert(String::from("num_floors"), 2.0);
 
-        let output = model_computation
-            .buffered_compute(&mut input_values)
-            .unwrap();
+        let output = model_computation.buffered_compute(&mut input_values).unwrap();
         assert_eq!(output.len(), 1);
     }
 
@@ -327,9 +322,7 @@ mod tests {
         input_values.insert(String::from("squarefoot"), 1000.0);
         input_values.insert(String::from("num_floors"), 2.0);
 
-        let raw_input = model_computation
-            .input_tensor_from_key_bindings(input_values)
-            .unwrap();
+        let raw_input = model_computation.input_tensor_from_key_bindings(input_values).unwrap();
 
         let output = model_computation.raw_compute(raw_input, None).unwrap();
         assert_eq!(output.len(), 1);
@@ -348,9 +341,7 @@ mod tests {
         input_values.insert(String::from("squarefoot"), 1000.0);
         input_values.insert(String::from("num_floors"), 2.0);
 
-        let output = model_computation
-            .buffered_compute(&mut input_values)
-            .unwrap();
+        let output = model_computation.buffered_compute(&mut input_values).unwrap();
         assert_eq!(output.len(), 1);
     }
 
@@ -367,9 +358,7 @@ mod tests {
         input_values.insert(String::from("squarefoot"), 1000.0);
         input_values.insert(String::from("num_floors"), 2.0);
 
-        let raw_input = model_computation
-            .input_tensor_from_key_bindings(input_values)
-            .unwrap();
+        let raw_input = model_computation.input_tensor_from_key_bindings(input_values).unwrap();
 
         let output = model_computation.raw_compute(raw_input, None).unwrap();
         assert_eq!(output.len(), 1);
@@ -388,9 +377,7 @@ mod tests {
         input_values.insert(String::from("squarefoot"), 1000.0);
         input_values.insert(String::from("num_floors"), 2.0);
 
-        let output = model_computation
-            .buffered_compute(&mut input_values)
-            .unwrap();
+        let output = model_computation.buffered_compute(&mut input_values).unwrap();
         assert_eq!(output.len(), 1);
     }
 }

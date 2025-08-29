@@ -22,3 +22,6 @@ path = "src/lib.rs"
 [features]
 http-access = []
 local-gemma-test = []
+
+[lints]
+workspace = true

@@ -1,12 +1,9 @@
 //! Defines the constructing and storing of normalisers.
-use super::clipping;
-use super::linear_scaling;
-use super::log_scale;
-use super::traits::Normaliser;
-use super::utils::{extract_label, extract_two_numbers};
-use super::z_score;
 use std::fmt;
 
+use super::traits::Normaliser;
+use super::utils::{extract_label, extract_two_numbers};
+use super::{clipping, linear_scaling, log_scale, z_score};
 use crate::errors::error::{SurrealError, SurrealErrorStatus};
 use crate::safe_eject_option;
 
@@ -37,9 +34,10 @@ impl NormaliserType {
     /// A new normaliser.
     pub fn new(label: String, one: f32, two: f32) -> Self {
         match label.as_str() {
-            "linear_scaling" => {
-                NormaliserType::LinearScaling(linear_scaling::LinearScaling { min: one, max: two })
-            }
+            "linear_scaling" => NormaliserType::LinearScaling(linear_scaling::LinearScaling {
+                min: one,
+                max: two,
+            }),
             "clipping" => NormaliserType::Clipping(clipping::Clipping {
                 min: Some(one),
                 max: Some(two),
@@ -89,7 +87,10 @@ impl NormaliserType {
             "linear_scaling" => {
                 let min = numbers[0];
                 let max = numbers[1];
-                NormaliserType::LinearScaling(linear_scaling::LinearScaling { min, max })
+                NormaliserType::LinearScaling(linear_scaling::LinearScaling {
+                    min,
+                    max,
+                })
             }
             "clipping" => {
                 let min = numbers[0];
@@ -102,12 +103,18 @@ impl NormaliserType {
             "log_scaling" => {
                 let base = numbers[0];
                 let min = numbers[1];
-                NormaliserType::LogScaling(log_scale::LogScaling { base, min })
+                NormaliserType::LogScaling(log_scale::LogScaling {
+                    base,
+                    min,
+                })
             }
             "z_score" => {
                 let mean = numbers[0];
                 let std_dev = numbers[1];
-                NormaliserType::ZScore(z_score::ZScore { mean, std_dev })
+                NormaliserType::ZScore(z_score::ZScore {
+                    mean,
+                    std_dev,
+                })
             }
             _ => {
                 let error = SurrealError::new(
@@ -180,16 +187,20 @@ mod tests {
     use super::*;
 
     pub fn generate_string() -> String {
-        let normaliser =
-            NormaliserType::LinearScaling(linear_scaling::LinearScaling { min: 0.0, max: 1.0 });
+        let normaliser = NormaliserType::LinearScaling(linear_scaling::LinearScaling {
+            min: 0.0,
+            max: 1.0,
+        });
         let column_name = "column_name".to_string();
         format!("{}=>{}", column_name, normaliser)
     }
 
     #[test]
     fn test_normaliser_type_to_string() {
-        let normaliser =
-            NormaliserType::LinearScaling(linear_scaling::LinearScaling { min: 0.0, max: 1.0 });
+        let normaliser = NormaliserType::LinearScaling(linear_scaling::LinearScaling {
+            min: 0.0,
+            max: 1.0,
+        });
         assert_eq!(normaliser.to_string(), "linear_scaling(0,1)");
     }
 
@@ -199,7 +210,10 @@ mod tests {
         let (normaliser, column_name) = NormaliserType::from_string(normaliser_string).unwrap();
         assert_eq!(
             normaliser,
-            NormaliserType::LinearScaling(linear_scaling::LinearScaling { min: 0.0, max: 1.0 })
+            NormaliserType::LinearScaling(linear_scaling::LinearScaling {
+                min: 0.0,
+                max: 1.0
+            })
         );
         assert_eq!(column_name, "column_name");
     }

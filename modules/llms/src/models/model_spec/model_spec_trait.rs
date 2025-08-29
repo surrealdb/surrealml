@@ -1,13 +1,15 @@
 //! Defines the trait that all models need to implement to interface with the rest of the system.
-use crate::utils::error::SurrealError;
 use candle_transformers::models::mimi::candle_nn::VarBuilder;
 use surrealml_tokenizers::Tokenizer;
+
+use crate::utils::error::SurrealError;
 
 /// Trait every preset model enum or struct implements.
 ///
 /// * `type Cfg`- the type of the config for this model.
 /// * `fn config(&self)` — returns a ready-to-use instance of that struct.
-/// * `fn return_tensor_filenames(&self)` — returns a vector of tensor filenames associated with the model.
+/// * `fn return_tensor_filenames(&self)` — returns a vector of tensor filenames associated with the
+///   model.
 /// * `fn return_loaded_model(&self, vb)` — returns the loaded model object.
 pub trait ModelSpec {
     type Cfg;

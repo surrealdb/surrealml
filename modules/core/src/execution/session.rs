@@ -1,22 +1,20 @@
 //! Defines the session module for the execution module.
-use crate::errors::error::{SurrealError, SurrealErrorStatus};
-use crate::safe_eject;
-use onnx_embedding::embed_onnx;
-use ort::session::Session;
+use std::io::Cursor;
 use std::path::PathBuf;
 
+use onnx_embedding::embed_onnx;
 #[cfg(feature = "dynamic")]
 use ort::environment::EnvironmentBuilder;
-use tempfile::TempDir;
-
-use std::io::Cursor;
-use tempfile::tempdir;
-use zip::ZipArchive;
-
 #[cfg(feature = "gpu")]
 use ort::execution_providers::CUDAExecutionProvider;
 #[cfg(feature = "gpu")]
 use ort::execution_providers::ExecutionProvider;
+use ort::session::Session;
+use tempfile::{tempdir, TempDir};
+use zip::ZipArchive;
+
+use crate::errors::error::{SurrealError, SurrealErrorStatus};
+use crate::safe_eject;
 
 /// Creates a session for a model.
 ///
@@ -41,10 +39,8 @@ pub fn get_session(model_bytes: Vec<u8>) -> Result<Session, SurrealError> {
             println!("CUDA registered successfully");
         }
     }
-    let session: Session = safe_eject!(
-        builder.commit_from_memory(&model_bytes),
-        SurrealErrorStatus::Unknown
-    );
+    let session: Session =
+        safe_eject!(builder.commit_from_memory(&model_bytes), SurrealErrorStatus::Unknown);
     Ok(session)
 }
 
@@ -95,12 +91,7 @@ pub fn set_environment() -> Result<(), SurrealError> {
 
     let (extracted_lib_dir, _temp_dir) = match unzip_to_temp_dir(ONNX_BYTES) {
         Ok(package) => package,
-        Err(e) => {
-            return Err(SurrealError::new(
-                e.to_string(),
-                SurrealErrorStatus::Unknown,
-            ))
-        }
+        Err(e) => return Err(SurrealError::new(e.to_string(), SurrealErrorStatus::Unknown)),
     };
 
     let onnx_lib_path = if cfg!(target_os = "windows") {
@@ -116,13 +107,11 @@ pub fn set_environment() -> Result<(), SurrealError> {
         Ok(_env) => {
             // TODO => might look into wrapping the session in a lock but for now it seems to be
             // working in tests. Below is what the lock can look like:
-            //  pub static ORT_ENV: LazyLock<Arc<Mutex<Option<Arc<Environment>>>>> = LazyLock::new(|| Arc::new(Mutex::new(None)));
+            //  pub static ORT_ENV: LazyLock<Arc<Mutex<Option<Arc<Environment>>>>> =
+            // LazyLock::new(|| Arc::new(Mutex::new(None)));
         }
         Err(e) => {
-            return Err(SurrealError::new(
-                e.to_string(),
-                SurrealErrorStatus::Unknown,
-            ));
+            return Err(SurrealError::new(e.to_string(), SurrealErrorStatus::Unknown));
         }
     }
     Ok(())

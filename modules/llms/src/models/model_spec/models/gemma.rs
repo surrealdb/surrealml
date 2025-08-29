@@ -1,12 +1,12 @@
 //! Utilities for working with **preset Gemma model configurations**.
-use crate::models::model_spec::model_spec_trait::ModelSpec;
-use crate::utils::error::{SurrealError, SurrealErrorStatus};
 use candle_core::{DType, Device, Tensor};
 use candle_nn::activation::Activation;
-use candle_transformers::models::gemma::Config as GemmaConfig;
-use candle_transformers::models::gemma::Model as GemmaModel;
+use candle_transformers::models::gemma::{Config as GemmaConfig, Model as GemmaModel};
 use candle_transformers::models::mimi::candle_nn::VarBuilder;
 use surrealml_tokenizers::Tokenizer;
+
+use crate::models::model_spec::model_spec_trait::ModelSpec;
+use crate::utils::error::{SurrealError, SurrealErrorStatus};
 
 /// Marker type for the **Gemma** family.
 ///
@@ -145,21 +145,28 @@ impl Gemma {
         prompt: &Tensor,
     ) -> Result<(), SurrealError> {
         model.forward(prompt, 0).map(|_| ()).map_err(|e| {
-            SurrealError::new(
-                format!("Gemma warmup failed: {}", e),
-                SurrealErrorStatus::Unknown,
-            )
+            SurrealError::new(format!("Gemma warmup failed: {}", e), SurrealErrorStatus::Unknown)
         })
     }
 
     /// Autoregressively generate up to `max_steps` new tokens.
     ///
     /// # Arguments
-    /// - `model`: The already-loaded neural-network weights plus any internal state (e.g., past-key memory). It’s mutable because inference updates the model’s cached KV tensors for each new step.
-    /// - `input_ids`: The token IDs of the user-supplied prompt. The last element starts the autoregressive loop; the full slice establishes the offset so the model knows how far into the sequence it is.
-    /// - `device`: Tells the tensor library which backend to place new tensors on (CPU, CUDA GPU, Metal, etc.). Every temporary tensor (token_t, scores_t) is created on this device so that operations stay on the same accelerator.
-    /// - `max_steps`: Hard ceiling on how many new tokens the function will try to generate. The loop breaks early on EOS (token ID 2) but never exceeds this count, preventing runaway inference.
-    /// - `tokenizer`: Used twice: (1) to turn the winning prev_id into human-readable text that gets appended to output; (2) to handle byte-pair/word-piece quirks such as merging spaces (decode(&[prev_id], true)).
+    /// - `model`: The already-loaded neural-network weights plus any internal state (e.g., past-key
+    ///   memory). It’s mutable because inference updates the model’s cached KV tensors for each new
+    ///   step.
+    /// - `input_ids`: The token IDs of the user-supplied prompt. The last element starts the
+    ///   autoregressive loop; the full slice establishes the offset so the model knows how far into
+    ///   the sequence it is.
+    /// - `device`: Tells the tensor library which backend to place new tensors on (CPU, CUDA GPU,
+    ///   Metal, etc.). Every temporary tensor (token_t, scores_t) is created on this device so that
+    ///   operations stay on the same accelerator.
+    /// - `max_steps`: Hard ceiling on how many new tokens the function will try to generate. The
+    ///   loop breaks early on EOS (token ID 2) but never exceeds this count, preventing runaway
+    ///   inference.
+    /// - `tokenizer`: Used twice: (1) to turn the winning prev_id into human-readable text that
+    ///   gets appended to output; (2) to handle byte-pair/word-piece quirks such as merging spaces
+    ///   (decode(&[prev_id], true)).
     ///
     /// # Returns
     /// The response string from the
@@ -172,10 +179,7 @@ impl Gemma {
     ) -> Result<String, SurrealError> {
         let mut output = String::new();
         let mut prev_id = *input_ids.last().ok_or_else(|| {
-            SurrealError::new(
-                "No tokens in prompt".to_string(),
-                SurrealErrorStatus::BadRequest,
-            )
+            SurrealError::new("No tokens in prompt".to_string(), SurrealErrorStatus::BadRequest)
         })?;
         let prompt_len = input_ids.len();
 
@@ -233,11 +237,8 @@ impl Gemma {
             })?;
 
             // greedy pick
-            let (tok, _) = scores
-                .iter()
-                .enumerate()
-                .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
-                .unwrap();
+            let (tok, _) =
+                scores.iter().enumerate().max_by(|a, b| a.1.partial_cmp(b.1).unwrap()).unwrap();
             prev_id = tok as u32;
 
             // EOS check (Gemma’s EOS might differ—adjust as needed)
@@ -247,10 +248,7 @@ impl Gemma {
 
             // decode & append
             let text = tokenizer.decode(&[prev_id], true).map_err(|e| {
-                SurrealError::new(
-                    format!("Token decode error: {}", e),
-                    SurrealErrorStatus::Unknown,
-                )
+                SurrealError::new(format!("Token decode error: {}", e), SurrealErrorStatus::Unknown)
             })?;
             output.push_str(&text);
             output.push(' ');
@@ -262,8 +260,9 @@ impl Gemma {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use candle_transformers::models::gemma::Config as Upstream;
+
+    use super::*;
 
     /// Config must equal the manually constructed `GemmaConfig` values.
     #[test]
@@ -290,9 +289,11 @@ mod tests {
     #[cfg(feature = "local-gemma-test")]
     #[test]
     fn test_return_loaded_model_success() {
-        use crate::tensors::tensor_utils::load_model_vars;
-        use candle_core::DType;
         use std::path::PathBuf;
+
+        use candle_core::DType;
+
+        use crate::tensors::tensor_utils::load_model_vars;
 
         let home = std::env::var("HOME").expect("HOME env var not set");
         let snapshot_base = PathBuf::from(home)
@@ -319,9 +320,7 @@ mod tests {
         let vb = load_model_vars(&paths, DType::F16)
             .expect("load_model_vars must succeed with real Gemma-7B weights");
 
-        let loaded = Gemma
-            .return_loaded_model(vb)
-            .expect("Gemma model should load");
+        let loaded = Gemma.return_loaded_model(vb).expect("Gemma model should load");
 
         // Type guard: `loaded` is the concrete GemmaModel.
         let _: GemmaModel = loaded;

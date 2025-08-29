@@ -8,8 +8,8 @@ use crate::safe_eject_internal;
 /// Defines the key bindings for input data.
 ///
 /// # Fields
-/// * `store` - A vector of strings that represent the column names. The order of this store is the same as the order
-///   in which the columns are expected in the input data.
+/// * `store` - A vector of strings that represent the column names. The order of this store is the
+///   same as the order in which the columns are expected in the input data.
 /// * `reference` - A hashmap that maps the column names to their index in the `self.store` field.
 #[derive(Debug, PartialEq)]
 pub struct KeyBindings {
@@ -29,8 +29,8 @@ impl KeyBindings {
         }
     }
 
-    /// Adds a column name to the `self.store` field. It must be noted that the order in which the columns are added is
-    /// the order in which they will be expected in the input data.
+    /// Adds a column name to the `self.store` field. It must be noted that the order in which the
+    /// columns are added is the order in which they will be expected in the input data.
     ///
     /// # Arguments
     /// * `column_name` - The name of the column to be added.
@@ -58,13 +58,16 @@ impl KeyBindings {
         let mut count = 0;
 
         // I'm referencing count outside of the loop and this confuses clippy
-        #[allow(clippy::explicit_counter_loop)]
+        #[expect(clippy::explicit_counter_loop)]
         for line in lines {
             store.push(line.to_string());
             reference.insert(line.to_string(), count);
             count += 1;
         }
-        KeyBindings { store, reference }
+        KeyBindings {
+            store,
+            reference,
+        }
     }
 
     /// Constructs the key bindings from bytes.
@@ -123,7 +126,10 @@ pub mod tests {
         reference.insert("d".to_string(), 3);
         reference.insert("e".to_string(), 4);
         reference.insert("f".to_string(), 5);
-        KeyBindings { store, reference }
+        KeyBindings {
+            store,
+            reference,
+        }
     }
 
     #[test]
