@@ -22,7 +22,7 @@ thiserror = "2.0.12"
 onnx-embedding = "0.1.4"
 serde = { version = "1.0", features = ["derive"] }
 tempfile = "3.20.0"
-zip = "4.1.0"
+zip = { version = "4.1.0", default-features = false }
 candle-core = "0.9.1"
 anyhow = "1.0.98"
 candle-nn = "0.9.1"
@@ -87,11 +87,3 @@ inefficient_to_string = "warn"
 # is to the left of the decimal point.
 # https://rust-lang.github.io/rust-clippy/master/#lossy_float_literal
 lossy_float_literal = "warn"
-
-# Checks for functions that are declared `async` but have no `.await`s inside of them.
-# Async functions with no async code create overhead, both mentally and computationally.
-# https://rust-lang.github.io/rust-clippy/master/#unused_async
-#
-# SurrealDB relies on async functions in the AST parser and executor to avoid stack overflows.
-# Warning or denying this lint can cause unexpected errors.
-unused_async = "allow"
