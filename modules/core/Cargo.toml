@@ -31,7 +31,7 @@ thiserror = { workspace = true }
 onnx-embedding = { workspace = true }
 serde = { workspace = true }
 tempfile = { workspace = true }
-zip = { workspace = true }
+zip = { workspace = true, default-features = false }
 surrealml-tokenizers = { path = "../tokenizers/", optional = true }
 
 [dev-dependencies]
