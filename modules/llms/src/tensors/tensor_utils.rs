@@ -14,7 +14,7 @@ use std::path::PathBuf;
 /// # Returns
 /// * `Ok(VarBuilder)` containing all loaded variables, ready for model instantiation.
 /// * `Err(SurrealError)` with any errors.
-pub fn load_model_vars(paths: &[PathBuf], dtype: DType) -> Result<VarBuilder, SurrealError> {
+pub fn load_model_vars(paths: &[PathBuf], dtype: DType) -> Result<VarBuilder<'_>, SurrealError> {
     // TO DO - For now we hardcode Device::Cpu, because elsewhere in the config we haven't supported CUDA yet.
     // If we ever support CUDA, we can pass the device into the method.
     let device = Device::Cpu;
