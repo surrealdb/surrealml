@@ -1,6 +1,6 @@
 [package]
 name = "surrealml-core"
-version = "0.1.9"
+version = "0.1.10"
 edition = "2021"
 description = "The core machine learning library for SurrealML that enables SurrealDB to store and load ML models"
 license-file = "LICENSE"
@@ -19,23 +19,23 @@ dynamic = ["ort/load-dynamic"]
 tokenizers = ["surrealml-tokenizers"]
 
 [dependencies]
-regex = { workspace = true }
-ort = { workspace = true }
-ort-sys = { workspace = true }
-ndarray = { workspace = true }
-once_cell = { workspace = true }
-bytes = { workspace = true }
-futures-util = { workspace = true }
-futures-core = { workspace = true }
-thiserror = { workspace = true }
-onnx-embedding = { workspace = true }
-serde = { workspace = true }
-tempfile = { workspace = true }
+regex.workspace = true
+ort.workspace = true
+ort-sys.workspace = true
+ndarray.workspace = true
+once_cell.workspace = true
+bytes.workspace = true
+futures-util.workspace = true
+futures-core.workspace = true
+thiserror.workspace = true
+onnx-embedding.workspace = true
+serde.workspace = true
+tempfile.workspace = true
 zip = { workspace = true, default-features = false }
 surrealml-tokenizers = { path = "../tokenizers/", optional = true }
 
 [dev-dependencies]
-tokio = { version = "1.44.2", features = ["full"] }
+tokio = { workspace = true, features = ["full"] }
 
 [lib]
 name = "surrealml_core"

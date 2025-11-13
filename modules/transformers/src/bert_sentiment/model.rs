@@ -45,7 +45,7 @@
 //! * **Feature‑complete** w.r.t. the reference PyTorch model
 //! * Unit‑tested for shape correctness (see `#[cfg(test)]` below)
 use candle_core::{Result as CandleResult, Tensor};
-use candle_nn::{linear, Dropout, Linear, Module, ModuleT, VarBuilder};
+use candle_nn::{Dropout, Linear, Module, ModuleT, VarBuilder, linear};
 use candle_transformers::models::bert::{BertModel, Config};
 
 use crate::bert_sentiment::pooler::BertPooler;
@@ -87,7 +87,12 @@ impl BertForSequenceClassification {
 
         let dropout = Dropout::new(cfg.hidden_dropout_prob as f32);
 
-        Ok(Self { bert, pooler, dropout, classifier })
+        Ok(Self {
+            bert,
+            pooler,
+            dropout,
+            classifier,
+        })
     }
 
     /// Inference helper identical to [`Self::forward`] but prints tensor shapes
@@ -118,7 +123,6 @@ impl BertForSequenceClassification {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     // Tests (shape sanity only – no training)
@@ -141,8 +145,8 @@ mod tests {
 
         let batch = 4_usize;
         let seq_len = 10_usize;
-        let ids  = Tensor::zeros((batch, seq_len), candle_core::DType::I64, device).unwrap();
-        let mask = Tensor::ones((batch, seq_len),  candle_core::DType::U8, device).unwrap();
+        let ids = Tensor::zeros((batch, seq_len), candle_core::DType::I64, device).unwrap();
+        let mask = Tensor::ones((batch, seq_len), candle_core::DType::U8, device).unwrap();
 
         let logits = model.forward(&ids, &mask).unwrap();
         assert_eq!(logits.dims(), &[batch, num_labels]);

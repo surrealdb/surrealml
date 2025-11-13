@@ -18,7 +18,7 @@
 //! ```
 
 use candle_core::{Result as CandleResult, Tensor};
-use candle_nn::{linear, Linear, Module, VarBuilder};
+use candle_nn::{Linear, Module, VarBuilder, linear};
 use candle_transformers::models::bert::Config;
 
 /// Pooling layer that converts token-level representations into a single
@@ -70,25 +70,27 @@ impl BertPooler {
         // Extract `[CLS]` token (first token in the sequence dimension).
         let cls_embedding = hidden_states
             .narrow(1, 0, 1)? // keep the first token only
-            .squeeze(1)?;    // remove the singleton dimension
+            .squeeze(1)?; // remove the singleton dimension
 
         // Apply dense layer and activation.
         self.dense.forward(&cls_embedding)?.tanh()
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use candle_core::{Device, DType, Tensor};
+    use candle_core::{DType, Device, Tensor};
 
     /// Helper that constructs a `BertPooler` with zero‑initialised weights on
     /// the CPU. Suitable for lightweight shape/property tests.
     fn build_pooler(hidden_size: usize) -> BertPooler {
         let device = &Device::Cpu;
         let vb = VarBuilder::zeros(DType::F32, device);
-        let config = Config { hidden_size, ..Default::default() };
+        let config = Config {
+            hidden_size,
+            ..Default::default()
+        };
         BertPooler::load(vb, &config).expect("failed to build pooler")
     }
 

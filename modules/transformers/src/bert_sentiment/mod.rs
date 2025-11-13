@@ -39,12 +39,12 @@
 //!
 //! ---
 
-pub mod pooler;
 pub mod model;
+pub mod pooler;
 
 use std::collections::HashMap;
 
-use candle_core::{Device, DType, Result as CandleResult, Tensor};
+use candle_core::{DType, Device, Result as CandleResult, Tensor};
 use candle_nn::VarBuilder;
 use candle_transformers::models::bert::Config;
 use serde_json;
@@ -119,7 +119,9 @@ pub fn load_label_map() -> HashMap<usize, String> {
         .map(|m| {
             m.iter()
                 .filter_map(|(k, v)| {
-                    k.parse::<usize>().ok().zip(v.as_str().map(|s| s.to_owned()))
+                    k.parse::<usize>()
+                        .ok()
+                        .zip(v.as_str().map(|s| s.to_owned()))
                 })
                 .collect()
         })
@@ -141,8 +143,8 @@ pub fn encoding_to_tensors(
     let len = ids.len();
 
     // IDs & type‑ids stay in their original integer dtype (U32).
-    let ids_tensor = Tensor::from_slice(ids, (1, len), device)?;          // U32
-    let type_ids = Tensor::zeros((1, len), DType::U32, device)?;          // U32
+    let ids_tensor = Tensor::from_slice(ids, (1, len), device)?; // U32
+    let type_ids = Tensor::zeros((1, len), DType::U32, device)?; // U32
 
     // Attention mask is expected as F32 by Candle's BERT implementation.
     let mask_tensor = Tensor::from_slice(mask, (1, len), device)?.to_dtype(DType::F32)?;
@@ -150,11 +152,10 @@ pub fn encoding_to_tensors(
     Ok((ids_tensor, type_ids, mask_tensor))
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use surrealml_tokenizers::{load_local_tokenizer, PresetTokenizers};
+    use surrealml_tokenizers::{PresetTokenizers, load_local_tokenizer};
 
     /// The model should classify clear‑cut positive/negative phrases correctly
     /// with high confidence (>95 %).
@@ -164,8 +165,14 @@ mod tests {
         let tokenizer = load_local_tokenizer(PresetTokenizers::BertBaseUncased.to_string())?;
 
         let samples = [
-            ("I absolutely love this fantastic wonderful amazing incredible movie", "positive"),
-            ("I completely hate this terrible awful horrible disgusting worst movie", "negative"),
+            (
+                "I absolutely love this fantastic wonderful amazing incredible movie",
+                "positive",
+            ),
+            (
+                "I completely hate this terrible awful horrible disgusting worst movie",
+                "negative",
+            ),
             ("This movie is good", "positive"),
             ("This movie is bad", "negative"),
             ("okay", "positive"),
@@ -174,7 +181,6 @@ mod tests {
         ];
 
         for (text, expected_label) in samples.iter() {
-
             // here is where the host code runs with the text from the WASM module
             let enc = tokenizer.encode(*text, true).unwrap();
             let (ids, _, mask) = encoding_to_tensors(&enc, &Device::Cpu)?;
@@ -190,11 +196,20 @@ mod tests {
                 .unwrap();
 
             // this is what you return to the user's WASM module
-            let predicted_label = if pred_idx == 0 { "negative" } else { "positive" };
+            let predicted_label = if pred_idx == 0 {
+                "negative"
+            } else {
+                "positive"
+            };
 
             // --- Assertions --------------------------------------------------
             assert_eq!(predicted_label, *expected_label, "{}", text);
-            assert!(confidence > 0.95, "low confidence {:.2} for \"{}\"", confidence, text);
+            assert!(
+                confidence > 0.95,
+                "low confidence {:.2} for \"{}\"",
+                confidence,
+                text
+            );
         }
 
         Ok(())
