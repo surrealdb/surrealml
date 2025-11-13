@@ -1,6 +1,6 @@
 [package]
 name = "surrealml-llms"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "An interface for loading and running models with candle transformers"
 license = "LICENSE"
