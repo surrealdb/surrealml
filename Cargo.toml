@@ -34,6 +34,7 @@ safetensors = "0.6.0"
 tokenizers = "0.21.4"
 tokio = { version = "1.44.2", features = ["full"] }
 uuid = { version = "1.18.1", features = ["v4"] }
+hf-hub = "0.4.1"
 
 
 [workspace.lints.clippy]

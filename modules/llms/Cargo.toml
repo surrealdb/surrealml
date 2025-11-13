@@ -8,12 +8,12 @@ license = "LICENSE"
 [dependencies]
 surrealml-tokenizers = { path = "../tokenizers", features = ["http-access"] }
 serde = { workspace = true, features = ["derive"] }
-hf-hub = { version = "0.4.1", features = ["tokio"] }
-thiserror = "2.0.12"
-candle-core = { workspace = true }
-candle-transformers = "0.9.1"
-candle-nn = "0.9.1"
-tempfile = "3.20.0"
+hf-hub = { workspace = true, features = ["tokio"] }
+thiserror.workspace = true
+candle-core.workspace = true
+candle-transformers.workspace = true
+candle-nn.workspace = true
+tempfile.workspace = true
 
 [lib]
 name = "surrealml_llms"

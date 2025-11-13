@@ -7,7 +7,6 @@ edition = "2024"
 surrealml-tokenizers = { path = "../tokenizers", features = ["http-access"] }
 surrealml-llms = { path = "../llms" }
 wasmtime = "34.0.2"
-wasmtime-wasi = { version = "34.0.2", features = ["preview1"] }
 bytemuck = "1.23.2"
 
 [lints]

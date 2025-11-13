@@ -9,9 +9,9 @@ license = "LICENSE"
 tokenizers = { workspace = true, default-features = false, features = [
     "unstable_wasm",
 ] }
-hf-hub = { version = "0.4.1", optional = true, features = ["tokio"] }
+hf-hub = { workspace = true, optional = true, features = ["tokio"] }
 serde = { workspace = true, features = ["derive"] }
-thiserror = "2.0.12"
+thiserror.workspace = true
 
 [lib]
 name = "surrealml_tokenizers"

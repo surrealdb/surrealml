@@ -8,7 +8,7 @@ license-file = "LICENSE"
 [dependencies]
 surrealml-core = { path = '../core', features = ["dynamic"] }
 uuid = { workspace = true, features = ["v4"] }
-ndarray = { workspace = true }
+ndarray.workspace = true
 
 # for the uploading the model to the server
 tokio = { workspace = true, features = ["full"] }
